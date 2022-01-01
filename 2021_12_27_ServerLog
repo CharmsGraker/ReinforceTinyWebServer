@@ -1,0 +1,332 @@
+2021-12-27 21:27:58.325326 [info]: timer tick
+2021-12-27 21:28:03.325354 [info]: timer tick
+2021-12-27 21:28:08.325387 [info]: timer tick
+2021-12-27 21:28:13.325421 [info]: timer tick
+2021-12-27 21:28:18.325472 [info]: timer tick
+2021-12-27 21:28:23.325506 [info]: timer tick
+2021-12-27 21:28:28.325544 [info]: timer tick
+2021-12-27 21:28:33.325582 [info]: timer tick
+2021-12-27 21:28:38.325611 [info]: timer tick
+2021-12-27 21:28:39.914532 [info]: deal with the client(127.0.0.1)
+2021-12-27 21:28:39.914593 [info]: adjust timer once
+2021-12-27 21:28:39.914624 [info]: GET / HTTP/1.1
+2021-12-27 21:28:39.914646 [info]: Host: localhost:9006
+2021-12-27 21:28:39.914652 [info]: Connection: keep-alive
+2021-12-27 21:28:39.914658 [info]: sec-ch-ua: " Not A;Brand";v="99", "Chromium";v="96", "Google Chrome";v="96"
+2021-12-27 21:28:39.914664 [info]: oop!unknow header: sec-ch-ua: " Not A;Brand";v="99", "Chromium";v="96", "Google Chrome";v="96"
+2021-12-27 21:28:39.914669 [info]: sec-ch-ua-mobile: ?0
+2021-12-27 21:28:39.914674 [info]: oop!unknow header: sec-ch-ua-mobile: ?0
+2021-12-27 21:28:39.914679 [info]: sec-ch-ua-platform: "Linux"
+2021-12-27 21:28:39.914684 [info]: oop!unknow header: sec-ch-ua-platform: "Linux"
+2021-12-27 21:28:39.914689 [info]: Upgrade-Insecure-Requests: 1
+2021-12-27 21:28:39.914693 [info]: oop!unknow header: Upgrade-Insecure-Requests: 1
+2021-12-27 21:28:39.914699 [info]: User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.45 Safari/537.36
+2021-12-27 21:28:39.914704 [info]: oop!unknow header: User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.45 Safari/537.36
+2021-12-27 21:28:39.914710 [info]: Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9
+2021-12-27 21:28:39.914715 [info]: oop!unknow header: Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9
+2021-12-27 21:28:39.914720 [info]: Sec-Fetch-Site: none
+2021-12-27 21:28:39.914724 [info]: oop!unknow header: Sec-Fetch-Site: none
+2021-12-27 21:28:39.914729 [info]: Sec-Fetch-Mode: navigate
+2021-12-27 21:28:39.914735 [info]: oop!unknow header: Sec-Fetch-Mode: navigate
+2021-12-27 21:28:39.914740 [info]: Sec-Fetch-User: ?1
+2021-12-27 21:28:39.914746 [info]: oop!unknow header: Sec-Fetch-User: ?1
+2021-12-27 21:28:39.914750 [info]: Sec-Fetch-Dest: document
+2021-12-27 21:28:39.914754 [info]: oop!unknow header: Sec-Fetch-Dest: document
+2021-12-27 21:28:39.914758 [info]: Accept-Encoding: gzip, deflate, br
+2021-12-27 21:28:39.914762 [info]: oop!unknow header: Accept-Encoding: gzip, deflate, br
+2021-12-27 21:28:39.914766 [info]: Accept-Language: zh-CN,zh;q=0.9
+2021-12-27 21:28:39.914770 [info]: oop!unknow header: Accept-Language: zh-CN,zh;q=0.9
+2021-12-27 21:28:39.914775 [info]: Cookie: _xsrf=2|b10eec3d|82a1a98f4fd8f37fe4fa9adc79a52247|1638672182; username-localhost-8888="2|1:0|10:1638672697|23:username-localhost-8888|44:NTNlM2ZiOWIwOWNhNDI1NmE5YzU5NGFjODkxMzg1YTM=|02d33ab20977c9683e46c89647825c7d45f490b8ad5704d913b74e01944666cd"
+2021-12-27 21:28:39.914781 [info]: oop!unknow header: Cookie: _xsrf=2|b10eec3d|82a1a98f4fd8f37fe4fa9adc79a52247|1638672182; username-localhost-8888="2|1:0|10:1638672697|23:username-localhost-8888|44:NTNlM2ZiOWIwOWNhNDI1NmE5YzU5NGFjODkxMzg1YTM=|02d33ab20977c9683e46c89647825c7d45f490b8ad5704d913b74e01944666cd"
+2021-12-27 21:28:39.914785 [info]: 
+2021-12-27 21:28:39.914801 [info]: request:HTTP/1.1 200 OK
+
+2021-12-27 21:28:39.914808 [info]: request:HTTP/1.1 200 OK
+Content-Length:586
+
+2021-12-27 21:28:39.914812 [info]: request:HTTP/1.1 200 OK
+Content-Length:586
+Connection:keep-alive
+
+2021-12-27 21:28:39.914816 [info]: request:HTTP/1.1 200 OK
+Content-Length:586
+Connection:keep-alive
+
+
+2021-12-27 21:28:39.950438 [info]: send data to the client(127.0.0.1)
+2021-12-27 21:28:39.950481 [info]: adjust timer once
+2021-12-27 21:28:43.325655 [info]: timer tick
+2021-12-27 21:28:48.325717 [info]: timer tick
+2021-12-27 21:28:53.325751 [info]: timer tick
+2021-12-27 21:28:58.325821 [info]: timer tick
+2021-12-27 21:29:03.325855 [info]: timer tick
+2021-12-27 21:29:08.325905 [info]: timer tick
+2021-12-27 21:29:13.325937 [info]: timer tick
+2021-12-27 21:29:20.700948 [info]: timer tick
+2021-12-27 21:29:25.701006 [info]: timer tick
+2021-12-27 21:29:30.701045 [info]: timer tick
+2021-12-27 21:29:35.701085 [info]: timer tick
+2021-12-27 21:29:45.970727 [info]: timer tick
+2021-12-27 21:30:00.671573 [info]: timer tick
+2021-12-27 21:30:11.803851 [info]: timer tick
+2021-12-27 21:30:25.554211 [info]: timer tick
+2021-12-27 21:30:30.554263 [info]: timer tick
+2021-12-27 21:30:35.554297 [info]: timer tick
+2021-12-27 21:30:36.015057 [info]: deal with the client(127.0.0.1)
+2021-12-27 21:30:36.015097 [info]: adjust timer once
+2021-12-27 21:30:36.015139 [info]: POST /0 HTTP/1.1
+2021-12-27 21:30:36.015199 [info]: Host: localhost:9006
+2021-12-27 21:30:36.015210 [info]: Connection: keep-alive
+2021-12-27 21:30:36.015218 [info]: Content-Length: 0
+2021-12-27 21:30:36.015226 [info]: Cache-Control: max-age=0
+2021-12-27 21:30:36.015233 [info]: oop!unknow header: Cache-Control: max-age=0
+2021-12-27 21:30:36.015241 [info]: sec-ch-ua: " Not A;Brand";v="99", "Chromium";v="96", "Google Chrome";v="96"
+2021-12-27 21:30:36.015248 [info]: oop!unknow header: sec-ch-ua: " Not A;Brand";v="99", "Chromium";v="96", "Google Chrome";v="96"
+2021-12-27 21:30:36.015255 [info]: sec-ch-ua-mobile: ?0
+2021-12-27 21:30:36.015262 [info]: oop!unknow header: sec-ch-ua-mobile: ?0
+2021-12-27 21:30:36.015269 [info]: sec-ch-ua-platform: "Linux"
+2021-12-27 21:30:36.015276 [info]: oop!unknow header: sec-ch-ua-platform: "Linux"
+2021-12-27 21:30:36.015283 [info]: Upgrade-Insecure-Requests: 1
+2021-12-27 21:30:36.015289 [info]: oop!unknow header: Upgrade-Insecure-Requests: 1
+2021-12-27 21:30:36.015296 [info]: Origin: http://localhost:9006
+2021-12-27 21:30:36.015302 [info]: oop!unknow header: Origin: http://localhost:9006
+2021-12-27 21:30:36.015309 [info]: Content-Type: application/x-www-form-urlencoded
+2021-12-27 21:30:36.015316 [info]: oop!unknow header: Content-Type: application/x-www-form-urlencoded
+2021-12-27 21:30:36.015323 [info]: User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.45 Safari/537.36
+2021-12-27 21:30:36.015330 [info]: oop!unknow header: User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.45 Safari/537.36
+2021-12-27 21:30:36.015337 [info]: Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9
+2021-12-27 21:30:36.015344 [info]: oop!unknow header: Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9
+2021-12-27 21:30:36.015351 [info]: Sec-Fetch-Site: same-origin
+2021-12-27 21:30:36.015357 [info]: oop!unknow header: Sec-Fetch-Site: same-origin
+2021-12-27 21:30:36.015364 [info]: Sec-Fetch-Mode: navigate
+2021-12-27 21:30:36.015371 [info]: oop!unknow header: Sec-Fetch-Mode: navigate
+2021-12-27 21:30:36.015377 [info]: Sec-Fetch-User: ?1
+2021-12-27 21:30:36.015384 [info]: oop!unknow header: Sec-Fetch-User: ?1
+2021-12-27 21:30:36.015391 [info]: Sec-Fetch-Dest: document
+2021-12-27 21:30:36.015397 [info]: oop!unknow header: Sec-Fetch-Dest: document
+2021-12-27 21:30:36.015404 [info]: Referer: http://localhost:9006/
+2021-12-27 21:30:36.015410 [info]: oop!unknow header: Referer: http://localhost:9006/
+2021-12-27 21:30:36.015417 [info]: Accept-Encoding: gzip, deflate, br
+2021-12-27 21:30:36.015423 [info]: oop!unknow header: Accept-Encoding: gzip, deflate, br
+2021-12-27 21:30:36.015430 [info]: Accept-Language: zh-CN,zh;q=0.9
+2021-12-27 21:30:36.015436 [info]: oop!unknow header: Accept-Language: zh-CN,zh;q=0.9
+2021-12-27 21:30:36.015444 [info]: Cookie: _xsrf=2|b10eec3d|82a1a98f4fd8f37fe4fa9adc79a52247|1638672182; username-localhost-8888="2|1:0|10:1638672697|23:username-localhost-8888|44:NTNlM2ZiOWIwOWNhNDI1NmE5YzU5NGFjODkxMzg1YTM=|02d33ab20977c9683e46c89647825c7d45f490b8ad5704d913b74e01944666cd"
+2021-12-27 21:30:36.015464 [info]: oop!unknow header: Cookie: _xsrf=2|b10eec3d|82a1a98f4fd8f37fe4fa9adc79a52247|1638672182; username-localhost-8888="2|1:0|10:1638672697|23:username-localhost-8888|44:NTNlM2ZiOWIwOWNhNDI1NmE5YzU5NGFjODkxMzg1YTM=|02d33ab20977c9683e46c89647825c7d45f490b8ad5704d913b74e01944666cd"
+2021-12-27 21:30:36.015471 [info]: 
+2021-12-27 21:30:36.015494 [info]: request:HTTP/1.1 200 OK
+
+2021-12-27 21:30:36.015504 [info]: request:HTTP/1.1 200 OK
+Content-Length:724
+
+2021-12-27 21:30:36.015512 [info]: request:HTTP/1.1 200 OK
+Content-Length:724
+Connection:keep-alive
+
+2021-12-27 21:30:36.015518 [info]: request:HTTP/1.1 200 OK
+Content-Length:724
+Connection:keep-alive
+
+
+2021-12-27 21:30:36.030543 [info]: send data to the client(127.0.0.1)
+2021-12-27 21:30:36.030582 [info]: adjust timer once
+2021-12-27 21:30:40.554326 [info]: timer tick
+2021-12-27 21:30:42.613352 [info]: deal with the client(127.0.0.1)
+2021-12-27 21:30:42.613404 [info]: adjust timer once
+2021-12-27 21:30:42.613439 [info]: POST /1 HTTP/1.1
+2021-12-27 21:30:42.613453 [info]: Host: localhost:9006
+2021-12-27 21:30:42.613459 [info]: Connection: keep-alive
+2021-12-27 21:30:42.613465 [info]: Content-Length: 0
+2021-12-27 21:30:42.613470 [info]: Cache-Control: max-age=0
+2021-12-27 21:30:42.613475 [info]: oop!unknow header: Cache-Control: max-age=0
+2021-12-27 21:30:42.613481 [info]: sec-ch-ua: " Not A;Brand";v="99", "Chromium";v="96", "Google Chrome";v="96"
+2021-12-27 21:30:42.613486 [info]: oop!unknow header: sec-ch-ua: " Not A;Brand";v="99", "Chromium";v="96", "Google Chrome";v="96"
+2021-12-27 21:30:42.613491 [info]: sec-ch-ua-mobile: ?0
+2021-12-27 21:30:42.613496 [info]: oop!unknow header: sec-ch-ua-mobile: ?0
+2021-12-27 21:30:42.613501 [info]: sec-ch-ua-platform: "Linux"
+2021-12-27 21:30:42.613505 [info]: oop!unknow header: sec-ch-ua-platform: "Linux"
+2021-12-27 21:30:42.613510 [info]: Upgrade-Insecure-Requests: 1
+2021-12-27 21:30:42.613515 [info]: oop!unknow header: Upgrade-Insecure-Requests: 1
+2021-12-27 21:30:42.613519 [info]: Origin: http://localhost:9006
+2021-12-27 21:30:42.613524 [info]: oop!unknow header: Origin: http://localhost:9006
+2021-12-27 21:30:42.613529 [info]: Content-Type: application/x-www-form-urlencoded
+2021-12-27 21:30:42.613534 [info]: oop!unknow header: Content-Type: application/x-www-form-urlencoded
+2021-12-27 21:30:42.613539 [info]: User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.45 Safari/537.36
+2021-12-27 21:30:42.613544 [info]: oop!unknow header: User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.45 Safari/537.36
+2021-12-27 21:30:42.613549 [info]: Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9
+2021-12-27 21:30:42.613554 [info]: oop!unknow header: Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9
+2021-12-27 21:30:42.613559 [info]: Sec-Fetch-Site: same-origin
+2021-12-27 21:30:42.613563 [info]: oop!unknow header: Sec-Fetch-Site: same-origin
+2021-12-27 21:30:42.613568 [info]: Sec-Fetch-Mode: navigate
+2021-12-27 21:30:42.613573 [info]: oop!unknow header: Sec-Fetch-Mode: navigate
+2021-12-27 21:30:42.613577 [info]: Sec-Fetch-User: ?1
+2021-12-27 21:30:42.613582 [info]: oop!unknow header: Sec-Fetch-User: ?1
+2021-12-27 21:30:42.613587 [info]: Sec-Fetch-Dest: document
+2021-12-27 21:30:42.613591 [info]: oop!unknow header: Sec-Fetch-Dest: document
+2021-12-27 21:30:42.613596 [info]: Referer: http://localhost:9006/
+2021-12-27 21:30:42.613601 [info]: oop!unknow header: Referer: http://localhost:9006/
+2021-12-27 21:30:42.613605 [info]: Accept-Encoding: gzip, deflate, br
+2021-12-27 21:30:42.613610 [info]: oop!unknow header: Accept-Encoding: gzip, deflate, br
+2021-12-27 21:30:42.613615 [info]: Accept-Language: zh-CN,zh;q=0.9
+2021-12-27 21:30:42.613619 [info]: oop!unknow header: Accept-Language: zh-CN,zh;q=0.9
+2021-12-27 21:30:42.613633 [info]: Cookie: _xsrf=2|b10eec3d|82a1a98f4fd8f37fe4fa9adc79a52247|1638672182; username-localhost-8888="2|1:0|10:1638672697|23:username-localhost-8888|44:NTNlM2ZiOWIwOWNhNDI1NmE5YzU5NGFjODkxMzg1YTM=|02d33ab20977c9683e46c89647825c7d45f490b8ad5704d913b74e01944666cd"
+2021-12-27 21:30:42.613640 [info]: oop!unknow header: Cookie: _xsrf=2|b10eec3d|82a1a98f4fd8f37fe4fa9adc79a52247|1638672182; username-localhost-8888="2|1:0|10:1638672697|23:username-localhost-8888|44:NTNlM2ZiOWIwOWNhNDI1NmE5YzU5NGFjODkxMzg1YTM=|02d33ab20977c9683e46c89647825c7d45f490b8ad5704d913b74e01944666cd"
+2021-12-27 21:30:42.613646 [info]: 
+2021-12-27 21:30:42.613666 [info]: request:HTTP/1.1 200 OK
+
+2021-12-27 21:30:42.613674 [info]: request:HTTP/1.1 200 OK
+Content-Length:725
+
+2021-12-27 21:30:42.613679 [info]: request:HTTP/1.1 200 OK
+Content-Length:725
+Connection:keep-alive
+
+2021-12-27 21:30:42.613684 [info]: request:HTTP/1.1 200 OK
+Content-Length:725
+Connection:keep-alive
+
+
+2021-12-27 21:30:42.629092 [info]: send data to the client(127.0.0.1)
+2021-12-27 21:30:42.629129 [info]: adjust timer once
+2021-12-27 21:30:44.497378 [info]: deal with the client(127.0.0.1)
+2021-12-27 21:30:44.497424 [info]: adjust timer once
+2021-12-27 21:30:44.497462 [info]: POST /2CGISQL.cgi HTTP/1.1
+2021-12-27 21:30:44.497473 [info]: Host: localhost:9006
+2021-12-27 21:30:44.497478 [info]: Connection: keep-alive
+2021-12-27 21:30:44.497482 [info]: Content-Length: 24
+2021-12-27 21:30:44.497487 [info]: Cache-Control: max-age=0
+2021-12-27 21:30:44.497491 [info]: oop!unknow header: Cache-Control: max-age=0
+2021-12-27 21:30:44.497496 [info]: sec-ch-ua: " Not A;Brand";v="99", "Chromium";v="96", "Google Chrome";v="96"
+2021-12-27 21:30:44.497501 [info]: oop!unknow header: sec-ch-ua: " Not A;Brand";v="99", "Chromium";v="96", "Google Chrome";v="96"
+2021-12-27 21:30:44.497505 [info]: sec-ch-ua-mobile: ?0
+2021-12-27 21:30:44.497509 [info]: oop!unknow header: sec-ch-ua-mobile: ?0
+2021-12-27 21:30:44.497514 [info]: sec-ch-ua-platform: "Linux"
+2021-12-27 21:30:44.497518 [info]: oop!unknow header: sec-ch-ua-platform: "Linux"
+2021-12-27 21:30:44.497522 [info]: Upgrade-Insecure-Requests: 1
+2021-12-27 21:30:44.497526 [info]: oop!unknow header: Upgrade-Insecure-Requests: 1
+2021-12-27 21:30:44.497530 [info]: Origin: http://localhost:9006
+2021-12-27 21:30:44.497534 [info]: oop!unknow header: Origin: http://localhost:9006
+2021-12-27 21:30:44.497539 [info]: Content-Type: application/x-www-form-urlencoded
+2021-12-27 21:30:44.497543 [info]: oop!unknow header: Content-Type: application/x-www-form-urlencoded
+2021-12-27 21:30:44.497548 [info]: User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.45 Safari/537.36
+2021-12-27 21:30:44.497552 [info]: oop!unknow header: User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.45 Safari/537.36
+2021-12-27 21:30:44.497556 [info]: Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9
+2021-12-27 21:30:44.497561 [info]: oop!unknow header: Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9
+2021-12-27 21:30:44.497565 [info]: Sec-Fetch-Site: same-origin
+2021-12-27 21:30:44.497569 [info]: oop!unknow header: Sec-Fetch-Site: same-origin
+2021-12-27 21:30:44.497573 [info]: Sec-Fetch-Mode: navigate
+2021-12-27 21:30:44.497577 [info]: oop!unknow header: Sec-Fetch-Mode: navigate
+2021-12-27 21:30:44.497582 [info]: Sec-Fetch-User: ?1
+2021-12-27 21:30:44.497586 [info]: oop!unknow header: Sec-Fetch-User: ?1
+2021-12-27 21:30:44.497590 [info]: Sec-Fetch-Dest: document
+2021-12-27 21:30:44.497594 [info]: oop!unknow header: Sec-Fetch-Dest: document
+2021-12-27 21:30:44.497598 [info]: Referer: http://localhost:9006/1
+2021-12-27 21:30:44.497602 [info]: oop!unknow header: Referer: http://localhost:9006/1
+2021-12-27 21:30:44.497606 [info]: Accept-Encoding: gzip, deflate, br
+2021-12-27 21:30:44.497618 [info]: oop!unknow header: Accept-Encoding: gzip, deflate, br
+2021-12-27 21:30:44.497622 [info]: Accept-Language: zh-CN,zh;q=0.9
+2021-12-27 21:30:44.497626 [info]: oop!unknow header: Accept-Language: zh-CN,zh;q=0.9
+2021-12-27 21:30:44.497631 [info]: Cookie: _xsrf=2|b10eec3d|82a1a98f4fd8f37fe4fa9adc79a52247|1638672182; username-localhost-8888="2|1:0|10:1638672697|23:username-localhost-8888|44:NTNlM2ZiOWIwOWNhNDI1NmE5YzU5NGFjODkxMzg1YTM=|02d33ab20977c9683e46c89647825c7d45f490b8ad5704d913b74e01944666cd"
+2021-12-27 21:30:44.497638 [info]: oop!unknow header: Cookie: _xsrf=2|b10eec3d|82a1a98f4fd8f37fe4fa9adc79a52247|1638672182; username-localhost-8888="2|1:0|10:1638672697|23:username-localhost-8888|44:NTNlM2ZiOWIwOWNhNDI1NmE5YzU5NGFjODkxMzg1YTM=|02d33ab20977c9683e46c89647825c7d45f490b8ad5704d913b74e01944666cd"
+2021-12-27 21:30:44.497642 [info]: 
+2021-12-27 21:30:44.497646 [info]: user=wedwqd&password=ada
+2021-12-27 21:30:44.497666 [info]: request:HTTP/1.1 200 OK
+
+2021-12-27 21:30:44.497673 [info]: request:HTTP/1.1 200 OK
+Content-Length:821
+
+2021-12-27 21:30:44.497678 [info]: request:HTTP/1.1 200 OK
+Content-Length:821
+Connection:keep-alive
+
+2021-12-27 21:30:44.497682 [info]: request:HTTP/1.1 200 OK
+Content-Length:821
+Connection:keep-alive
+
+
+2021-12-27 21:30:44.498329 [info]: send data to the client(127.0.0.1)
+2021-12-27 21:30:44.498352 [info]: adjust timer once
+2021-12-27 21:30:45.555206 [info]: timer tick
+2021-12-27 21:30:50.555275 [info]: timer tick
+2021-12-27 21:30:55.555311 [info]: timer tick
+2021-12-27 21:31:00.555397 [info]: timer tick
+2021-12-27 21:31:05.555431 [info]: timer tick
+2021-12-27 21:31:10.555483 [info]: timer tick
+2021-12-27 21:31:15.555689 [info]: timer tick
+2021-12-27 21:31:20.555742 [info]: timer tick
+2021-12-27 21:31:25.555781 [info]: timer tick
+2021-12-27 21:31:30.555809 [info]: timer tick
+2021-12-27 21:31:35.555837 [info]: timer tick
+2021-12-27 21:31:40.555865 [info]: timer tick
+2021-12-27 21:31:47.934344 [info]: timer tick
+2021-12-27 21:31:52.934400 [info]: timer tick
+2021-12-27 21:31:57.934456 [info]: timer tick
+2021-12-27 21:32:02.934652 [info]: timer tick
+2021-12-27 21:34:39.702921 [info]: timer tick
+2021-12-27 21:34:44.703045 [info]: timer tick
+2021-12-27 21:34:49.703154 [info]: timer tick
+2021-12-27 21:34:53.065723 [info]: deal with the client(127.0.0.1)
+2021-12-27 21:34:53.065792 [info]: adjust timer once
+2021-12-27 21:34:53.065819 [info]: POST /2CGISQL.cgi HTTP/1.1
+2021-12-27 21:34:53.065836 [info]: Host: localhost:9006
+2021-12-27 21:34:53.065841 [info]: Connection: keep-alive
+2021-12-27 21:34:53.065845 [info]: Content-Length: 17
+2021-12-27 21:34:53.065849 [info]: Cache-Control: max-age=0
+2021-12-27 21:34:53.065852 [info]: oop!unknow header: Cache-Control: max-age=0
+2021-12-27 21:34:53.065856 [info]: sec-ch-ua: " Not A;Brand";v="99", "Chromium";v="96", "Google Chrome";v="96"
+2021-12-27 21:34:53.065860 [info]: oop!unknow header: sec-ch-ua: " Not A;Brand";v="99", "Chromium";v="96", "Google Chrome";v="96"
+2021-12-27 21:34:53.065864 [info]: sec-ch-ua-mobile: ?0
+2021-12-27 21:34:53.065867 [info]: oop!unknow header: sec-ch-ua-mobile: ?0
+2021-12-27 21:34:53.065871 [info]: sec-ch-ua-platform: "Linux"
+2021-12-27 21:34:53.065874 [info]: oop!unknow header: sec-ch-ua-platform: "Linux"
+2021-12-27 21:34:53.065878 [info]: Upgrade-Insecure-Requests: 1
+2021-12-27 21:34:53.065881 [info]: oop!unknow header: Upgrade-Insecure-Requests: 1
+2021-12-27 21:34:53.065885 [info]: Origin: http://localhost:9006
+2021-12-27 21:34:53.065888 [info]: oop!unknow header: Origin: http://localhost:9006
+2021-12-27 21:34:53.065892 [info]: Content-Type: application/x-www-form-urlencoded
+2021-12-27 21:34:53.065895 [info]: oop!unknow header: Content-Type: application/x-www-form-urlencoded
+2021-12-27 21:34:53.065899 [info]: User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.45 Safari/537.36
+2021-12-27 21:34:53.065903 [info]: oop!unknow header: User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.45 Safari/537.36
+2021-12-27 21:34:53.065914 [info]: Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9
+2021-12-27 21:34:53.065918 [info]: oop!unknow header: Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9
+2021-12-27 21:34:53.065921 [info]: Sec-Fetch-Site: same-origin
+2021-12-27 21:34:53.065924 [info]: oop!unknow header: Sec-Fetch-Site: same-origin
+2021-12-27 21:34:53.065928 [info]: Sec-Fetch-Mode: navigate
+2021-12-27 21:34:53.065931 [info]: oop!unknow header: Sec-Fetch-Mode: navigate
+2021-12-27 21:34:53.065934 [info]: Sec-Fetch-User: ?1
+2021-12-27 21:34:53.065937 [info]: oop!unknow header: Sec-Fetch-User: ?1
+2021-12-27 21:34:53.065940 [info]: Sec-Fetch-Dest: document
+2021-12-27 21:34:53.065943 [info]: oop!unknow header: Sec-Fetch-Dest: document
+2021-12-27 21:34:53.065946 [info]: Referer: http://localhost:9006/2CGISQL.cgi
+2021-12-27 21:34:53.065950 [info]: oop!unknow header: Referer: http://localhost:9006/2CGISQL.cgi
+2021-12-27 21:34:53.065953 [info]: Accept-Encoding: gzip, deflate, br
+2021-12-27 21:34:53.065956 [info]: oop!unknow header: Accept-Encoding: gzip, deflate, br
+2021-12-27 21:34:53.065959 [info]: Accept-Language: zh-CN,zh;q=0.9
+2021-12-27 21:34:53.065962 [info]: oop!unknow header: Accept-Language: zh-CN,zh;q=0.9
+2021-12-27 21:34:53.065966 [info]: Cookie: _xsrf=2|b10eec3d|82a1a98f4fd8f37fe4fa9adc79a52247|1638672182; username-localhost-8888="2|1:0|10:1638672697|23:username-localhost-8888|44:NTNlM2ZiOWIwOWNhNDI1NmE5YzU5NGFjODkxMzg1YTM=|02d33ab20977c9683e46c89647825c7d45f490b8ad5704d913b74e01944666cd"
+2021-12-27 21:34:53.065971 [info]: oop!unknow header: Cookie: _xsrf=2|b10eec3d|82a1a98f4fd8f37fe4fa9adc79a52247|1638672182; username-localhost-8888="2|1:0|10:1638672697|23:username-localhost-8888|44:NTNlM2ZiOWIwOWNhNDI1NmE5YzU5NGFjODkxMzg1YTM=|02d33ab20977c9683e46c89647825c7d45f490b8ad5704d913b74e01944666cd"
+2021-12-27 21:34:53.065975 [info]: 
+2021-12-27 21:34:53.065978 [info]: user=1&password=a
+2021-12-27 21:34:53.065997 [info]: request:HTTP/1.1 200 OK
+
+2021-12-27 21:34:53.066003 [info]: request:HTTP/1.1 200 OK
+Content-Length:821
+
+2021-12-27 21:34:53.066006 [info]: request:HTTP/1.1 200 OK
+Content-Length:821
+Connection:keep-alive
+
+2021-12-27 21:34:53.066010 [info]: request:HTTP/1.1 200 OK
+Content-Length:821
+Connection:keep-alive
+
+
+2021-12-27 21:34:53.066061 [info]: send data to the client(127.0.0.1)
+2021-12-27 21:34:53.066074 [info]: adjust timer once
+2021-12-27 21:34:54.703268 [info]: timer tick
+2021-12-27 21:34:59.703557 [info]: timer tick
+2021-12-27 21:35:28.329635 [info]: timer tick
+2021-12-27 21:35:55.415854 [info]: timer tick
+2021-12-27 21:36:21.675668 [info]: timer tick
+2021-12-27 21:40:15.056392 [info]: close fd 16
+2021-12-27 21:53:27.030797 [info]: timer tick
+2021-12-27 21:53:32.030879 [info]: timer tick

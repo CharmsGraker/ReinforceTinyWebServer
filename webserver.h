@@ -34,7 +34,6 @@ private:
 
     string M_DEFAULT_URL = "localhost";
     int M_DEFAULT_PORT = 3306;
-    string resourceFolder = "/root";
 
 public:
     WebServer();
@@ -78,6 +77,8 @@ public:
 
     void parseFromConf(Configure &conf);
 
+    void add_res_path(string res_path);
+
 public:
     //基础
     int m_port;
@@ -88,7 +89,10 @@ public:
 
     int m_pipefd[2];
     int m_epollfd;
-    http_conn *users;
+    http_conn *users; // connection for http
+
+    string resourceFolder = "/root";
+
 
     //数据库相关
     connection_pool *m_connPool;

@@ -27,8 +27,10 @@
 #include "../CGImysql/sql_connection_pool.h"
 #include "../timer/lst_timer.h"
 #include "../log/log.h"
-#include "router.h"
+#include "netroute/router.h"
+#include "netroute/blueprint.h"
 
+typedef void(*Code)(Blueprint*);
 
 
 class http_conn {
@@ -38,17 +40,7 @@ public:
     static const int WRITE_BUFFER_SIZE = 1024;
 
 
-    enum METHOD {
-        GET = 0,
-        POST,
-        HEAD,
-        PUT,
-        DELETE,
-        TRACE,
-        OPTIONS,
-        CONNECT,
-        PATH
-    };
+
     enum CHECK_STATE {
         CHECK_STATE_REQUESTLINE = 0,
         CHECK_STATE_HEADER,
@@ -73,7 +65,7 @@ public:
 public:
     http_conn() {}
 
-    ~http_conn() {}
+    ~http_conn();
 
 public:
     void init(int sockfd, const sockaddr_in &addr, char *, int, int, string user, string passwd, string sqlname);
@@ -95,11 +87,20 @@ public:
     int timer_flag;
     int improv;
 
-    static void register_interceptor(const router& route);
+    static void register_interceptor(const Blueprint &bp);
 
-    static void register_interceptor(router* route);
+    static void register_interceptor(Router *router);
 
-    vector<router*> get_registered_interceptors();
+    static void register_interceptor(Blueprint *bp);
+
+
+    static void register_interceptor(Blueprint *bp,Code code);
+
+    static
+    vector<Blueprint *>* get_interceptors() {
+        static vector<Blueprint *> interceptors; // all instance must hold same interceptor
+        return &interceptors;
+    };
 
 private:
     void init();
@@ -143,11 +144,11 @@ private:
     void set_href_url(const string html_path);
 
     char *_getHtmlVersion(const char *m_url) {
-        char *html_ver = (char *)(strpbrk(m_url, " \t"));
+        char *html_ver = (char *) (strpbrk(m_url, " \t"));
         if (!html_ver) return nullptr;
         *html_ver++ = '\0';
         html_ver += strspn(html_ver, " \t");
-        printf("version: %s\n",html_ver);
+        printf("version: %s\n", html_ver);
 
         return html_ver;
     };
@@ -169,8 +170,8 @@ private:
     char m_write_buf[WRITE_BUFFER_SIZE];
     int m_write_idx;
     CHECK_STATE m_check_state;
-    METHOD m_method;
-    char m_real_file[FILENAME_LEN];
+    http_req_method_t m_method;
+    char m_real_file[FILENAME_LEN]; // the truely use path when open the file or res on server
     char *m_url;
     char *m_version;
     char *m_host;
@@ -193,6 +194,11 @@ private:
     char sql_user[100];
     char sql_passwd[100];
     char sql_name[100];
+
+    string HTTP_ROOT = "/";
 };
+
+
+
 
 #endif

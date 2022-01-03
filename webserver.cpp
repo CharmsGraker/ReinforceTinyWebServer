@@ -8,11 +8,11 @@ WebServer::WebServer() {
 
 
     //root文件夹路径
-    char server_path[200];
-    getcwd(server_path, 200);
+    char server_abspath[200];
+    getcwd(server_abspath, 200);
 
-    m_root = (char *) malloc(strlen(server_path) + strlen(resourceFolder.c_str()) + 1);
-    strcpy(m_root, server_path);
+    m_root = (char *) malloc(strlen(server_abspath) + strlen(resourceFolder.c_str()) + 1);
+    strcpy(m_root, server_abspath);
     strcat(m_root, resourceFolder.c_str());
 
     //定时器

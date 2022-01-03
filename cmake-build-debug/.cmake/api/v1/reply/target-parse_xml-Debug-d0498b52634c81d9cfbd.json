@@ -171,7 +171,9 @@
 				3,
 				4,
 				6,
-				8
+				8,
+				9,
+				10
 			]
 		}
 	],
@@ -213,7 +215,7 @@
 		},
 		{
 			"backtrace" : 1,
-			"path" : "router/router.h",
+			"path" : "bin/netroute/router.h",
 			"sourceGroupIndex" : 1
 		},
 		{
@@ -224,7 +226,17 @@
 		},
 		{
 			"backtrace" : 1,
-			"path" : "devlop/UserMain.h",
+			"path" : "bin/UserMain.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 1,
+			"path" : "bin/netroute/blueprint.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 1,
+			"path" : "bin/netroute/http_request_enum.h",
 			"sourceGroupIndex" : 1
 		}
 	],

@@ -3,6 +3,11 @@
 #include <mysql/mysql.h>
 #include <fstream>
 
+
+locker m_lock;
+map<string, string> users;
+
+
 //定义http响应的一些状态信息
 const char *ok_200_title = "OK";
 const char *error_400_title = "Bad Request";
@@ -14,9 +19,25 @@ const char *error_404_form = "The requested file was not found on this server.\n
 const char *error_500_title = "Internal Error";
 const char *error_500_form = "There was an unusual problem serving the request file.\n";
 
-locker m_lock;
-map<string, string> users;
-vector<router *> interceptors; // all instance must hold same interceptor
+
+static struct httpHeaderEnum {
+    const char *CONNECTION = "Connection:";
+    const char *KEEP_ALIVE = "keep-alive";
+    const char *CONTENT_LENGTH = "Content-length:";
+    const char *HOST = "Host:";
+} HTTP_HEADER;
+
+static unsigned long __header_offset = 0;
+
+
+auto is_res_request = [](const char *url) {
+    return strchr(url, '.') != nullptr;
+};
+
+auto is_route_request = [](const char *url) {
+    return !isdigit(*(url + 1));
+};
+
 
 void http_conn::initmysql_result(connection_pool *connPool) {
     //先从连接池中取一个连接
@@ -94,7 +115,7 @@ int http_conn::m_epollfd = -1;
 //关闭连接，关闭一个连接，客户总量减一
 void http_conn::close_conn(bool real_close) {
     if (real_close && (m_sockfd != -1)) {
-        printf("close %d\n", m_sockfd);
+        printf("close sockfd %d\n", m_sockfd);
         removefd(m_epollfd, m_sockfd);
         m_sockfd = -1;
         m_user_count--;
@@ -219,7 +240,7 @@ http_conn::HTTP_CODE http_conn::parse_request_line(char *text) {
         return BAD_REQUEST;
     }
     *m_url++ = '\0';
-    printf("%s\n", m_url);
+//    printf("%s\n", m_url);
 
     char *method = text;
     if (strcasecmp(method, "GET") == 0)
@@ -259,24 +280,17 @@ http_conn::HTTP_CODE http_conn::parse_request_line(char *text) {
     // register index html here
     //当url为/时，显示判断界面
     if (strlen(m_url) == 1)
+        //url_for(HTTP_ROOT);
         strcat(m_url, "judge.html");
     m_check_state = CHECK_STATE_HEADER;
     return NO_REQUEST;
 }
 
-static struct httpHeaderEnum {
-    const char *CONNECTION = "Connection:";
-    const char *KEEP_ALIVE = "keep-alive";
-    const char *CONTENT_LENGTH = "Content-length:";
-    const char *HOST = "Host:";
-} HTTP_HEADER;
-
-static unsigned long __header_offset = 0;
 
 //解析http请求的一个头部信息
 http_conn::HTTP_CODE http_conn::parse_headers(char *text) {
     // has new http request can reach this method,log this will look up http exchange so many message
-    printf("text: %s\n", text);
+    printf("\t%s\n", text);
     if (text[0] == '\0') {
         if (m_content_length != 0) {
             m_check_state = CHECK_STATE_CONTENT;
@@ -377,7 +391,9 @@ http_conn::do_request() {
     printf("p: %s\n", p);
 
     //处理cgi
-    if (cgi == 1 && (*(p + 1) == '2' || *(p + 1) == '3')) {
+    printf("cgi: %d\n", cgi);
+    http_req_method_t req_method = cgi == 1 ? POST : GET;
+    if (req_method == POST && (*(p + 1) == '2' || *(p + 1) == '3')) {
 
         //根据标志判断是登录检测还是注册检测
         char flag = m_url[1];
@@ -409,12 +425,7 @@ http_conn::do_request() {
 
             if (users.find(name) == users.end()) {
                 char *sql_insert = (char *) malloc(sizeof(char) * 200);
-                strcpy(sql_insert, "INSERT INTO user(username, passwd) VALUES(");
-                strcat(sql_insert, "'");
-                strcat(sql_insert, name);
-                strcat(sql_insert, "', '");
-                strcat(sql_insert, password);
-                strcat(sql_insert, "')");
+                sprintf(sql_insert, "INSERT INTO user(username, passwd) VALUES('%s','%s')",name,password);
 
                 m_lock.lock();
                 int res = mysql_query(mysql, sql_insert);
@@ -422,82 +433,55 @@ http_conn::do_request() {
                 m_lock.unlock();
 
                 if (!res)
-                    strcpy(m_url, "/log.html");
+                    set_href_url("/log.html");
                 else
-                    strcpy(m_url, "/registerError.html");
+                    set_href_url( "/registerError.html");
             } else
-                strcpy(m_url, "/registerError.html");
+                set_href_url("/registerError.html");
         }
             //如果是登录，直接判断
             //若浏览器端输入的用户名和密码在表中可以查找到，返回1，否则返回0
         else if (*(p + 1) == '2') {
-            if (users.find(name) != users.end() && users[name] == password)
+            if (users.find(name) != users.end() && users[name] == password) {
                 set_href_url("/welcome.html");
-            else
+            } else
                 set_href_url("/logError.html");
         }
-    }
-
-    auto is_res_request = [](const char *url) {
-        return strchr(url, '.') != nullptr;
-    };
-
-    auto is_route_request = [](const char *url) { return !isdigit(*(url + 1)); };
-
-    if (*(p + 1) == '0') {
-        char *m_url_real = (char *) malloc(sizeof(char) * 200);
-
-
-        strcpy(m_url_real, "/register.html");
-        strncpy(m_real_file + len_root_path, m_url_real, strlen(m_url_real));
-
-        free(m_url_real);
-    } else if (*(p + 1) == '1') {
-        char *m_url_real = (char *) malloc(sizeof(char) * 200);
-        strcpy(m_url_real, "/log.html");
-        strncpy(m_real_file + len_root_path, m_url_real, strlen(m_url_real));
-
-        free(m_url_real);
-    } else if (*(p + 1) == '5') {
-        char *m_url_real = (char *) malloc(sizeof(char) * 200);
-        strcpy(m_url_real, "/picture.html");
-        strncpy(m_real_file + len_root_path, m_url_real, strlen(m_url_real));
-
-        free(m_url_real);
-    } else if (*(p + 1) == '6') {
-        char *m_url_real = (char *) malloc(sizeof(char) * 200);
-        strcpy(m_url_real, "/video.html");
-        strncpy(m_real_file + len_root_path, m_url_real, strlen(m_url_real));
-
-        free(m_url_real);
-    } else if (*(p + 1) == '7') {
-        char *m_url_real = (char *) malloc(sizeof(char) * 200);
-        strcpy(m_url_real, "/fans.html");
-        strncpy(m_real_file + len_root_path, m_url_real, strlen(m_url_real));
-
-        free(m_url_real);
     } else if (!is_res_request(p) && is_route_request(p)) {
-        printf("into my branch\n");
-        const char *routeName;
+        printf("[INFO] into my branch\n");
+        const char *request_url = p;
+        Router *router;
         string m_url_real;
-        for (auto router: get_registered_interceptors()) {
-            routeName = router->getRoute();
-            if (strncasecmp(p, routeName, strlen(routeName)) == 0) {
-                // do my view here
-                printf("target! hit: %s\n", routeName);
 
-                if ((router->view((string) p,m_url_real)) == router::URL_STATUS::VIEW_NOT_FOUND) {
+        // make sure to correct bp name concat for routers
+        // traverse blueprint(s)
+        printf("total interceptors: %ld\n", get_interceptors()->size());
+        Request request = Request::makeRequest(request_url,req_method);
+
+        for (auto &bp: *get_interceptors()) {
+            // initialized bp's route info
+            bp->set_route_prefix();
+
+            //printf("loop bp:%s\n", bp->get_bp_name().c_str());
+            //printf("%d\n", bp);
+            if ((router = bp->canDealWith(request)) != nullptr) {
+                // the request acutal method type wont be check here. it let user to determine that.
+
+                printf("choose route: %s\n", router->getFullRoute().c_str());
+                if (router->view(REQUEST_CAST request, m_url_real) == Router::URL_STATUS::VIEW_NOT_FOUND) {
                     // do with retry
                     //goto retry;
                 }
 
                 printf("m_url_real: %s", m_url_real.c_str());
+
                 // pin jie lu you
                 strncpy(m_real_file + len_root_path, m_url_real.c_str(), m_url_real.length());
-
+                break; // successfully deal request
             }
+
         }
-    } else
+    } else /* request for file or element doc */
         strncpy(m_real_file + len_root_path, m_url, FILENAME_LEN - len_root_path - 1);
 
     if (stat(m_real_file, &m_file_stat) < 0)
@@ -509,11 +493,12 @@ http_conn::do_request() {
     if (S_ISDIR(m_file_stat.st_mode))
         return BAD_REQUEST;
 
+    // do open file description
     int fd = open(m_real_file, O_RDONLY);
-    printf("real file path: %s\n", m_real_file);
+    printf("[INFO] real file from path: %s\n", m_real_file);
 
-    m_file_address = (char *) mmap(0, m_file_stat.st_size, PROT_READ, MAP_PRIVATE, fd, 0);
-    close(fd);
+    m_file_address = (char *) mmap(nullptr, m_file_stat.st_size, PROT_READ, MAP_PRIVATE, fd, 0);
+    close(fd); // avoid waste
     return FILE_REQUEST;
 }
 
@@ -687,20 +672,44 @@ void http_conn::set_href_url(const string html_path) {
 
 void http_conn::set_href_url(const char *html_path) {
     strcpy(m_url, html_path);
+    strncpy(m_real_file + strlen(doc_root), m_url, strlen(m_url));
 }
 
 
 void
-http_conn::register_interceptor(const router &route) {
-    interceptors.push_back((router *) (&route));
+http_conn::register_interceptor(const Blueprint &bp) {
+    get_interceptors()->push_back((Blueprint *) (&bp));
 }
 
 void
-http_conn::register_interceptor(router *routePtr) {
-    interceptors.push_back(routePtr);
+http_conn::register_interceptor(Router *routePtr) {
+    // user want straight register route,so construct a blueprint
+    Blueprint *new_bp = new Blueprint(routePtr->getBaseName().c_str());
+
+    new_bp->registRoute(routePtr);
+//    printf("new bp name: %s", new_bp->get_bp_name().c_str());
+//    printf("%d\n", new_bp);
+    register_interceptor(new_bp);
 }
 
-vector<router *>
-http_conn::get_registered_interceptors() {
-    return interceptors;
+void
+http_conn::register_interceptor(Blueprint *bpPtr) {
+    get_interceptors()->push_back(bpPtr);
 }
+
+
+void
+http_conn::register_interceptor(Blueprint *bpPtr,Code code) {
+    code(bpPtr);
+    get_interceptors()->push_back(bpPtr);
+}
+
+
+http_conn::~http_conn() {
+    // free interceptors elements
+    for (auto &blueprint: *get_interceptors()) {
+        delete blueprint;
+    }
+}
+
+

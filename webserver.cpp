@@ -4,6 +4,8 @@
 WebServer::WebServer() {
     //http_conn类对象
     users = new http_conn[MAX_FD];
+    // register http route here
+
 
     //root文件夹路径
     char server_path[200];
@@ -44,7 +46,16 @@ void WebServer::init(int port, string user, string passWord, string databaseName
 
 }
 
-void WebServer::trig_mode() {
+ConfigurePtr WebServer::bindConf(Configure &conf) {
+    // return binded conf poniter
+    return this->configObj = &conf;
+}
+
+void WebServer::loadFromConf(Configure &conf) {
+    this->parseFromConf(*bindConf(conf));
+}
+
+void WebServer::setTrigMode() {
     //LT + LT
     if (0 == m_TRIGMode) {
         m_LISTENTrigmode = 0;
@@ -68,7 +79,6 @@ void WebServer::trig_mode() {
 }
 
 void WebServer::log_write() {
-
     if (M_ENABLED_LOG == m_close_log) {
         //初始化日志
         if (1 == m_log_write)
@@ -81,24 +91,30 @@ void WebServer::log_write() {
 void WebServer::sql_pool() {
     //初始化数据库连接池
     m_connPool = connection_pool::GetInstance();
-    string M_DEFAULT_URL = "localhost";
-    int M_DEFAULT_PORT = 3306;
 
-    m_connPool->init(M_DEFAULT_URL, m_user, m_passWord, m_databaseName, M_DEFAULT_PORT, m_sql_num, m_close_log);
+    m_connPool->init(M_DEFAULT_URL,
+                     m_user,
+                     m_passWord,
+                     m_databaseName,
+                     M_DEFAULT_PORT,
+                     m_sql_num,
+                     m_close_log);
 
     //初始化数据库读取表
     users->initmysql_result(m_connPool);
 }
 
-void WebServer::thread_pool() {
+void WebServer::createThreadPool() {
     //线程池
-    m_pool = new threadpool<http_conn>(m_actormodel, m_connPool, m_thread_num);
+    m_pool = new threadPool<http_conn>(m_actormodel, m_connPool, m_thread_num);
 }
 
 void WebServer::eventListen() {
     //网络编程基础步骤
     m_listenfd = socket(PF_INET, SOCK_STREAM, 0);
-    assert(m_listenfd >= 0);
+    if (m_listenfd < 0) {
+        fprintf(stderr, "[WARN] create socket failed!\n%s\n", strerror(errno));
+    }
 
     //优雅关闭连接
     if (0 == m_OPT_LINGER) {
@@ -154,12 +170,13 @@ void WebServer::timer(int connfd, struct sockaddr_in client_address) {
 
     //初始化client_data数据
     //创建定时器，设置回调函数和超时时间，绑定用户数据，将定时器添加到链表中
+
     users_timer[connfd].address = client_address;
     users_timer[connfd].sockfd = connfd;
     util_timer *timer = new util_timer;
     timer->user_data = &users_timer[connfd];
     timer->cb_func = cb_func;
-    time_t cur = time(NULL);
+    time_t cur = time(nullptr);
     timer->expire = cur + 3 * TIMESLOT;
     users_timer[connfd].timer = timer;
     utils.m_timer_lst.add_timer(timer);
@@ -186,9 +203,9 @@ void WebServer::deal_timer(util_timer *timer, int sockfd) {
 
 bool WebServer::dealclinetdata() {
     struct sockaddr_in client_address;
-    socklen_t client_addrlength = sizeof(client_address);
+    socklen_t len_client_addr = sizeof(client_address);
     if (0 == m_LISTENTrigmode) {
-        int connfd = accept(m_listenfd, (struct sockaddr *) &client_address, &client_addrlength);
+        int connfd = accept(m_listenfd, (struct sockaddr *) &client_address, &len_client_addr);
         if (connfd < 0) {
             LOG_ERROR("%s:errno is:%d", "accept error", errno);
             return false;
@@ -201,7 +218,7 @@ bool WebServer::dealclinetdata() {
         timer(connfd, client_address);
     } else {
         while (1) {
-            int connfd = accept(m_listenfd, (struct sockaddr *) &client_address, &client_addrlength);
+            int connfd = accept(m_listenfd, (struct sockaddr *) &client_address, &len_client_addr);
             if (connfd < 0) {
                 LOG_ERROR("%s:errno is:%d", "accept error", errno);
                 break;
@@ -367,7 +384,6 @@ void WebServer::eventLoop() {
         }
     }
 }
-
 
 void
 WebServer::parseFromConf(Configure &conf) {

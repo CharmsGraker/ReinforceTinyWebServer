@@ -13,7 +13,7 @@
 #include <sys/epoll.h>
 
 #include "./threadpool/threadpool.h"
-#include "./http/http_conn.h"
+#include "bin/http_conn.h"
 
 #include "timer/lst_timer.h"
 #include "configure.h"
@@ -22,14 +22,18 @@ const int MAX_FD = 65536;           //最大文件描述符
 const int MAX_EVENT_NUMBER = 10000; //最大事件数
 const int TIMESLOT = 5;             //最小超时单位
 
+typedef Configure *ConfigurePtr;
+
 class WebServer {
 private:
     int M_DISABLED_LOG = 1;
     int M_ENABLED_LOG = 0;
 
     int stop_server = 0;
+    ConfigurePtr configObj= nullptr;
 
-
+    string M_DEFAULT_URL = "localhost";
+    int M_DEFAULT_PORT = 3306;
     string resourceFolder = "/root";
 
 public:
@@ -42,13 +46,17 @@ public:
               int thread_num, int close_log, int actor_model);
 
 
-    void thread_pool();
+    ConfigurePtr bindConf(Configure & conf);
+
+    void loadFromConf(Configure& conf);
+
+    void createThreadPool();
 
     void sql_pool();
 
     void log_write();
 
-    void trig_mode();
+    void setTrigMode();
 
     void eventListen();
 
@@ -68,7 +76,7 @@ public:
 
     void dealwithwrite(int sockfd);
 
-    void parseFromConf(Configure& conf);
+    void parseFromConf(Configure &conf);
 
 public:
     //基础
@@ -90,7 +98,7 @@ public:
     int m_sql_num;
 
     //线程池相关
-    threadpool<http_conn> *m_pool;
+    threadPool<http_conn> *m_pool;
     int m_thread_num;
 
     //epoll_event相关

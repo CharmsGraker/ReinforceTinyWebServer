@@ -10,134 +10,135 @@
 
 using namespace std;
 
-connection_pool::connection_pool()
-{
-	m_CurConn = 0;
-	m_FreeConn = 0;
+connection_pool::connection_pool() {
+    m_CurConn = 0;
+    m_FreeConn = 0;
 }
 
-connection_pool *connection_pool::GetInstance()
-{
-	static connection_pool connPool;
-	return &connPool;
+connection_pool *connection_pool::GetInstance() {
+    static connection_pool connPool;
+    return &connPool;
 }
+
+void
+connection_pool::MYSQL_OCCUR_ERROR(MYSQL *connect) const {
+    if (connect == nullptr) {
+        LOG_ERROR("MySQL Error");
+        exit(1);
+    }
+};
 
 //构造初始化
-void connection_pool::init(string url, string User, string PassWord, string DBName, int Port, int MaxConn, int close_log)
-{
-	m_url = url;
-	m_Port = Port;
-	m_User = User;
-	m_PassWord = PassWord;
-	m_DatabaseName = DBName;
-	m_close_log = close_log;
+void
+connection_pool::init(const string &url, const string &userTabName, const string &PassWord,
+                      const string &DBName, const int &port, const int &MaxConn, const int &close_log) {
+    m_url = url;
+    m_Port = port;
+    m_User = userTabName;
+    m_PassWord = PassWord;
+    m_DatabaseName = DBName;
+    m_close_log = close_log;
 
-	for (int i = 0; i < MaxConn; i++)
-	{
-		MYSQL *con = NULL;
-		con = mysql_init(con);
+    for (int i = 0; i < MaxConn; ++i) {
+        MYSQL *con = mysql_init(nullptr);
 
-		if (con == NULL)
-		{
-			LOG_ERROR("MySQL Error");
-			exit(1);
-		}
-		con = mysql_real_connect(con, url.c_str(), User.c_str(), PassWord.c_str(), DBName.c_str(), Port, NULL, 0);
+        MYSQL_OCCUR_ERROR(con);
+        con = mysql_real_connect(con, url.c_str(), userTabName.c_str(),
+                                 PassWord.c_str(), DBName.c_str(), port, NULL, 0);
+        MYSQL_OCCUR_ERROR(con);
+        connList.push_back(con);
+        ++m_FreeConn;
+    }
 
-		if (con == NULL)
-		{
-			LOG_ERROR("MySQL Error");
-			exit(1);
-		}
-		connList.push_back(con);
-		++m_FreeConn;
-	}
+    reserve = Semaphore(m_FreeConn); // ree resoure add to semaphore
 
-	reserve = sem(m_FreeConn);
-
-	m_MaxConn = m_FreeConn;
+    m_MaxConn = m_FreeConn;
 }
 
 
 //当有请求时，从数据库连接池中返回一个可用连接，更新使用和空闲连接数
-MYSQL *connection_pool::GetConnection()
-{
-	MYSQL *con = NULL;
+MYSQL *connection_pool::GetConnection() {
+    MYSQL *con = nullptr;
 
-	if (0 == connList.size())
-		return NULL;
+    if (!connList.empty()) {
+        reserve.wait(); // wait for semaphore > 0
+        lock.lock();
+        try {
+            con = connList.front();
+            connList.pop_front();
 
-	reserve.wait();
-	
-	lock.lock();
+            --m_FreeConn;
+            ++m_CurConn;
+            lock.unlock();
 
-	con = connList.front();
-	connList.pop_front();
+        } catch (exception &e) {
+            lock.unlock();
+            e.what();
 
-	--m_FreeConn;
-	++m_CurConn;
-
-	lock.unlock();
-	return con;
+        }
+    }
+    return con;
 }
 
 //释放当前使用的连接
-bool connection_pool::ReleaseConnection(MYSQL *con)
-{
-	if (NULL == con)
-		return false;
+bool connection_pool::ReleaseConnection(MYSQL *con) {
+    if (nullptr == con)
+        return false;
+    lock.lock();
+    try {
 
-	lock.lock();
+        connList.push_back(con);
+        ++m_FreeConn;
+        --m_CurConn;
 
-	connList.push_back(con);
-	++m_FreeConn;
-	--m_CurConn;
+        lock.unlock();
 
-	lock.unlock();
-
-	reserve.post();
-	return true;
+        reserve.post();
+    } catch (exception &e) {
+        lock.unlock();
+        e.what();
+    }
+    return true;
 }
 
 //销毁数据库连接池
-void connection_pool::DestroyPool()
-{
-
-	lock.lock();
-	if (connList.size() > 0)
-	{
-		list<MYSQL *>::iterator it;
-		for (it = connList.begin(); it != connList.end(); ++it)
-		{
-			MYSQL *con = *it;
-			mysql_close(con);
-		}
-		m_CurConn = 0;
-		m_FreeConn = 0;
-		connList.clear();
-	}
-
-	lock.unlock();
+void connection_pool::DestroyPool() {
+    lock.lock();
+    if (!connList.empty()) {
+        MYSQL *con;
+        for (auto it = connList.begin();/*list<MYSQL *>::iterator*/
+             it != connList.end();
+             ++it) {
+            con = *it;
+            mysql_close(con);
+        }
+        bool cleanState = false;
+        while (!cleanState) {
+            m_CurConn = 0;
+            m_FreeConn = 0;
+            connList.clear();
+            cleanState = true;
+        }
+    }
+    lock.unlock();
 }
 
 //当前空闲的连接数
-int connection_pool::GetFreeConn()
-{
-	return this->m_FreeConn;
+int connection_pool::GetFreeConn() {
+    return m_FreeConn;
 }
 
-connection_pool::~connection_pool()
-{
-	DestroyPool();
+connection_pool::~connection_pool() {
+    DestroyPool();
 }
 
-connectionRAII::connectionRAII(MYSQL **SQL, connection_pool *connPool){
-	*SQL = connPool->GetConnection();
-	
-	conRAII = *SQL;
-	poolRAII = connPool;
+connectionRAII::connectionRAII(MYSQL **SQL, connection_pool *connPool) {
+    *SQL = connPool->GetConnection();
+
+    conRAII = *SQL;
+    poolRAII = connPool;
 }
 
-connectionRAII::~connectionRAII(){
-	poolRAII->ReleaseConnection(conRAII);
+connectionRAII::~connectionRAII() {
+    poolRAII->ReleaseConnection(conRAII);
 }

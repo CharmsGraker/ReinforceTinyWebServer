@@ -66,7 +66,7 @@ public:
 template<typename T>
 int checkNull(T x) noexcept(false) {
     if (x == NULL || x == nullptr) {
-        throw NullPointerException((char *) " e");
+        throw NullPointerException((char *) "[WARN] checkNull Failed!");
     }
 }
 
@@ -85,15 +85,18 @@ string Configure::getProp(const char *propName) {
             }
         }
     } catch (NullPointerException &e) {
-        fprintf(stderr,"Config tab is null!\n");
+        fprintf(stderr, "Config tab is null!\n");
     }
 
     return (string) (*tab)[propName];
 }
 
 int Configure::setProp(const char *attr, const char *val) {
-    (*tab)[(char *) attr] = (char *) val;
-    return 0;
+    if (checkNull(tab)) {
+        (*tab)[(char *) attr] = (char *) val;
+        return 0;
+    }
+    return -1;
 }
 
 int Configure::loadConfigFromXml(char *file_path) {

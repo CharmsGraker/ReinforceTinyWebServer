@@ -1,4 +1,4 @@
-#include "http_conn.h"
+#include "../bin/http_conn.h"
 
 #include <mysql/mysql.h>
 #include <fstream>
@@ -16,10 +16,11 @@ const char *error_500_form = "There was an unusual problem serving the request f
 
 locker m_lock;
 map<string, string> users;
+vector<router *> interceptors; // all instance must hold same interceptor
 
 void http_conn::initmysql_result(connection_pool *connPool) {
     //先从连接池中取一个连接
-    MYSQL *mysql = NULL;
+    MYSQL *mysql = nullptr;
     connectionRAII mysqlcon(&mysql, connPool);
 
     //在user表中检索username，passwd数据，浏览器端输入
@@ -124,13 +125,13 @@ void http_conn::init(int sockfd, const sockaddr_in &addr, char *root, int TRIGMo
 //初始化新接受的连接
 //check_state默认为分析请求行状态
 void http_conn::init() {
-    mysql = NULL;
+    mysql = nullptr;
     bytes_to_send = 0;
     bytes_have_send = 0;
     m_check_state = CHECK_STATE_REQUESTLINE;
     m_linger = false;
     m_method = GET;
-    m_url = 0;
+    m_url = nullptr;
     m_version = 0;
     m_content_length = 0;
     m_host = 0;
@@ -218,6 +219,8 @@ http_conn::HTTP_CODE http_conn::parse_request_line(char *text) {
         return BAD_REQUEST;
     }
     *m_url++ = '\0';
+    printf("%s\n", m_url);
+
     char *method = text;
     if (strcasecmp(method, "GET") == 0)
         m_method = GET;
@@ -227,17 +230,23 @@ http_conn::HTTP_CODE http_conn::parse_request_line(char *text) {
     } else
         return BAD_REQUEST;
     m_url += strspn(m_url, " \t");
-    m_version = strpbrk(m_url, " \t");
-    if (!m_version)
+
+
+    if (!(m_version = _getHtmlVersion(m_url))) {
         return BAD_REQUEST;
-    *m_version++ = '\0';
-    m_version += strspn(m_version, " \t");
+    }
+
     if (strcasecmp(m_version, "HTTP/1.1") != 0)
         return BAD_REQUEST;
+
+    printf("m_url: %s\n", m_url);
+
     if (strncasecmp(m_url, "http://", 7) == 0) {
         m_url += 7;
         m_url = strchr(m_url, '/');
     }
+    printf("after: %s\n", m_url);
+
 
     if (strncasecmp(m_url, "https://", 8) == 0) {
         m_url += 8;
@@ -246,6 +255,8 @@ http_conn::HTTP_CODE http_conn::parse_request_line(char *text) {
 
     if (!m_url || m_url[0] != '/')
         return BAD_REQUEST;
+
+    // register index html here
     //当url为/时，显示判断界面
     if (strlen(m_url) == 1)
         strcat(m_url, "judge.html");
@@ -253,30 +264,44 @@ http_conn::HTTP_CODE http_conn::parse_request_line(char *text) {
     return NO_REQUEST;
 }
 
+static struct httpHeaderEnum {
+    const char *CONNECTION = "Connection:";
+    const char *KEEP_ALIVE = "keep-alive";
+    const char *CONTENT_LENGTH = "Content-length:";
+    const char *HOST = "Host:";
+} HTTP_HEADER;
+
+static unsigned long __header_offset = 0;
+
 //解析http请求的一个头部信息
 http_conn::HTTP_CODE http_conn::parse_headers(char *text) {
+    // has new http request can reach this method,log this will look up http exchange so many message
+    printf("text: %s\n", text);
     if (text[0] == '\0') {
         if (m_content_length != 0) {
             m_check_state = CHECK_STATE_CONTENT;
             return NO_REQUEST;
         }
         return GET_REQUEST;
-    } else if (strncasecmp(text, "Connection:", 11) == 0) {
-        text += 11;
+    } else if (strncasecmp(text, HTTP_HEADER.CONNECTION,
+                           __header_offset = strlen(HTTP_HEADER.CONNECTION)) == 0) {
+        text += __header_offset;
         text += strspn(text, " \t");
-        if (strcasecmp(text, "keep-alive") == 0) {
+        if (strcasecmp(text, HTTP_HEADER.KEEP_ALIVE) == 0) {
             m_linger = true;
         }
-    } else if (strncasecmp(text, "Content-length:", 15) == 0) {
-        text += 15;
+    } else if (strncasecmp(text, HTTP_HEADER.CONTENT_LENGTH,
+                           __header_offset = strlen(HTTP_HEADER.CONTENT_LENGTH)) == 0) {
+        text += __header_offset;
         text += strspn(text, " \t");
         m_content_length = atol(text);
-    } else if (strncasecmp(text, "Host:", 5) == 0) {
-        text += 5;
+    } else if (strncasecmp(text, HTTP_HEADER.HOST,
+                           __header_offset = strlen(HTTP_HEADER.HOST)) == 0) {
+        text += __header_offset;
         text += strspn(text, " \t");
         m_host = text;
     } else {
-        LOG_INFO("oop!unknow header: %s", text);
+        LOG_INFO("ops!unknown header: %s", text);
     }
     return NO_REQUEST;
 }
@@ -293,9 +318,11 @@ http_conn::HTTP_CODE http_conn::parse_content(char *text) {
 }
 
 http_conn::HTTP_CODE http_conn::process_read() {
+    // real do process http connection
+
     LINE_STATUS line_status = LINE_OK;
     HTTP_CODE ret = NO_REQUEST;
-    char *text = 0;
+    char *text = nullptr;
 
     while ((m_check_state == CHECK_STATE_CONTENT && line_status == LINE_OK) ||
            ((line_status = parse_line()) == LINE_OK)) {
@@ -332,11 +359,22 @@ http_conn::HTTP_CODE http_conn::process_read() {
     return NO_REQUEST;
 }
 
-http_conn::HTTP_CODE http_conn::do_request() {
+http_conn::HTTP_CODE
+http_conn::do_request() {
+    /*
+     * this function deal with http resource get request.
+     * usually, first ask for *.html file,
+     * then get the elements in such *.html file mentioned */
+
+    retry:
     strcpy(m_real_file, doc_root);
-    int len = strlen(doc_root);
+    int len_root_path = strlen(doc_root);
+
     //printf("m_url:%s\n", m_url);
     const char *p = strrchr(m_url, '/');
+
+    printf("m_url: %s\n", m_url);
+    printf("p: %s\n", p);
 
     //处理cgi
     if (cgi == 1 && (*(p + 1) == '2' || *(p + 1) == '3')) {
@@ -345,36 +383,39 @@ http_conn::HTTP_CODE http_conn::do_request() {
         char flag = m_url[1];
 
         char *m_url_real = (char *) malloc(sizeof(char) * 200);
-        strcpy(m_url_real, "/");
+        strcpy(m_url_real, "/"); // add sep
+
         strcat(m_url_real, m_url + 2);
-        strncpy(m_real_file + len, m_url_real, FILENAME_LEN - len - 1);
+        strncpy(m_real_file + len_root_path, m_url_real, FILENAME_LEN - len_root_path - 1);
         free(m_url_real);
 
         //将用户名和密码提取出来
         //user=123&passwd=123
         char name[100], password[100];
-        int i;
-        for (i = 5; m_string[i] != '&'; ++i)
-            name[i - 5] = m_string[i];
-        name[i - 5] = '\0';
+        int offset;
+        int cur;
+        for (offset = 5, cur = 0; m_string[offset] != '&'; ++offset, ++cur)
+            name[cur] = m_string[offset];
+        name[cur] = '\0';
 
         int j = 0;
-        for (i = i + 10; m_string[i] != '\0'; ++i, ++j)
-            password[j] = m_string[i];
+        for (offset = offset + 10; m_string[offset] != '\0'; ++offset, ++j)
+            password[j] = m_string[offset];
         password[j] = '\0';
 
         if (*(p + 1) == '3') {
             //如果是注册，先检测数据库中是否有重名的
             //没有重名的，进行增加数据
-            char *sql_insert = (char *) malloc(sizeof(char) * 200);
-            strcpy(sql_insert, "INSERT INTO user(username, passwd) VALUES(");
-            strcat(sql_insert, "'");
-            strcat(sql_insert, name);
-            strcat(sql_insert, "', '");
-            strcat(sql_insert, password);
-            strcat(sql_insert, "')");
 
             if (users.find(name) == users.end()) {
+                char *sql_insert = (char *) malloc(sizeof(char) * 200);
+                strcpy(sql_insert, "INSERT INTO user(username, passwd) VALUES(");
+                strcat(sql_insert, "'");
+                strcat(sql_insert, name);
+                strcat(sql_insert, "', '");
+                strcat(sql_insert, password);
+                strcat(sql_insert, "')");
+
                 m_lock.lock();
                 int res = mysql_query(mysql, sql_insert);
                 users.insert(pair<string, string>(name, password));
@@ -391,44 +432,73 @@ http_conn::HTTP_CODE http_conn::do_request() {
             //若浏览器端输入的用户名和密码在表中可以查找到，返回1，否则返回0
         else if (*(p + 1) == '2') {
             if (users.find(name) != users.end() && users[name] == password)
-                strcpy(m_url, "/welcome.html");
+                set_href_url("/welcome.html");
             else
-                strcpy(m_url, "/logError.html");
+                set_href_url("/logError.html");
         }
     }
 
+    auto is_res_request = [](const char *url) {
+        return strchr(url, '.') != nullptr;
+    };
+
+    auto is_route_request = [](const char *url) { return !isdigit(*(url + 1)); };
+
     if (*(p + 1) == '0') {
         char *m_url_real = (char *) malloc(sizeof(char) * 200);
+
+
         strcpy(m_url_real, "/register.html");
-        strncpy(m_real_file + len, m_url_real, strlen(m_url_real));
+        strncpy(m_real_file + len_root_path, m_url_real, strlen(m_url_real));
 
         free(m_url_real);
     } else if (*(p + 1) == '1') {
         char *m_url_real = (char *) malloc(sizeof(char) * 200);
         strcpy(m_url_real, "/log.html");
-        strncpy(m_real_file + len, m_url_real, strlen(m_url_real));
+        strncpy(m_real_file + len_root_path, m_url_real, strlen(m_url_real));
 
         free(m_url_real);
     } else if (*(p + 1) == '5') {
         char *m_url_real = (char *) malloc(sizeof(char) * 200);
         strcpy(m_url_real, "/picture.html");
-        strncpy(m_real_file + len, m_url_real, strlen(m_url_real));
+        strncpy(m_real_file + len_root_path, m_url_real, strlen(m_url_real));
 
         free(m_url_real);
     } else if (*(p + 1) == '6') {
         char *m_url_real = (char *) malloc(sizeof(char) * 200);
         strcpy(m_url_real, "/video.html");
-        strncpy(m_real_file + len, m_url_real, strlen(m_url_real));
+        strncpy(m_real_file + len_root_path, m_url_real, strlen(m_url_real));
 
         free(m_url_real);
     } else if (*(p + 1) == '7') {
         char *m_url_real = (char *) malloc(sizeof(char) * 200);
         strcpy(m_url_real, "/fans.html");
-        strncpy(m_real_file + len, m_url_real, strlen(m_url_real));
+        strncpy(m_real_file + len_root_path, m_url_real, strlen(m_url_real));
 
         free(m_url_real);
+    } else if (!is_res_request(p) && is_route_request(p)) {
+        printf("into my branch\n");
+        const char *routeName;
+        string m_url_real;
+        for (auto router: get_registered_interceptors()) {
+            routeName = router->getRoute();
+            if (strncasecmp(p, routeName, strlen(routeName)) == 0) {
+                // do my view here
+                printf("target! hit: %s\n", routeName);
+
+                if ((router->view((string) p,m_url_real)) == router::URL_STATUS::VIEW_NOT_FOUND) {
+                    // do with retry
+                    //goto retry;
+                }
+
+                printf("m_url_real: %s", m_url_real.c_str());
+                // pin jie lu you
+                strncpy(m_real_file + len_root_path, m_url_real.c_str(), m_url_real.length());
+
+            }
+        }
     } else
-        strncpy(m_real_file + len, m_url, FILENAME_LEN - len - 1);
+        strncpy(m_real_file + len_root_path, m_url, FILENAME_LEN - len_root_path - 1);
 
     if (stat(m_real_file, &m_file_stat) < 0)
         return NO_RESOURCE;
@@ -440,6 +510,8 @@ http_conn::HTTP_CODE http_conn::do_request() {
         return BAD_REQUEST;
 
     int fd = open(m_real_file, O_RDONLY);
+    printf("real file path: %s\n", m_real_file);
+
     m_file_address = (char *) mmap(0, m_file_stat.st_size, PROT_READ, MAP_PRIVATE, fd, 0);
     close(fd);
     return FILE_REQUEST;
@@ -534,7 +606,7 @@ bool http_conn::add_content_type() {
 }
 
 bool http_conn::add_linger() {
-    return add_response("Connection:%s\r\n", (m_linger == true) ? "keep-alive" : "close");
+    return add_response("Connection:%s\r\n", m_linger ? "keep-alive" : "close");
 }
 
 bool http_conn::add_blank_line() {
@@ -607,4 +679,28 @@ void http_conn::process() {
         close_conn();
     }
     modfd(m_epollfd, m_sockfd, EPOLLOUT, m_TRIGMode);
+}
+
+void http_conn::set_href_url(const string html_path) {
+    return set_href_url((const char *) html_path.c_str());
+}
+
+void http_conn::set_href_url(const char *html_path) {
+    strcpy(m_url, html_path);
+}
+
+
+void
+http_conn::register_interceptor(const router &route) {
+    interceptors.push_back((router *) (&route));
+}
+
+void
+http_conn::register_interceptor(router *routePtr) {
+    interceptors.push_back(routePtr);
+}
+
+vector<router *>
+http_conn::get_registered_interceptors() {
+    return interceptors;
 }

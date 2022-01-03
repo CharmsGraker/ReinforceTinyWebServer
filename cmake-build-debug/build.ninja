@@ -52,16 +52,87 @@ build CMakeFiles/rebuild_cache.util: CUSTOM_COMMAND
 
 build rebuild_cache: phony CMakeFiles/rebuild_cache.util
 
+# =============================================================================
+# Object build statements for EXECUTABLE target tinyWeb
+
 
 #############################################
-# Utility command for edit_cache
+# Order-only phony target for tinyWeb
 
-build CMakeFiles/edit_cache.util: CUSTOM_COMMAND
-  COMMAND = cd /home/nekonoyume/codeDev/CPlusPlus/tinyWeb/cmake-build-debug && /opt/software/clion-2021.3/bin/cmake/linux/bin/cmake -E echo No\ interactive\ CMake\ dialog\ available.
-  DESC = No interactive CMake dialog available...
-  restat = 1
+build cmake_object_order_depends_target_tinyWeb: phony || CMakeFiles/tinyWeb.dir
 
-build edit_cache: phony CMakeFiles/edit_cache.util
+build CMakeFiles/tinyWeb.dir/main.cpp.o: CXX_COMPILER__tinyWeb_Debug /home/nekonoyume/codeDev/CPlusPlus/tinyWeb/main.cpp || cmake_object_order_depends_target_tinyWeb
+  DEP_FILE = CMakeFiles/tinyWeb.dir/main.cpp.o.d
+  FLAGS = -std=c++17  -g -std=gnu++1z
+  INCLUDES = -I/usr/include/mysql -I/usr/include/libxml2
+  OBJECT_DIR = CMakeFiles/tinyWeb.dir
+  OBJECT_FILE_DIR = CMakeFiles/tinyWeb.dir
+
+build CMakeFiles/tinyWeb.dir/timer/lst_timer.cpp.o: CXX_COMPILER__tinyWeb_Debug /home/nekonoyume/codeDev/CPlusPlus/tinyWeb/timer/lst_timer.cpp || cmake_object_order_depends_target_tinyWeb
+  DEP_FILE = CMakeFiles/tinyWeb.dir/timer/lst_timer.cpp.o.d
+  FLAGS = -std=c++17  -g -std=gnu++1z
+  INCLUDES = -I/usr/include/mysql -I/usr/include/libxml2
+  OBJECT_DIR = CMakeFiles/tinyWeb.dir
+  OBJECT_FILE_DIR = CMakeFiles/tinyWeb.dir/timer
+
+build CMakeFiles/tinyWeb.dir/http/http_conn.cpp.o: CXX_COMPILER__tinyWeb_Debug /home/nekonoyume/codeDev/CPlusPlus/tinyWeb/http/http_conn.cpp || cmake_object_order_depends_target_tinyWeb
+  DEP_FILE = CMakeFiles/tinyWeb.dir/http/http_conn.cpp.o.d
+  FLAGS = -std=c++17  -g -std=gnu++1z
+  INCLUDES = -I/usr/include/mysql -I/usr/include/libxml2
+  OBJECT_DIR = CMakeFiles/tinyWeb.dir
+  OBJECT_FILE_DIR = CMakeFiles/tinyWeb.dir/http
+
+build CMakeFiles/tinyWeb.dir/log/log.cpp.o: CXX_COMPILER__tinyWeb_Debug /home/nekonoyume/codeDev/CPlusPlus/tinyWeb/log/log.cpp || cmake_object_order_depends_target_tinyWeb
+  DEP_FILE = CMakeFiles/tinyWeb.dir/log/log.cpp.o.d
+  FLAGS = -std=c++17  -g -std=gnu++1z
+  INCLUDES = -I/usr/include/mysql -I/usr/include/libxml2
+  OBJECT_DIR = CMakeFiles/tinyWeb.dir
+  OBJECT_FILE_DIR = CMakeFiles/tinyWeb.dir/log
+
+build CMakeFiles/tinyWeb.dir/CGImysql/sql_connection_pool.cpp.o: CXX_COMPILER__tinyWeb_Debug /home/nekonoyume/codeDev/CPlusPlus/tinyWeb/CGImysql/sql_connection_pool.cpp || cmake_object_order_depends_target_tinyWeb
+  DEP_FILE = CMakeFiles/tinyWeb.dir/CGImysql/sql_connection_pool.cpp.o.d
+  FLAGS = -std=c++17  -g -std=gnu++1z
+  INCLUDES = -I/usr/include/mysql -I/usr/include/libxml2
+  OBJECT_DIR = CMakeFiles/tinyWeb.dir
+  OBJECT_FILE_DIR = CMakeFiles/tinyWeb.dir/CGImysql
+
+build CMakeFiles/tinyWeb.dir/webserver.cpp.o: CXX_COMPILER__tinyWeb_Debug /home/nekonoyume/codeDev/CPlusPlus/tinyWeb/webserver.cpp || cmake_object_order_depends_target_tinyWeb
+  DEP_FILE = CMakeFiles/tinyWeb.dir/webserver.cpp.o.d
+  FLAGS = -std=c++17  -g -std=gnu++1z
+  INCLUDES = -I/usr/include/mysql -I/usr/include/libxml2
+  OBJECT_DIR = CMakeFiles/tinyWeb.dir
+  OBJECT_FILE_DIR = CMakeFiles/tinyWeb.dir
+
+build CMakeFiles/tinyWeb.dir/configure.cpp.o: CXX_COMPILER__tinyWeb_Debug /home/nekonoyume/codeDev/CPlusPlus/tinyWeb/configure.cpp || cmake_object_order_depends_target_tinyWeb
+  DEP_FILE = CMakeFiles/tinyWeb.dir/configure.cpp.o.d
+  FLAGS = -std=c++17  -g -std=gnu++1z
+  INCLUDES = -I/usr/include/mysql -I/usr/include/libxml2
+  OBJECT_DIR = CMakeFiles/tinyWeb.dir
+  OBJECT_FILE_DIR = CMakeFiles/tinyWeb.dir
+
+build CMakeFiles/tinyWeb.dir/devlop/UserMain.cpp.o: CXX_COMPILER__tinyWeb_Debug /home/nekonoyume/codeDev/CPlusPlus/tinyWeb/devlop/UserMain.cpp || cmake_object_order_depends_target_tinyWeb
+  DEP_FILE = CMakeFiles/tinyWeb.dir/devlop/UserMain.cpp.o.d
+  FLAGS = -std=c++17  -g -std=gnu++1z
+  INCLUDES = -I/usr/include/mysql -I/usr/include/libxml2
+  OBJECT_DIR = CMakeFiles/tinyWeb.dir
+  OBJECT_FILE_DIR = CMakeFiles/tinyWeb.dir/devlop
+
+
+# =============================================================================
+# Link build statements for EXECUTABLE target tinyWeb
+
+
+#############################################
+# Link the executable tinyWeb
+
+build tinyWeb: CXX_EXECUTABLE_LINKER__tinyWeb_Debug CMakeFiles/tinyWeb.dir/main.cpp.o CMakeFiles/tinyWeb.dir/timer/lst_timer.cpp.o CMakeFiles/tinyWeb.dir/http/http_conn.cpp.o CMakeFiles/tinyWeb.dir/log/log.cpp.o CMakeFiles/tinyWeb.dir/CGImysql/sql_connection_pool.cpp.o CMakeFiles/tinyWeb.dir/webserver.cpp.o CMakeFiles/tinyWeb.dir/configure.cpp.o CMakeFiles/tinyWeb.dir/devlop/UserMain.cpp.o
+  FLAGS = -std=c++17  -g
+  LINK_LIBRARIES = -lmysqlclient  -lxml2  -lpthread  -lmysqlclient  -lxml2  -lpthread
+  OBJECT_DIR = CMakeFiles/tinyWeb.dir
+  POST_BUILD = :
+  PRE_LINK = :
+  TARGET_FILE = tinyWeb
+  TARGET_PDB = tinyWeb.dbg
 
 # =============================================================================
 # Object build statements for EXECUTABLE target parse_xml
@@ -93,6 +164,20 @@ build CMakeFiles/parse_xml.dir/utils/c/parse_xml.c.o: C_COMPILER__parse_xml_Debu
   OBJECT_DIR = CMakeFiles/parse_xml.dir
   OBJECT_FILE_DIR = CMakeFiles/parse_xml.dir/utils/c
 
+build CMakeFiles/parse_xml.dir/router/router.cpp.o: CXX_COMPILER__parse_xml_Debug /home/nekonoyume/codeDev/CPlusPlus/tinyWeb/router/router.cpp || cmake_object_order_depends_target_parse_xml
+  DEP_FILE = CMakeFiles/parse_xml.dir/router/router.cpp.o.d
+  FLAGS = -std=c++17  -g -std=gnu++1z
+  INCLUDES = -I/usr/include/mysql -I/usr/include/libxml2
+  OBJECT_DIR = CMakeFiles/parse_xml.dir
+  OBJECT_FILE_DIR = CMakeFiles/parse_xml.dir/router
+
+build CMakeFiles/parse_xml.dir/devlop/UserMain.cpp.o: CXX_COMPILER__parse_xml_Debug /home/nekonoyume/codeDev/CPlusPlus/tinyWeb/devlop/UserMain.cpp || cmake_object_order_depends_target_parse_xml
+  DEP_FILE = CMakeFiles/parse_xml.dir/devlop/UserMain.cpp.o.d
+  FLAGS = -std=c++17  -g -std=gnu++1z
+  INCLUDES = -I/usr/include/mysql -I/usr/include/libxml2
+  OBJECT_DIR = CMakeFiles/parse_xml.dir
+  OBJECT_FILE_DIR = CMakeFiles/parse_xml.dir/devlop
+
 
 # =============================================================================
 # Link build statements for EXECUTABLE target parse_xml
@@ -101,9 +186,10 @@ build CMakeFiles/parse_xml.dir/utils/c/parse_xml.c.o: C_COMPILER__parse_xml_Debu
 #############################################
 # Link the executable parse_xml
 
-build parse_xml: C_EXECUTABLE_LINKER__parse_xml_Debug CMakeFiles/parse_xml.dir/utils/c/test_parse.c.o CMakeFiles/parse_xml.dir/utils/c/create_xml.c.o CMakeFiles/parse_xml.dir/utils/c/parse_xml.c.o
-  FLAGS = -g
+build parse_xml: CXX_EXECUTABLE_LINKER__parse_xml_Debug CMakeFiles/parse_xml.dir/utils/c/test_parse.c.o CMakeFiles/parse_xml.dir/utils/c/create_xml.c.o CMakeFiles/parse_xml.dir/utils/c/parse_xml.c.o CMakeFiles/parse_xml.dir/router/router.cpp.o CMakeFiles/parse_xml.dir/devlop/UserMain.cpp.o
+  FLAGS = -std=c++17  -g
   LINK_LIBRARIES = -lmysqlclient  -lxml2
+  LINK_PATH = -L/usr/lib/gcc/x86_64-linux-gnu/8
   OBJECT_DIR = CMakeFiles/parse_xml.dir
   POST_BUILD = :
   PRE_LINK = :
@@ -111,86 +197,48 @@ build parse_xml: C_EXECUTABLE_LINKER__parse_xml_Debug CMakeFiles/parse_xml.dir/u
   TARGET_PDB = parse_xml.dbg
 
 # =============================================================================
-# Object build statements for EXECUTABLE target tinyWeb
+# Object build statements for EXECUTABLE target testUtils
 
 
 #############################################
-# Order-only phony target for tinyWeb
+# Order-only phony target for testUtils
 
-build cmake_object_order_depends_target_tinyWeb: phony || CMakeFiles/tinyWeb.dir
+build cmake_object_order_depends_target_testUtils: phony || CMakeFiles/testUtils.dir
 
-build CMakeFiles/tinyWeb.dir/main.cpp.o: CXX_COMPILER__tinyWeb_Debug /home/nekonoyume/codeDev/CPlusPlus/tinyWeb/main.cpp || cmake_object_order_depends_target_tinyWeb
-  DEP_FILE = CMakeFiles/tinyWeb.dir/main.cpp.o.d
-  FLAGS = -std=c++11  -g -std=gnu++14
+build CMakeFiles/testUtils.dir/utils/helpfulUtils.cpp.o: CXX_COMPILER__testUtils_Debug /home/nekonoyume/codeDev/CPlusPlus/tinyWeb/utils/helpfulUtils.cpp || cmake_object_order_depends_target_testUtils
+  DEP_FILE = CMakeFiles/testUtils.dir/utils/helpfulUtils.cpp.o.d
+  FLAGS = -std=c++17  -g -std=gnu++1z
   INCLUDES = -I/usr/include/mysql -I/usr/include/libxml2
-  OBJECT_DIR = CMakeFiles/tinyWeb.dir
-  OBJECT_FILE_DIR = CMakeFiles/tinyWeb.dir
-
-build CMakeFiles/tinyWeb.dir/timer/lst_timer.cpp.o: CXX_COMPILER__tinyWeb_Debug /home/nekonoyume/codeDev/CPlusPlus/tinyWeb/timer/lst_timer.cpp || cmake_object_order_depends_target_tinyWeb
-  DEP_FILE = CMakeFiles/tinyWeb.dir/timer/lst_timer.cpp.o.d
-  FLAGS = -std=c++11  -g -std=gnu++14
-  INCLUDES = -I/usr/include/mysql -I/usr/include/libxml2
-  OBJECT_DIR = CMakeFiles/tinyWeb.dir
-  OBJECT_FILE_DIR = CMakeFiles/tinyWeb.dir/timer
-
-build CMakeFiles/tinyWeb.dir/http/http_conn.cpp.o: CXX_COMPILER__tinyWeb_Debug /home/nekonoyume/codeDev/CPlusPlus/tinyWeb/http/http_conn.cpp || cmake_object_order_depends_target_tinyWeb
-  DEP_FILE = CMakeFiles/tinyWeb.dir/http/http_conn.cpp.o.d
-  FLAGS = -std=c++11  -g -std=gnu++14
-  INCLUDES = -I/usr/include/mysql -I/usr/include/libxml2
-  OBJECT_DIR = CMakeFiles/tinyWeb.dir
-  OBJECT_FILE_DIR = CMakeFiles/tinyWeb.dir/http
-
-build CMakeFiles/tinyWeb.dir/log/log.cpp.o: CXX_COMPILER__tinyWeb_Debug /home/nekonoyume/codeDev/CPlusPlus/tinyWeb/log/log.cpp || cmake_object_order_depends_target_tinyWeb
-  DEP_FILE = CMakeFiles/tinyWeb.dir/log/log.cpp.o.d
-  FLAGS = -std=c++11  -g -std=gnu++14
-  INCLUDES = -I/usr/include/mysql -I/usr/include/libxml2
-  OBJECT_DIR = CMakeFiles/tinyWeb.dir
-  OBJECT_FILE_DIR = CMakeFiles/tinyWeb.dir/log
-
-build CMakeFiles/tinyWeb.dir/CGImysql/sql_connection_pool.cpp.o: CXX_COMPILER__tinyWeb_Debug /home/nekonoyume/codeDev/CPlusPlus/tinyWeb/CGImysql/sql_connection_pool.cpp || cmake_object_order_depends_target_tinyWeb
-  DEP_FILE = CMakeFiles/tinyWeb.dir/CGImysql/sql_connection_pool.cpp.o.d
-  FLAGS = -std=c++11  -g -std=gnu++14
-  INCLUDES = -I/usr/include/mysql -I/usr/include/libxml2
-  OBJECT_DIR = CMakeFiles/tinyWeb.dir
-  OBJECT_FILE_DIR = CMakeFiles/tinyWeb.dir/CGImysql
-
-build CMakeFiles/tinyWeb.dir/webserver.cpp.o: CXX_COMPILER__tinyWeb_Debug /home/nekonoyume/codeDev/CPlusPlus/tinyWeb/webserver.cpp || cmake_object_order_depends_target_tinyWeb
-  DEP_FILE = CMakeFiles/tinyWeb.dir/webserver.cpp.o.d
-  FLAGS = -std=c++11  -g -std=gnu++14
-  INCLUDES = -I/usr/include/mysql -I/usr/include/libxml2
-  OBJECT_DIR = CMakeFiles/tinyWeb.dir
-  OBJECT_FILE_DIR = CMakeFiles/tinyWeb.dir
-
-build CMakeFiles/tinyWeb.dir/config.cpp.o: CXX_COMPILER__tinyWeb_Debug /home/nekonoyume/codeDev/CPlusPlus/tinyWeb/config.cpp || cmake_object_order_depends_target_tinyWeb
-  DEP_FILE = CMakeFiles/tinyWeb.dir/config.cpp.o.d
-  FLAGS = -std=c++11  -g -std=gnu++14
-  INCLUDES = -I/usr/include/mysql -I/usr/include/libxml2
-  OBJECT_DIR = CMakeFiles/tinyWeb.dir
-  OBJECT_FILE_DIR = CMakeFiles/tinyWeb.dir
-
-build CMakeFiles/tinyWeb.dir/configure.cpp.o: CXX_COMPILER__tinyWeb_Debug /home/nekonoyume/codeDev/CPlusPlus/tinyWeb/configure.cpp || cmake_object_order_depends_target_tinyWeb
-  DEP_FILE = CMakeFiles/tinyWeb.dir/configure.cpp.o.d
-  FLAGS = -std=c++11  -g -std=gnu++14
-  INCLUDES = -I/usr/include/mysql -I/usr/include/libxml2
-  OBJECT_DIR = CMakeFiles/tinyWeb.dir
-  OBJECT_FILE_DIR = CMakeFiles/tinyWeb.dir
+  OBJECT_DIR = CMakeFiles/testUtils.dir
+  OBJECT_FILE_DIR = CMakeFiles/testUtils.dir/utils
 
 
 # =============================================================================
-# Link build statements for EXECUTABLE target tinyWeb
+# Link build statements for EXECUTABLE target testUtils
 
 
 #############################################
-# Link the executable tinyWeb
+# Link the executable testUtils
 
-build tinyWeb: CXX_EXECUTABLE_LINKER__tinyWeb_Debug CMakeFiles/tinyWeb.dir/main.cpp.o CMakeFiles/tinyWeb.dir/timer/lst_timer.cpp.o CMakeFiles/tinyWeb.dir/http/http_conn.cpp.o CMakeFiles/tinyWeb.dir/log/log.cpp.o CMakeFiles/tinyWeb.dir/CGImysql/sql_connection_pool.cpp.o CMakeFiles/tinyWeb.dir/webserver.cpp.o CMakeFiles/tinyWeb.dir/config.cpp.o CMakeFiles/tinyWeb.dir/configure.cpp.o
-  FLAGS = -std=c++11  -g
-  LINK_LIBRARIES = -lmysqlclient  -lxml2  -lpthread  -lmysqlclient  -lxml2  -lpthread
-  OBJECT_DIR = CMakeFiles/tinyWeb.dir
+build testUtils: CXX_EXECUTABLE_LINKER__testUtils_Debug CMakeFiles/testUtils.dir/utils/helpfulUtils.cpp.o
+  FLAGS = -std=c++17  -g
+  LINK_LIBRARIES = -lmysqlclient
+  OBJECT_DIR = CMakeFiles/testUtils.dir
   POST_BUILD = :
   PRE_LINK = :
-  TARGET_FILE = tinyWeb
-  TARGET_PDB = tinyWeb.dbg
+  TARGET_FILE = testUtils
+  TARGET_PDB = testUtils.dbg
+
+
+#############################################
+# Utility command for edit_cache
+
+build CMakeFiles/edit_cache.util: CUSTOM_COMMAND
+  COMMAND = cd /home/nekonoyume/codeDev/CPlusPlus/tinyWeb/cmake-build-debug && /opt/software/clion-2021.3/bin/cmake/linux/bin/cmake -E echo No\ interactive\ CMake\ dialog\ available.
+  DESC = No interactive CMake dialog available...
+  restat = 1
+
+build edit_cache: phony CMakeFiles/edit_cache.util
 
 # =============================================================================
 # Target aliases.
@@ -203,7 +251,7 @@ build tinyWeb: CXX_EXECUTABLE_LINKER__tinyWeb_Debug CMakeFiles/tinyWeb.dir/main.
 #############################################
 # Folder: /home/nekonoyume/codeDev/CPlusPlus/tinyWeb/cmake-build-debug
 
-build all: phony parse_xml tinyWeb
+build all: phony tinyWeb parse_xml testUtils
 
 # =============================================================================
 # Built-in targets

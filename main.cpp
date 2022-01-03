@@ -1,5 +1,5 @@
 #include "config.h"
-
+#include "bin/UserMain.h"
 
 int main(int argc, char *argv[]) {
     //需要修改的数据库信息,登录名,密码,库名 please config in /conf/server-config.xml
@@ -12,7 +12,7 @@ int main(int argc, char *argv[]) {
     WebServer server;
 
     //初始化
-    server.parseFromConf(conf);
+    server.loadFromConf(conf);
 
 
     //日志
@@ -22,15 +22,24 @@ int main(int argc, char *argv[]) {
     server.sql_pool();
 
     //线程池
-    server.thread_pool();
+    server.createThreadPool();
+
     //触发模式
-    server.trig_mode();
+    server.setTrigMode();
 
-    //监听
-    server.eventListen();
+    UserMain::setPara(argc, argv);
+    UserMain::bindServer(&server);
 
-    //运行
-    server.eventLoop();
+    UserMain *userMain = UserMain::getInstance();
+
+    int err = userMain->operator()();
+    if (!err) {
+        //监听
+        server.eventListen();
+
+        //运行
+        server.eventLoop();
+    }
 
     return 0;
 }

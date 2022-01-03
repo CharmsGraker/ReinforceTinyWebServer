@@ -24,18 +24,20 @@ public:
 	//单例模式
 	static connection_pool *GetInstance();
 
-	void init(string url, string User, string PassWord, string DataBaseName, int Port, int MaxConn, int close_log); 
+	void init(const string& url, const string& User, const string& PassWord, const string& DataBaseName,const int& port,const int& MaxConn,const int& close_log);
 
 private:
 	connection_pool();
 	~connection_pool();
-
+    void MYSQL_OCCUR_ERROR(MYSQL* connect) const;
+private:
 	int m_MaxConn;  //最大连接数
 	int m_CurConn;  //当前已使用的连接数
 	int m_FreeConn; //当前空闲的连接数
 	locker lock;
 	list<MYSQL *> connList; //连接池
-	sem reserve;
+    Semaphore reserve; // > 0 means there has free connection to use
+
 
 public:
 	string m_url;			 //主机地址

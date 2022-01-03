@@ -16,7 +16,8 @@
 					"targetIndexes" : 
 					[
 						0,
-						1
+						1,
+						2
 					]
 				}
 			],
@@ -32,7 +33,8 @@
 					"targetIndexes" : 
 					[
 						0,
-						1
+						1,
+						2
 					]
 				}
 			],
@@ -41,14 +43,21 @@
 				{
 					"directoryIndex" : 0,
 					"id" : "parse_xml::@6890427a1f51a3e7e1df",
-					"jsonFile" : "target-parse_xml-Debug-88a823ce4c4966fb9fde.json",
+					"jsonFile" : "target-parse_xml-Debug-4deb75c25aabfafbf653.json",
 					"name" : "parse_xml",
 					"projectIndex" : 0
 				},
 				{
 					"directoryIndex" : 0,
+					"id" : "testUtils::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-testUtils-Debug-6ffbb110ddac5ad2bad6.json",
+					"name" : "testUtils",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
 					"id" : "tinyWeb::@6890427a1f51a3e7e1df",
-					"jsonFile" : "target-tinyWeb-Debug-70d8240cf3e139f689ab.json",
+					"jsonFile" : "target-tinyWeb-Debug-2659586ef3aaa2c1dbd8.json",
 					"name" : "tinyWeb",
 					"projectIndex" : 0
 				}

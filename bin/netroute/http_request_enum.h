@@ -4,36 +4,33 @@
 
 #ifndef TINYWEB_HTTP_REQUEST_ENUM_H
 #define TINYWEB_HTTP_REQUEST_ENUM_H
+#include <algorithm>
+#include <string>
+#include <iostream>
+#include <unordered_map>
 
+#include "../../utils/string_utils.h"
+
+/** to avoid infinite loop import,
+ * please declare all class here */
 
 class Request;
-#define REQUEST_CAST (Request&)
+class http_conn;
 
-typedef Request* RequestPtr;
+using namespace string_util;
 
 
-enum http_req_method_t {
-    GET = 0,
-    POST,
-    HEAD,
-    PUT,
-    DELETE,
-    TRACE,
-    OPTIONS,
-    CONNECT,
-    PATH
-};
+typedef std::unordered_map<std::string,std::string> inputArgs;
 
-class Request {
-public:
-    http_req_method_t method;
-    std::string url;
+/**
+ * please be careful for this typedef, because it may lead to recurrent include.
+ * */
+typedef const char *(*__view_func_raw_t)(Request *, http_conn* httpConn);
 
-    Request(std::string url, http_req_method_t method) : url(url), method(method) {};
+typedef const char *(*__view_func_partial_t)(Request *);
 
-    static Request makeRequest(const std::string &url, const http_req_method_t &method) {
-        return {url, method};
-    }
-};
+
+
+
 
 #endif //TINYWEB_HTTP_REQUEST_ENUM_H

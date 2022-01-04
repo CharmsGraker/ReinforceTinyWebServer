@@ -6,17 +6,19 @@
 #define TINYWEB_BLUEPRINT_H
 
 #include <vector>
+#include "request.h"
 #include "router.h"
 
+template<typename Route>
 class Blueprint {
     string _bp_name = nullptr;
-    vector<Router *> routerList;
+    vector<Route*> routerList;
 
 public:
     Blueprint(const char *bp_name) : _bp_name(bp_name) {}
 
     void
-    registRoute(Router *router) {
+    registRoute(Route*router) {
         routerList.push_back(router);
     }
 
@@ -24,16 +26,16 @@ public:
         return _bp_name;
     }
 
-    Router *
+    Route *
     canDealWith(Request &request) {
-        Router *handler = nullptr;
-        string requestUrl = request.url;
+        Route *handler = nullptr;
+        string requestUrl = request.raw_url();
         auto match_pattern = [](const char *s, const char *pattern) {
             return strncasecmp(s, pattern, strlen(pattern)) == 0;
         };
         // should let bp to pattern url, instead of url to pattern bp,because bp are much shorter to parse
         if (match_pattern(requestUrl.c_str(), get_bp_name().c_str())) {
-            printf("matched bp: %s\n", get_bp_name().c_str());
+            printf("matched bp: \"%s\"\n", get_bp_name().c_str());
             for (auto &router: routerList) {
                 if (match_pattern(requestUrl.c_str(), router->getFullRoute().c_str())) {
                     handler = router;
@@ -68,11 +70,6 @@ public:
 
     }
 
-    ~Blueprint() {
-        for (auto &route: routerList) {
-            delete route;
-        }
-    }
 };
 
 #endif //TINYWEB_BLUEPRINT_H

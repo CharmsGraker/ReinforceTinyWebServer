@@ -194,7 +194,7 @@
 		{
 			"backtrace" : 1,
 			"compileGroupIndex" : 0,
-			"path" : "http/http_conn.cpp",
+			"path" : "bin/http/http_conn.cpp",
 			"sourceGroupIndex" : 0
 		},
 		{

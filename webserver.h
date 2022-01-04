@@ -13,7 +13,7 @@
 #include <sys/epoll.h>
 
 #include "./threadpool/threadpool.h"
-#include "bin/http_conn.h"
+#include "bin/http/http_conn.h"
 
 #include "timer/lst_timer.h"
 #include "configure.h"

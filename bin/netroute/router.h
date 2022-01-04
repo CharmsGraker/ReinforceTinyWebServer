@@ -1,22 +1,27 @@
-//
-// Created by nekonoyume on 2022/1/3.
-//
 
 #ifndef TINYWEB_ROUTER_H
 #define TINYWEB_ROUTER_H
 
-#include <algorithm>
 #include <string>
-#include <iostream>
+#include "request.h"
+
 #include "http_request_enum.h"
 
+struct unused_http_conn_view {
 
+};
+struct use_http_conn_view {
+
+};
 using namespace std;
 
+enum URL_STATUS {
+    VIEW_NOT_FOUND,
+    VIEW_NULL
+};
 
-typedef const char *(*__view_func_type)(Request*);
 
-
+template<typename httpConn>
 class Router {
 private:
     /**
@@ -26,42 +31,69 @@ private:
     string _suffix;
     string _prefix;
 
+
+    char _sep;
+
     static string __sep() {
         static string sep = ".";
         return sep;
     };
-    string after_view_url;
-    __view_func_type __view_func = nullptr;
-    string ROOT = "";
+
+    __view_func_partial_t _partial_view_f = nullptr;
+    __view_func_raw_t _full_view_f = nullptr;
+
+    enum view_t {
+        PARTIAL,
+        FULL
+    };
+
+    view_t func_type;
 
 public:
     //STATUS
-    enum URL_STATUS {
-        VIEW_NOT_FOUND,
-        VIEW_NULL
-    };
 
     string href_url;
 
     /**
      * view func represent the which view of route should show,
-     * it should be a stirng like relative path to the true file you store in config ROOT res dir.*/
-    Router(const string routeName, __view_func_type view_f) : _suffix(routeName), __view_func(view_f), _prefix("") {
+     * it should be a stirng like relative path to the true file you store in config ROOT res dir.*
+     * if you want dont need connection info, please specify partial view function to construct the route, instead of given http_conn when invoke constructor .
+     * because only if when specify the _full_view_f, then will add url param to request. */
+    Router(const string routeName, __view_func_partial_t partial_f) : _suffix(routeName), _partial_view_f(partial_f),
+                                                                      _prefix(""), func_type(view_t::PARTIAL) {
+    };
+
+    Router(const string routeName, __view_func_raw_t full_f) : _suffix(routeName), _full_view_f(full_f),
+                                                               _prefix(""), func_type(view_t::FULL) {
     };
 
     Router(const char *routeName) : Router(string(routeName), nullptr) {};
 
-    Router::URL_STATUS view(Request &request, string &out_url) {
+    /**
+     * the connection method state was wrapper in request */
+    URL_STATUS view(Request &request, string &out_url, httpConn *conn) {
+        // let user to decide invoke which
+        return __view(request, out_url, (func_type == view_t::FULL) ? conn : nullptr);
+    }
+
+    URL_STATUS __view(Request &request, string &out_url, httpConn *conn) {
         printf("[INFO] into %s view...\n", getFullRoute().c_str());
 
-
-        if (!__view_func) {
+        // check view func
+        if (!_partial_view_f && !_full_view_f) {
             printf("bad route viewer\n");
             return URL_STATUS::VIEW_NULL;
         }
 
-        href_url = (string) __view_func(&request);
-        if (href_url == "") {
+        if (!conn)
+            href_url = (string) _partial_view_f(&request);
+        else {
+            request.parse_arg();
+            href_url = (string) _full_view_f(&request, conn);
+
+        }
+
+        if (href_url.empty()) {
             // make default res url
             href_url = string(getFullRoute()) + ".html";
         }

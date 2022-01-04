@@ -23,14 +23,17 @@
 #include <map>
 #include <vector>
 
-#include "../lock/locker.h"
-#include "../CGImysql/sql_connection_pool.h"
-#include "../timer/lst_timer.h"
-#include "../log/log.h"
-#include "netroute/router.h"
-#include "netroute/blueprint.h"
+/**
+ * do not include router.h here!!!!!!!!
+ * */
 
-typedef void(*Code)(Blueprint*);
+#include "../../lock/locker.h"
+#include "../../CGImysql/sql_connection_pool.h"
+#include "../../timer/lst_timer.h"
+#include "../../log/log.h"
+
+#include "../netroute/router.h"
+#include "../netroute/blueprint.h"
 
 
 class http_conn {
@@ -38,7 +41,6 @@ public:
     static const int FILENAME_LEN = 200;
     static const int READ_BUFFER_SIZE = 2048;
     static const int WRITE_BUFFER_SIZE = 1024;
-
 
 
     enum CHECK_STATE {
@@ -61,6 +63,7 @@ public:
         LINE_BAD,
         LINE_OPEN
     };
+
 
 public:
     http_conn() {}
@@ -87,20 +90,72 @@ public:
     int timer_flag;
     int improv;
 
-    static void register_interceptor(const Blueprint &bp);
+    static void register_interceptor(const Blueprint<Router<http_conn>> &bp) {
+        get_interceptors()->push_back((Blueprint<Router<http_conn>> *) &bp);
+    }
 
-    static void register_interceptor(Router *router);
+    static void register_interceptor(Router<http_conn> *routePtr) {
+        // user want straight register route,so construct a blueprint
+        auto *new_bp = new Blueprint<Router<http_conn>>(routePtr->getBaseName().c_str());
 
-    static void register_interceptor(Blueprint *bp);
+        new_bp->registRoute(routePtr);
+//    printf("new bp name: %s", new_bp->get_bp_name().c_str());
+//    printf("%d\n", new_bp);
+        register_interceptor(new_bp);
+    }
 
+    static void register_interceptor(Blueprint<Router<http_conn>> *bpPtr) {
+        get_interceptors()->push_back(bpPtr);
+    }
 
-    static void register_interceptor(Blueprint *bp,Code code);
+    typedef void(*Code)(Blueprint<Router<http_conn>> *new_bp);
+
+    static void register_interceptor(Blueprint<Router<http_conn>> *bpPtr, Code your_code_here) {
+        try {
+            your_code_here(bpPtr);
+        } catch (exception &e) {
+            fprintf(stderr, "[FATAL] code block occurred mistake!");
+            e.what();
+            delete bpPtr;
+        }
+        get_interceptors()->push_back(bpPtr);
+    }
 
     static
-    vector<Blueprint *>* get_interceptors() {
-        static vector<Blueprint *> interceptors; // all instance must hold same interceptor
+    vector<Blueprint<Router<http_conn>> *> *get_interceptors() {
+        static vector<Blueprint<Router<http_conn>> *> interceptors; // all instance must hold same interceptor
         return &interceptors;
     };
+
+    void set_href_url(const char *html_path);
+
+    void set_href_url(const string html_path);
+
+    const char *
+    url_for(http_conn *conn, string routeName) {
+        if (routeName.find('.') == routeName.npos) {
+
+            return routeName.c_str();
+        }
+    }
+
+    void
+    _enable_remake_request() {
+        remakeRequest = true;
+    }
+
+    void
+    _clean_request_flag() {
+        remakeRequest = false;
+    }
+
+
+    const char *redirect(string route_to_send, http_req_method_t method) {
+        // set state for href
+        return m_method = method,
+        m_url = const_cast<char *>(route_to_send.c_str());
+    }
+
 
 private:
     void init();
@@ -139,10 +194,6 @@ private:
 
     bool add_blank_line();
 
-    void set_href_url(const char *html_path);
-
-    void set_href_url(const string html_path);
-
     char *_getHtmlVersion(const char *m_url) {
         char *html_ver = (char *) (strpbrk(m_url, " \t"));
         if (!html_ver) return nullptr;
@@ -152,6 +203,11 @@ private:
 
         return html_ver;
     };
+
+    bool
+    _need_remake_request() const {
+        return this->remakeRequest;
+    }
 
 
 public:
@@ -171,7 +227,7 @@ private:
     int m_write_idx;
     CHECK_STATE m_check_state;
     http_req_method_t m_method;
-    char m_real_file[FILENAME_LEN]; // the truely use path when open the file or res on server
+    // the truely use path when open the file or res on server
     char *m_url;
     char *m_version;
     char *m_host;
@@ -182,10 +238,9 @@ private:
     struct iovec m_iv[2];
     int m_iv_count;
     int cgi;        //是否启用的POST
-    char *m_string; //存储请求头数据
+    //存储请求头数据
     int bytes_to_send;
     int bytes_have_send;
-    char *doc_root;
 
     map<string, string> m_users;
     int m_TRIGMode;
@@ -195,10 +250,13 @@ private:
     char sql_passwd[100];
     char sql_name[100];
 
+
+    char m_real_file[FILENAME_LEN];
+    char *doc_root;
+    char *m_string;
+    bool remakeRequest = false; // reloop do_request method, but dont broke the http connection
     string HTTP_ROOT = "/";
 };
-
-
 
 
 #endif

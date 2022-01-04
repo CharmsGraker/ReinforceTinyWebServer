@@ -1,8 +1,7 @@
-#include "../bin/http_conn.h"
+#include "http_conn.h"
 
 #include <mysql/mysql.h>
 #include <fstream>
-
 
 locker m_lock;
 map<string, string> users;
@@ -33,6 +32,8 @@ static unsigned long __header_offset = 0;
 auto is_res_request = [](const char *url) {
     return strchr(url, '.') != nullptr;
 };
+
+
 
 auto is_route_request = [](const char *url) {
     return !isdigit(*(url + 1));
@@ -266,7 +267,6 @@ http_conn::HTTP_CODE http_conn::parse_request_line(char *text) {
         m_url += 7;
         m_url = strchr(m_url, '/');
     }
-    printf("after: %s\n", m_url);
 
 
     if (strncasecmp(m_url, "https://", 8) == 0) {
@@ -283,6 +283,8 @@ http_conn::HTTP_CODE http_conn::parse_request_line(char *text) {
         //url_for(HTTP_ROOT);
         strcat(m_url, "judge.html");
     m_check_state = CHECK_STATE_HEADER;
+    printf("after: %s, m_string=%s\n", m_url, m_string);
+
     return NO_REQUEST;
 }
 
@@ -346,12 +348,15 @@ http_conn::HTTP_CODE http_conn::process_read() {
         switch (m_check_state) {
             case CHECK_STATE_REQUESTLINE: {
                 ret = parse_request_line(text);
+                printf("out of request line, m_url=%s\n", m_url);
                 if (ret == BAD_REQUEST)
                     return BAD_REQUEST;
                 break;
             }
             case CHECK_STATE_HEADER: {
                 ret = parse_headers(text);
+                printf("out of header parse, m_url=%s\n", m_url);
+
                 if (ret == BAD_REQUEST)
                     return BAD_REQUEST;
                 else if (ret == GET_REQUEST) {
@@ -375,131 +380,115 @@ http_conn::HTTP_CODE http_conn::process_read() {
 
 http_conn::HTTP_CODE
 http_conn::do_request() {
-    /*
-     * this function deal with http resource get request.
-     * usually, first ask for *.html file,
-     * then get the elements in such *.html file mentioned */
+    while (1) {
+        _clean_request_flag();
+        printf("[INFO] enter to do_request(), m_url=%s\n", m_url);
 
-    retry:
-    strcpy(m_real_file, doc_root);
-    int len_root_path = strlen(doc_root);
+        /*
+         * this function deal with http resource get request.
+         * usually, first ask for *.html file,
+         * then get the elements in such *.html file mentioned */
 
-    //printf("m_url:%s\n", m_url);
-    const char *p = strrchr(m_url, '/');
+        retry:
+        strcpy(m_real_file, doc_root);
 
-    printf("m_url: %s\n", m_url);
-    printf("p: %s\n", p);
+        int len_root_path = strlen(doc_root);
 
-    //处理cgi
-    printf("cgi: %d\n", cgi);
-    http_req_method_t req_method = cgi == 1 ? POST : GET;
-    if (req_method == POST && (*(p + 1) == '2' || *(p + 1) == '3')) {
+        printf("m_string: %s, cgi= %d\n", m_string, cgi);
+        printf("m_url: %s\n", m_url);
 
-        //根据标志判断是登录检测还是注册检测
-        char flag = m_url[1];
+        Request request = Request::__new();
+        if (cgi == 1)
+            request = Request::makeRequest(m_url, m_string);
+        else
+            request = Request::makeRequest(m_url);
 
-        char *m_url_real = (char *) malloc(sizeof(char) * 200);
-        strcpy(m_url_real, "/"); // add sep
+        try {
+            printf("\tenter to try block...\n");
+            const char *request_url = (const char *) request.route().c_str();
 
-        strcat(m_url_real, m_url + 2);
-        strncpy(m_real_file + len_root_path, m_url_real, FILENAME_LEN - len_root_path - 1);
-        free(m_url_real);
+            printf("\troute:%s\n", request_url);
 
-        //将用户名和密码提取出来
-        //user=123&passwd=123
-        char name[100], password[100];
-        int offset;
-        int cur;
-        for (offset = 5, cur = 0; m_string[offset] != '&'; ++offset, ++cur)
-            name[cur] = m_string[offset];
-        name[cur] = '\0';
+            printf("m_url: %s, request_url=%s, cgi=%d\n", request_url, m_url, cgi);
 
-        int j = 0;
-        for (offset = offset + 10; m_string[offset] != '\0'; ++offset, ++j)
-            password[j] = m_string[offset];
-        password[j] = '\0';
 
-        if (*(p + 1) == '3') {
-            //如果是注册，先检测数据库中是否有重名的
-            //没有重名的，进行增加数据
+            if (!is_res_request(request_url) && is_route_request(request_url)) {
+                if (_need_remake_request()) continue;
 
-            if (users.find(name) == users.end()) {
-                char *sql_insert = (char *) malloc(sizeof(char) * 200);
-                sprintf(sql_insert, "INSERT INTO user(username, passwd) VALUES('%s','%s')",name,password);
+                Router<http_conn> *router;
+                string url_real;
 
-                m_lock.lock();
-                int res = mysql_query(mysql, sql_insert);
-                users.insert(pair<string, string>(name, password));
-                m_lock.unlock();
+                // make sure to correct bp name concat for routers
+                // traverse blueprint(s)
+                printf("[INFO] total interceptors: %ld\n", get_interceptors()->size());
 
-                if (!res)
-                    set_href_url("/log.html");
-                else
-                    set_href_url( "/registerError.html");
-            } else
-                set_href_url("/registerError.html");
-        }
-            //如果是登录，直接判断
-            //若浏览器端输入的用户名和密码在表中可以查找到，返回1，否则返回0
-        else if (*(p + 1) == '2') {
-            if (users.find(name) != users.end() && users[name] == password) {
-                set_href_url("/welcome.html");
-            } else
-                set_href_url("/logError.html");
-        }
-    } else if (!is_res_request(p) && is_route_request(p)) {
-        printf("[INFO] into my branch\n");
-        const char *request_url = p;
-        Router *router;
-        string m_url_real;
+                for (auto &bp: *get_interceptors()) {
 
-        // make sure to correct bp name concat for routers
-        // traverse blueprint(s)
-        printf("total interceptors: %ld\n", get_interceptors()->size());
-        Request request = Request::makeRequest(request_url,req_method);
+                    // initialized bp's route info
+                    bp->set_route_prefix();
 
-        for (auto &bp: *get_interceptors()) {
-            // initialized bp's route info
-            bp->set_route_prefix();
+                    //printf("loop bp:%s\n", bp->get_bp_name().c_str());
+                    //printf("%d\n", bp);
+                    if ((router = bp->canDealWith(request)) != nullptr) {
+                        // the request actual method type won't be check here. it let user to determine that.
 
-            //printf("loop bp:%s\n", bp->get_bp_name().c_str());
-            //printf("%d\n", bp);
-            if ((router = bp->canDealWith(request)) != nullptr) {
-                // the request acutal method type wont be check here. it let user to determine that.
+                        printf("\tchoose route: \"%s\"\n", router->getFullRoute().c_str());
+                        if (router->view(REQUEST_CAST request,
+                                         url_real,
+                                         this) == URL_STATUS::VIEW_NOT_FOUND) {
+                            // do with retry
+                            //goto retry;
+                        }
 
-                printf("choose route: %s\n", router->getFullRoute().c_str());
-                if (router->view(REQUEST_CAST request, m_url_real) == Router::URL_STATUS::VIEW_NOT_FOUND) {
-                    // do with retry
-                    //goto retry;
+                        // check status here, so this is a recurrent point
+                        if (is_res_request(url_real.c_str())) {
+                            printf("\tm_url_real: %s", url_real.c_str());
+
+                            // ask for file like html
+                            // concat full path pointer to file
+                            strncpy(m_real_file + len_root_path, url_real.c_str(), url_real.length());
+                            // successfully deal request
+                        } else {
+                            // still a route visit or just redirect, need to remake request
+                            _enable_remake_request();
+                        }
+                        break;
+                    }
+
+                }
+                if (_need_remake_request()) {
+                    printf("[INFO] remake request...\n");
+                    continue;
                 }
 
-                printf("m_url_real: %s", m_url_real.c_str());
+            } else /* request for file or element doc */
+                strncpy(m_real_file + len_root_path, m_url, FILENAME_LEN - len_root_path - 1);
 
-                // pin jie lu you
-                strncpy(m_real_file + len_root_path, m_url_real.c_str(), m_url_real.length());
-                break; // successfully deal request
-            }
-
+        } catch (exception &e) {
+            fprintf(stderr, "[FATAL] do request error!\n");
+            e.what();
+            exit(1);
         }
-    } else /* request for file or element doc */
-        strncpy(m_real_file + len_root_path, m_url, FILENAME_LEN - len_root_path - 1);
 
-    if (stat(m_real_file, &m_file_stat) < 0)
-        return NO_RESOURCE;
 
-    if (!(m_file_stat.st_mode & S_IROTH))
-        return FORBIDDEN_REQUEST;
+        if (stat(m_real_file, &m_file_stat) < 0)
+            return NO_RESOURCE;
 
-    if (S_ISDIR(m_file_stat.st_mode))
-        return BAD_REQUEST;
+        if (!(m_file_stat.st_mode & S_IROTH))
+            return FORBIDDEN_REQUEST;
 
-    // do open file description
-    int fd = open(m_real_file, O_RDONLY);
-    printf("[INFO] real file from path: %s\n", m_real_file);
+        if (S_ISDIR(m_file_stat.st_mode))
+            return BAD_REQUEST;
 
-    m_file_address = (char *) mmap(nullptr, m_file_stat.st_size, PROT_READ, MAP_PRIVATE, fd, 0);
-    close(fd); // avoid waste
-    return FILE_REQUEST;
+        // do open file description
+        int fd = open(m_real_file, O_RDONLY);
+        printf("[INFO] real file from path: %s\n", m_real_file);
+
+        m_file_address = (char *) mmap(nullptr, m_file_stat.st_size, PROT_READ, MAP_PRIVATE, fd, 0);
+        close(fd); // avoid waste
+
+        return FILE_REQUEST;
+    }
 }
 
 void http_conn::unmap() {
@@ -673,35 +662,6 @@ void http_conn::set_href_url(const string html_path) {
 void http_conn::set_href_url(const char *html_path) {
     strcpy(m_url, html_path);
     strncpy(m_real_file + strlen(doc_root), m_url, strlen(m_url));
-}
-
-
-void
-http_conn::register_interceptor(const Blueprint &bp) {
-    get_interceptors()->push_back((Blueprint *) (&bp));
-}
-
-void
-http_conn::register_interceptor(Router *routePtr) {
-    // user want straight register route,so construct a blueprint
-    Blueprint *new_bp = new Blueprint(routePtr->getBaseName().c_str());
-
-    new_bp->registRoute(routePtr);
-//    printf("new bp name: %s", new_bp->get_bp_name().c_str());
-//    printf("%d\n", new_bp);
-    register_interceptor(new_bp);
-}
-
-void
-http_conn::register_interceptor(Blueprint *bpPtr) {
-    get_interceptors()->push_back(bpPtr);
-}
-
-
-void
-http_conn::register_interceptor(Blueprint *bpPtr,Code code) {
-    code(bpPtr);
-    get_interceptors()->push_back(bpPtr);
 }
 
 

@@ -4,6 +4,12 @@ it was not code by me.<br/></br> I'm trying to improve it.
 I'm a noob, so it just for learning myself.
 
 # Update
+### 2022.1.4
+convert code, use template to construct Router.<br/>
+compile become little slowly opz.However it is very flexible now.<br/>
+use hashmap to accept url parameter only exist `http_conn` in viewer can make sense.<br/>
+in all,if dont want use some data when connection, please dont provide `http_conn` to Router.
+
 ### 2022.1.3
 1. use `lambda` to simplify code.<br/></br>
 2. now it can add your own route,I try to imitate the conception like Flask.<br/></br>

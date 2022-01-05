@@ -23,17 +23,16 @@
 #include <map>
 #include <vector>
 
-/**
- * do not include router.h here!!!!!!!!
- * */
 
-#include "../../lock/locker.h"
-#include "../../CGImysql/sql_connection_pool.h"
-#include "../../timer/lst_timer.h"
-#include "../../log/log.h"
 
+#include "../lock/locker.h"
+#include "../CGImysql/sql_connection_pool.h"
+#include "../timer/lst_timer.h"
+#include "../log/log.h"
+#include "../netroute/http_request_enum.h"
 #include "../netroute/router.h"
 #include "../netroute/blueprint.h"
+#include "../http/http_connect_adapter.h"
 
 
 class http_conn {
@@ -41,7 +40,7 @@ public:
     static const int FILENAME_LEN = 200;
     static const int READ_BUFFER_SIZE = 2048;
     static const int WRITE_BUFFER_SIZE = 1024;
-
+    typedef http_conn thisConnectionType;
 
     enum CHECK_STATE {
         CHECK_STATE_REQUESTLINE = 0,
@@ -90,13 +89,13 @@ public:
     int timer_flag;
     int improv;
 
-    static void register_interceptor(const Blueprint<Router<http_conn>> &bp) {
-        get_interceptors()->push_back((Blueprint<Router<http_conn>> *) &bp);
+    static void register_interceptor(const Blueprint<Router> &bp) {
+        get_interceptors()->push_back((Blueprint<Router> *) &bp);
     }
 
-    static void register_interceptor(Router<http_conn> *routePtr) {
+    static void register_interceptor(Router *routePtr) {
         // user want straight register route,so construct a blueprint
-        auto *new_bp = new Blueprint<Router<http_conn>>(routePtr->getBaseName().c_str());
+        auto *new_bp = new Blueprint<Router>(routePtr->getBaseName().c_str());
 
         new_bp->registRoute(routePtr);
 //    printf("new bp name: %s", new_bp->get_bp_name().c_str());
@@ -104,13 +103,13 @@ public:
         register_interceptor(new_bp);
     }
 
-    static void register_interceptor(Blueprint<Router<http_conn>> *bpPtr) {
+    static void register_interceptor(Blueprint<Router> *bpPtr) {
         get_interceptors()->push_back(bpPtr);
     }
 
-    typedef void(*Code)(Blueprint<Router<http_conn>> *new_bp);
+    typedef void(*Code)(Blueprint<Router> *new_bp);
 
-    static void register_interceptor(Blueprint<Router<http_conn>> *bpPtr, Code your_code_here) {
+    static void register_interceptor(Blueprint<Router> *bpPtr, Code your_code_here) {
         try {
             your_code_here(bpPtr);
         } catch (exception &e) {
@@ -122,8 +121,8 @@ public:
     }
 
     static
-    vector<Blueprint<Router<http_conn>> *> *get_interceptors() {
-        static vector<Blueprint<Router<http_conn>> *> interceptors; // all instance must hold same interceptor
+    vector<Blueprint<Router> *> *get_interceptors() {
+        static vector<Blueprint<Router> *> interceptors; // all instance must hold same interceptor
         return &interceptors;
     };
 
@@ -153,7 +152,12 @@ public:
     const char *redirect(string route_to_send, http_req_method_t method) {
         // set state for href
         return m_method = method,
-        m_url = const_cast<char *>(route_to_send.c_str());
+                m_url = const_cast<char *>(route_to_send.c_str());
+    }
+
+    MYSQL const*
+    get_mysql_query()const {
+        return mysql;
     }
 
 
@@ -213,8 +217,9 @@ private:
 public:
     static int m_epollfd;
     static int m_user_count;
-    MYSQL *mysql;
     int m_state;  //读为0, 写为1
+    friend class HttpConnectionAdapter<http_conn>;
+    MYSQL *mysql; // real query store in http_conn
 
 private:
     int m_sockfd;
@@ -255,6 +260,7 @@ private:
     char *doc_root;
     char *m_string;
     bool remakeRequest = false; // reloop do_request method, but dont broke the http connection
+    string relative_url_path;
     string HTTP_ROOT = "/";
 };
 

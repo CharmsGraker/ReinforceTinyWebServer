@@ -2,8 +2,9 @@
 
 #include <mysql/mysql.h>
 #include <fstream>
+#include "../../config.h"
 
-locker m_lock;
+Locker m_lock;
 map<string, string> users;
 
 
@@ -29,14 +30,13 @@ static struct httpHeaderEnum {
 static unsigned long __header_offset = 0;
 
 
-auto is_res_request = [](const char *url) {
-    return strchr(url, '.') != nullptr;
+auto is_res_request = [](const string &url) {
+    return url.find('.') != url.npos;
 };
 
 
-
-auto is_route_request = [](const char *url) {
-    return !isdigit(*(url + 1));
+auto is_route_request = [](const string &url) {
+    return 1;
 };
 
 
@@ -241,6 +241,7 @@ http_conn::HTTP_CODE http_conn::parse_request_line(char *text) {
         return BAD_REQUEST;
     }
     *m_url++ = '\0';
+    // set to head
 //    printf("%s\n", m_url);
 
     char *method = text;
@@ -261,21 +262,20 @@ http_conn::HTTP_CODE http_conn::parse_request_line(char *text) {
     if (strcasecmp(m_version, "HTTP/1.1") != 0)
         return BAD_REQUEST;
 
-    printf("m_url: %s\n", m_url);
+//
+//    if (strncasecmp(m_url, "http://", 7) == 0) {
+//        m_url += 7;
+//        m_url = strchr(m_url, '/');
+//    }
 
-    if (strncasecmp(m_url, "http://", 7) == 0) {
-        m_url += 7;
-        m_url = strchr(m_url, '/');
-    }
 
+//    if (strncasecmp(m_url, "https://", 8) == 0) {
+//        m_url += 8;
+//        m_url = strchr(m_url, '/');
+//    }
 
-    if (strncasecmp(m_url, "https://", 8) == 0) {
-        m_url += 8;
-        m_url = strchr(m_url, '/');
-    }
-
-    if (!m_url || m_url[0] != '/')
-        return BAD_REQUEST;
+//    if (!m_url || m_url[0] != '/')
+//        return BAD_REQUEST;
 
     // register index html here
     //当url为/时，显示判断界面
@@ -283,7 +283,7 @@ http_conn::HTTP_CODE http_conn::parse_request_line(char *text) {
         //url_for(HTTP_ROOT);
         strcat(m_url, "judge.html");
     m_check_state = CHECK_STATE_HEADER;
-    printf("after: %s, m_string=%s\n", m_url, m_string);
+    printf("raw_url: %s, m_string=%s\n", m_url, m_string);
 
     return NO_REQUEST;
 }
@@ -293,6 +293,7 @@ http_conn::HTTP_CODE http_conn::parse_request_line(char *text) {
 http_conn::HTTP_CODE http_conn::parse_headers(char *text) {
     // has new http request can reach this method,log this will look up http exchange so many message
     printf("\t%s\n", text);
+
     if (text[0] == '\0') {
         if (m_content_length != 0) {
             m_check_state = CHECK_STATE_CONTENT;
@@ -326,6 +327,7 @@ http_conn::HTTP_CODE http_conn::parse_headers(char *text) {
 http_conn::HTTP_CODE http_conn::parse_content(char *text) {
     if (m_read_idx >= (m_content_length + m_checked_idx)) {
         text[m_content_length] = '\0';
+
         //POST请求中最后为输入的用户名和密码
         m_string = text;
         return GET_REQUEST;
@@ -351,9 +353,11 @@ http_conn::HTTP_CODE http_conn::process_read() {
                 printf("out of request line, m_url=%s\n", m_url);
                 if (ret == BAD_REQUEST)
                     return BAD_REQUEST;
+
                 break;
             }
             case CHECK_STATE_HEADER: {
+                // the m_url will be set at this case
                 ret = parse_headers(text);
                 printf("out of header parse, m_url=%s\n", m_url);
 
@@ -362,9 +366,11 @@ http_conn::HTTP_CODE http_conn::process_read() {
                 else if (ret == GET_REQUEST) {
                     return do_request();
                 }
+
                 break;
             }
             case CHECK_STATE_CONTENT: {
+                // m_url has been set when header sent before
                 ret = parse_content(text);
                 if (ret == GET_REQUEST)
                     return do_request();
@@ -378,11 +384,30 @@ http_conn::HTTP_CODE http_conn::process_read() {
     return NO_REQUEST;
 }
 
+
 http_conn::HTTP_CODE
 http_conn::do_request() {
-    while (1) {
+    auto to_fill_route = [](string &url) {
+        //if (url.find('?') == url.npos) url += '?';
+        return url;
+    };
+
+    while (true) {
         _clean_request_flag();
-        printf("[INFO] enter to do_request(), m_url=%s\n", m_url);
+
+        if (cgi == 1) {
+            string url = m_url;
+            relative_url_path = to_fill_route(url) + string(m_string);
+
+        } else {
+            relative_url_path = string(m_url);
+
+        }
+        printf("relative_url: %s, ", relative_url_path.c_str());
+        auto request = Request<runtime_urlparser_t, runtime_connection_adapter_t>::makeRequest(
+                (std::string) relative_url_path, (http_req_method_t)m_method);
+
+        printf("[INFO] enter to do_request(), m_url=%s\n", request.route().c_str());
 
         /*
          * this function deal with http resource get request.
@@ -397,29 +422,22 @@ http_conn::do_request() {
         printf("m_string: %s, cgi= %d\n", m_string, cgi);
         printf("m_url: %s\n", m_url);
 
-        Request request = Request::__new();
-        if (cgi == 1)
-            request = Request::makeRequest(m_url, m_string);
-        else
-            request = Request::makeRequest(m_url);
 
         try {
             printf("\tenter to try block...\n");
-            const char *request_url = (const char *) request.route().c_str();
+            string request_url = request.route();
 
-            printf("\troute:%s\n", request_url);
-
-            printf("m_url: %s, request_url=%s, cgi=%d\n", request_url, m_url, cgi);
+            printf("request_url=%s\n", request_url.c_str());
 
 
-            if (!is_res_request(request_url) && is_route_request(request_url)) {
+            if (!is_res_request(request_url)) {
                 if (_need_remake_request()) continue;
 
-                Router<http_conn> *router;
+                Router *router;
                 string url_real;
 
                 // make sure to correct bp name concat for routers
-                // traverse blueprint(s)
+                // traverse blueprint(s) to handle this request
                 printf("[INFO] total interceptors: %ld\n", get_interceptors()->size());
 
                 for (auto &bp: *get_interceptors()) {
@@ -432,29 +450,27 @@ http_conn::do_request() {
                     if ((router = bp->canDealWith(request)) != nullptr) {
                         // the request actual method type won't be check here. it let user to determine that.
 
-                        printf("\tchoose route: \"%s\"\n", router->getFullRoute().c_str());
-                        if (router->view(REQUEST_CAST request,
-                                         url_real,
-                                         this) == URL_STATUS::VIEW_NOT_FOUND) {
+                        if (router->view(request, url_real) == URL_STATUS::VIEW_NOT_FOUND) {
                             // do with retry
                             //goto retry;
                         }
 
                         // check status here, so this is a recurrent point
-                        if (is_res_request(url_real.c_str())) {
+                        if (is_res_request(url_real)) {
                             printf("\tm_url_real: %s", url_real.c_str());
 
                             // ask for file like html
                             // concat full path pointer to file
                             strncpy(m_real_file + len_root_path, url_real.c_str(), url_real.length());
+
                             // successfully deal request
+                            _clean_request_flag();
                         } else {
                             // still a route visit or just redirect, need to remake request
                             _enable_remake_request();
                         }
-                        break;
+                        break; /* go pass to state check... */
                     }
-
                 }
                 if (_need_remake_request()) {
                     printf("[INFO] remake request...\n");
@@ -464,8 +480,10 @@ http_conn::do_request() {
             } else /* request for file or element doc */
                 strncpy(m_real_file + len_root_path, m_url, FILENAME_LEN - len_root_path - 1);
 
+        } catch (NullException &nullException) {
+            nullException.what();
         } catch (exception &e) {
-            fprintf(stderr, "[FATAL] do request error!\n");
+            fprintf(stderr, "[FATAL] do_request() error!\n");
             e.what();
             exit(1);
         }
@@ -482,13 +500,14 @@ http_conn::do_request() {
 
         // do open file description
         int fd = open(m_real_file, O_RDONLY);
-        printf("[INFO] real file from path: %s\n", m_real_file);
+        printf("[INFO] read real file from path: %s\n", m_real_file);
 
         m_file_address = (char *) mmap(nullptr, m_file_stat.st_size, PROT_READ, MAP_PRIVATE, fd, 0);
         close(fd); // avoid waste
 
         return FILE_REQUEST;
     }
+
 }
 
 void http_conn::unmap() {
@@ -671,5 +690,3 @@ http_conn::~http_conn() {
         delete blueprint;
     }
 }
-
-

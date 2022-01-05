@@ -1,5 +1,6 @@
 #ifndef WEBSERVER_H
 #define WEBSERVER_H
+#define PROJECT_NAME "TINY_WEB"
 
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -12,10 +13,10 @@
 #include <cassert>
 #include <sys/epoll.h>
 
-#include "./threadpool/threadpool.h"
+#include "bin/threadpool/threadpool.h"
 #include "bin/http/http_conn.h"
+#include "bin/timer/lst_timer.h"
 
-#include "timer/lst_timer.h"
 #include "configure.h"
 
 const int MAX_FD = 65536;           //最大文件描述符

@@ -6,12 +6,13 @@
 #define TINYWEB_USERMAIN_H
 
 #include "../webserver.h"
+#include "../config.h"
 
 typedef WebServer *ServerPtr;
 
 class UserMain {
 private:
-    locker lock;
+    Locker lock;
 
     UserMain() {};
 

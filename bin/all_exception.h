@@ -18,6 +18,7 @@ public:
 
 class NullException:public std::runtime_error {
 public:
+    NullException():NullException(""){};
     NullException(std::string msg): runtime_error("[NullException]"+msg) {
 
     }

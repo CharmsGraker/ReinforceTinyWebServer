@@ -34,7 +34,7 @@ private:
 	int m_MaxConn;  //最大连接数
 	int m_CurConn;  //当前已使用的连接数
 	int m_FreeConn; //当前空闲的连接数
-	locker lock;
+	Locker lock;
 	list<MYSQL *> connList; //连接池
     Semaphore reserve; // > 0 means there has free connection to use
 

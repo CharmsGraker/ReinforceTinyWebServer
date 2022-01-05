@@ -26,18 +26,20 @@ public:
         return _bp_name;
     }
 
+    template<class Request>
     Route *
     canDealWith(Request &request) {
         Route *handler = nullptr;
-        string requestUrl = request.raw_url();
+        string url_route = request.pa_addr.path;
         auto match_pattern = [](const char *s, const char *pattern) {
             return strncasecmp(s, pattern, strlen(pattern)) == 0;
         };
         // should let bp to pattern url, instead of url to pattern bp,because bp are much shorter to parse
-        if (match_pattern(requestUrl.c_str(), get_bp_name().c_str())) {
-            printf("matched bp: \"%s\"\n", get_bp_name().c_str());
+        if (match_pattern(url_route.c_str(), get_bp_name().c_str())) {
+            printf("[INFO] matched Blueprint [\"%s\"]\n", get_bp_name().c_str());
             for (auto &router: routerList) {
-                if (match_pattern(requestUrl.c_str(), router->getFullRoute().c_str())) {
+                if (match_pattern(url_route.c_str(), router->getFullRoute().c_str())) {
+                    printf(", choose route: \"%s\"\n", router->getFullRoute().c_str());
                     handler = router;
                     break;
                 }

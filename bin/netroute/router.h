@@ -21,7 +21,6 @@ enum URL_STATUS {
 };
 
 
-template<typename httpConn>
 class Router {
 private:
     /**
@@ -39,15 +38,8 @@ private:
         return sep;
     };
 
-    __view_func_partial_t _partial_view_f = nullptr;
-    __view_func_raw_t _full_view_f = nullptr;
+    view_func_raw_t _full_view_f = nullptr;
 
-    enum view_t {
-        PARTIAL,
-        FULL
-    };
-
-    view_t func_type;
 
 public:
     //STATUS
@@ -59,41 +51,32 @@ public:
      * it should be a stirng like relative path to the true file you store in config ROOT res dir.*
      * if you want dont need connection info, please specify partial view function to construct the route, instead of given http_conn when invoke constructor .
      * because only if when specify the _full_view_f, then will add url param to request. */
-    Router(const string routeName, __view_func_partial_t partial_f) : _suffix(routeName), _partial_view_f(partial_f),
-                                                                      _prefix(""), func_type(view_t::PARTIAL) {
-    };
 
-    Router(const string routeName, __view_func_raw_t full_f) : _suffix(routeName), _full_view_f(full_f),
-                                                               _prefix(""), func_type(view_t::FULL) {
+    Router(const string routeName, view_func_raw_t full_f) : _suffix(routeName), _full_view_f(full_f),
+                                                               _prefix("") {
     };
 
     Router(const char *routeName) : Router(string(routeName), nullptr) {};
 
     /**
      * the connection method state was wrapper in request */
-    URL_STATUS view(Request &request, string &out_url, httpConn *conn) {
+    template<class request_t>
+    URL_STATUS view(request_t &request, string &out_url) {
         // let user to decide invoke which
-        return __view(request, out_url, (func_type == view_t::FULL) ? conn : nullptr);
+        return __view(request, out_url);
     }
 
-    URL_STATUS __view(Request &request, string &out_url, httpConn *conn) {
+    template<class request_t>
+    URL_STATUS __view(request_t &request, string &out_url) {
         printf("[INFO] into %s view...\n", getFullRoute().c_str());
 
         // check view func
-        if (!_partial_view_f && !_full_view_f) {
+        if (!_full_view_f) {
             printf("bad route viewer\n");
             return URL_STATUS::VIEW_NULL;
         }
 
-        if (!conn)
-            href_url = (string) _partial_view_f(&request);
-        else {
-            request.parse_arg();
-            href_url = (string) _full_view_f(&request, conn);
-
-        }
-
-        if (href_url.empty()) {
+        if ((href_url = ((string) _full_view_f(&request))).empty()) {
             // make default res url
             href_url = string(getFullRoute()) + ".html";
         }

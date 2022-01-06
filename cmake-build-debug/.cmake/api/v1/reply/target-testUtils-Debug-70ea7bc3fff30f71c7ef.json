@@ -25,7 +25,7 @@
 			{
 				"command" : 0,
 				"file" : 0,
-				"line" : 19,
+				"line" : 20,
 				"parent" : 0
 			},
 			{
@@ -37,7 +37,7 @@
 			{
 				"command" : 1,
 				"file" : 0,
-				"line" : 15,
+				"line" : 16,
 				"parent" : 0
 			}
 		]
@@ -59,6 +59,10 @@
 				{
 					"backtrace" : 2,
 					"path" : "/usr/include/mysql"
+				},
+				{
+					"backtrace" : 2,
+					"path" : "/usr/local/include/ctemplate"
 				},
 				{
 					"backtrace" : 3,
@@ -96,6 +100,11 @@
 			{
 				"backtrace" : 1,
 				"fragment" : "-lmysqlclient",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 1,
+				"fragment" : "-lctemplate",
 				"role" : "libraries"
 			}
 		],

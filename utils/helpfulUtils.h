@@ -18,6 +18,8 @@ public:
 
 
 };
+
+size_t GetFileSize(const std::string &file_name);
 #define varName(x) #x
 #define cat(x,y) x##y
 

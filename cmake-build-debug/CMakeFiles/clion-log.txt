@@ -1,13 +1,4 @@
 /opt/software/clion-2021.3/bin/cmake/linux/bin/cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_MAKE_PROGRAM=/opt/software/clion-2021.3/bin/ninja/linux/ninja -G Ninja /home/nekonoyume/codeDev/CPlusPlus/tinyWeb
 -- Configuring done
-CMake Error at CMakeLists.txt:18 (add_executable):
-  Cannot find source file:
-
-    router/router.cpp
-
-
-CMake Error at CMakeLists.txt:18 (add_executable):
-  No SOURCES given to target: parse_xml
-
-
-CMake Generate step failed.  Build files cannot be regenerated correctly.
+-- Generating done
+-- Build files have been written to: /home/nekonoyume/codeDev/CPlusPlus/tinyWeb/cmake-build-debug

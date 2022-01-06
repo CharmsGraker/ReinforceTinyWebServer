@@ -8,8 +8,8 @@ else
 
 endif
 
-server: main.cpp  bin/timer/lst_timer.cpp bin/http/*.cpp bin/log/log.cpp bin/CGImysql/sql_connection_pool.cpp  webserver.cpp  ./utils/c/parse_xml.c ./configure.cpp ./bin/netroute/router.h devlop/UserMain.cpp ./utils/string_utils.cpp config.h
-	$(CXX) -o server -g --debug $^ $(CXXFLAGS) -lpthread -lmysqlclient -lxml2 -I/usr/include/libxml2/ -L/usr/local/lib
+server: main.cpp  bin/timer/lst_timer.cpp bin/http/*.cpp bin/log/log.cpp bin/CGImysql/sql_connection_pool.cpp  webserver.cpp  ./utils/c/parse_xml.c ./configure.cpp ./bin/netroute/router.h devlop/UserMain.cpp ./utils/string_utils.cpp config.h bin/render/render_utils.cpp
+	$(CXX) -o server -g --debug $^ $(CXXFLAGS) -lpthread -lmysqlclient -lxml2 -lctemplate -I/usr/include/libxml2/ -L/usr/local/lib
 
 clean:
 	rm  -r server.o

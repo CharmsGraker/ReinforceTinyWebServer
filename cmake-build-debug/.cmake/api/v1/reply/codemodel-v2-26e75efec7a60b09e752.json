@@ -17,7 +17,8 @@
 					[
 						0,
 						1,
-						2
+						2,
+						3
 					]
 				}
 			],
@@ -34,7 +35,8 @@
 					[
 						0,
 						1,
-						2
+						2,
+						3
 					]
 				}
 			],
@@ -43,21 +45,28 @@
 				{
 					"directoryIndex" : 0,
 					"id" : "parse_xml::@6890427a1f51a3e7e1df",
-					"jsonFile" : "target-parse_xml-Debug-f43af1abb55885d554be.json",
+					"jsonFile" : "target-parse_xml-Debug-4d962d08c58052c196e3.json",
 					"name" : "parse_xml",
 					"projectIndex" : 0
 				},
 				{
 					"directoryIndex" : 0,
 					"id" : "testUtils::@6890427a1f51a3e7e1df",
-					"jsonFile" : "target-testUtils-Debug-6ffbb110ddac5ad2bad6.json",
+					"jsonFile" : "target-testUtils-Debug-70ea7bc3fff30f71c7ef.json",
 					"name" : "testUtils",
 					"projectIndex" : 0
 				},
 				{
 					"directoryIndex" : 0,
+					"id" : "test_ctemplate::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-test_ctemplate-Debug-0f77ace57a84bf00ac0f.json",
+					"name" : "test_ctemplate",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
 					"id" : "tinyWeb::@6890427a1f51a3e7e1df",
-					"jsonFile" : "target-tinyWeb-Debug-14c4e7cff84cda908ac7.json",
+					"jsonFile" : "target-tinyWeb-Debug-e2b89901bb57ccd547b5.json",
 					"name" : "tinyWeb",
 					"projectIndex" : 0
 				}

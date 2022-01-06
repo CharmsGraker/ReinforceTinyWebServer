@@ -20,6 +20,7 @@ enum URL_STATUS {
     VIEW_NULL
 };
 
+using namespace yumira;
 
 class Router {
 private:
@@ -44,7 +45,7 @@ private:
 public:
     //STATUS
 
-    string href_url;
+    url_t href_url;
 
     /**
      * view func represent the which view of route should show,
@@ -53,7 +54,7 @@ public:
      * because only if when specify the _full_view_f, then will add url param to request. */
 
     Router(const string routeName, view_func_raw_t full_f) : _suffix(routeName), _full_view_f(full_f),
-                                                               _prefix("") {
+                                                             _prefix("") {
     };
 
     Router(const char *routeName) : Router(string(routeName), nullptr) {};
@@ -61,13 +62,13 @@ public:
     /**
      * the connection method state was wrapper in request */
     template<class request_t>
-    URL_STATUS view(request_t &request, string &out_url) {
+    URL_STATUS view(request_t &request, url_t &out_url) {
         // let user to decide invoke which
         return __view(request, out_url);
     }
 
     template<class request_t>
-    URL_STATUS __view(request_t &request, string &out_url) {
+    URL_STATUS __view(request_t &request, url_t &out_url) {
         printf("[INFO] into %s view...\n", getFullRoute().c_str());
 
         // check view func
@@ -76,9 +77,9 @@ public:
             return URL_STATUS::VIEW_NULL;
         }
 
-        if ((href_url = ((string) _full_view_f(&request))).empty()) {
+        if ((href_url = ((url_t) _full_view_f(&request))).empty()) {
             // make default res url
-            href_url = string(getFullRoute()) + ".html";
+            href_url = url_t(getFullRoute()+ ".html") ;
         }
 
         out_url = href_url;

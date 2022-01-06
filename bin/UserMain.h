@@ -8,7 +8,7 @@
 #include "../webserver.h"
 #include "../config.h"
 
-typedef WebServer *ServerPtr;
+
 
 class UserMain {
 private:
@@ -42,7 +42,7 @@ public:
 
     static
     void
-    bindServer(WebServer *ser) {
+    bindServer(yumira::WebServer *ser) {
         getInstance()->server = ser;
     }
 

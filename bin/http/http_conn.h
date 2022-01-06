@@ -21,8 +21,8 @@
 #include <sys/wait.h>
 #include <sys/uio.h>
 #include <map>
+#include <utility>
 #include <vector>
-
 
 
 #include "../lock/locker.h"
@@ -34,6 +34,8 @@
 #include "../netroute/blueprint.h"
 #include "../http/http_connect_adapter.h"
 
+
+using namespace yumira;
 
 class http_conn {
 public:
@@ -130,11 +132,11 @@ public:
 
     void set_href_url(const string html_path);
 
-    const char *
-    url_for(http_conn *conn, string routeName) {
+    const url_t
+    url_for(http_conn *conn, std::string routeName) {
         if (routeName.find('.') == routeName.npos) {
 
-            return routeName.c_str();
+            return url_t(routeName);
         }
     }
 
@@ -149,14 +151,22 @@ public:
     }
 
 
-    const char *redirect(string route_to_send, http_req_method_t method) {
+    url_t redirect(std::string route_to_send, http_req_method_t method) {
         // set state for href
-        return m_method = method,
-                m_url = const_cast<char *>(route_to_send.c_str());
+        if ((m_method = method) == POST) {
+            cgi = 1;
+        } else {
+            cgi = 0;
+        }
+        m_string = nullptr;
+
+        auto st_url = url_t(std::move(route_to_send));
+        m_url = (char *) st_url.url.c_str();
+        return st_url;
     }
 
-    MYSQL const*
-    get_mysql_query()const {
+    MYSQL const *
+    get_mysql_query() const {
         return mysql;
     }
 
@@ -219,6 +229,7 @@ public:
     static int m_user_count;
     int m_state;  //读为0, 写为1
     friend class HttpConnectionAdapter<http_conn>;
+
     MYSQL *mysql; // real query store in http_conn
 
 private:

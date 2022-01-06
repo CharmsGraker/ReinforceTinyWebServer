@@ -4,9 +4,6 @@
 #include <fstream>
 #include "../../config.h"
 
-Locker m_lock;
-map<string, string> users;
-
 
 //定义http响应的一些状态信息
 const char *ok_200_title = "OK";
@@ -20,6 +17,11 @@ const char *error_500_title = "Internal Error";
 const char *error_500_form = "There was an unusual problem serving the request file.\n";
 
 
+namespace yumira {
+    Locker m_lock;
+    std::map<std::string, std::string> userTable;
+}
+
 static struct httpHeaderEnum {
     const char *CONNECTION = "Connection:";
     const char *KEEP_ALIVE = "keep-alive";
@@ -28,11 +30,6 @@ static struct httpHeaderEnum {
 } HTTP_HEADER;
 
 static unsigned long __header_offset = 0;
-
-
-auto is_res_request = [](const string &url) {
-    return url.find('.') != url.npos;
-};
 
 
 auto is_route_request = [](const string &url) {
@@ -63,7 +60,7 @@ void http_conn::initmysql_result(connection_pool *connPool) {
     while (MYSQL_ROW row = mysql_fetch_row(result)) {
         string temp1(row[0]);
         string temp2(row[1]);
-        users[temp1] = temp2;
+        userTable[temp1] = temp2;
     }
 }
 
@@ -388,12 +385,14 @@ http_conn::HTTP_CODE http_conn::process_read() {
 http_conn::HTTP_CODE
 http_conn::do_request() {
     auto to_fill_route = [](string &url) {
-        //if (url.find('?') == url.npos) url += '?';
+        if (url.find('?') == url.npos) url += '?';
         return url;
     };
 
     while (true) {
         _clean_request_flag();
+
+        url_t st_url_real;
 
         if (cgi == 1) {
             string url = m_url;
@@ -405,7 +404,7 @@ http_conn::do_request() {
         }
         printf("relative_url: %s, ", relative_url_path.c_str());
         auto request = Request<runtime_urlparser_t, runtime_connection_adapter_t>::makeRequest(
-                (std::string) relative_url_path, (http_req_method_t)m_method);
+                (std::string) relative_url_path, (http_req_method_t) m_method, runtime_connection_adapter_t(this));
 
         printf("[INFO] enter to do_request(), m_url=%s\n", request.route().c_str());
 
@@ -422,19 +421,17 @@ http_conn::do_request() {
         printf("m_string: %s, cgi= %d\n", m_string, cgi);
         printf("m_url: %s\n", m_url);
 
-
         try {
             printf("\tenter to try block...\n");
-            string request_url = request.route();
+            auto request_url = url_t(request.route());
 
-            printf("request_url=%s\n", request_url.c_str());
+            printf("request_url=%s\n", request_url.which());
 
 
-            if (!is_res_request(request_url)) {
+            if (!request_url.isResRequest()) {
                 if (_need_remake_request()) continue;
 
                 Router *router;
-                string url_real;
 
                 // make sure to correct bp name concat for routers
                 // traverse blueprint(s) to handle this request
@@ -450,18 +447,19 @@ http_conn::do_request() {
                     if ((router = bp->canDealWith(request)) != nullptr) {
                         // the request actual method type won't be check here. it let user to determine that.
 
-                        if (router->view(request, url_real) == URL_STATUS::VIEW_NOT_FOUND) {
+                        if (router->view(request, st_url_real) == URL_STATUS::VIEW_NOT_FOUND) {
                             // do with retry
                             //goto retry;
                         }
 
                         // check status here, so this is a recurrent point
-                        if (is_res_request(url_real)) {
-                            printf("\tm_url_real: %s", url_real.c_str());
+                        if (st_url_real.isResRequest()) {
+
+                            cout << "\tm_url_real: " << st_url_real.url << std::endl;
 
                             // ask for file like html
                             // concat full path pointer to file
-                            strncpy(m_real_file + len_root_path, url_real.c_str(), url_real.length());
+                            strncpy(m_real_file + len_root_path, st_url_real.url.c_str(), st_url_real.length());
 
                             // successfully deal request
                             _clean_request_flag();
@@ -498,12 +496,18 @@ http_conn::do_request() {
         if (S_ISDIR(m_file_stat.st_mode))
             return BAD_REQUEST;
 
-        // do open file description
-        int fd = open(m_real_file, O_RDONLY);
-        printf("[INFO] read real file from path: %s\n", m_real_file);
+        if (!st_url_real.useTemplate()) {
+            // if not use template
+            // do open file description
+            int fd = open(m_real_file, O_RDONLY);
+            printf("[INFO] read real file from storage: %s\n", m_real_file);
 
-        m_file_address = (char *) mmap(nullptr, m_file_stat.st_size, PROT_READ, MAP_PRIVATE, fd, 0);
-        close(fd); // avoid waste
+            // projection file to memory cache
+            m_file_address = (char *) mmap(nullptr, m_file_stat.st_size, PROT_READ, MAP_PRIVATE, fd, 0);
+            close(fd); // avoid waste
+        } else {
+            m_file_address = st_url_real.template_addr();
+        }
 
         return FILE_REQUEST;
     }
@@ -546,7 +550,7 @@ bool http_conn::write() {
             m_iv[1].iov_len = bytes_to_send;
         } else {
             m_iv[0].iov_base = m_write_buf + bytes_have_send;
-            m_iv[0].iov_len = m_iv[0].iov_len - bytes_have_send;
+            m_iv[0].iov_len -= bytes_have_send;
         }
 
         if (bytes_to_send <= 0) {
@@ -662,13 +666,12 @@ bool http_conn::process_write(HTTP_CODE ret) {
 }
 
 void http_conn::process() {
-    HTTP_CODE read_ret = process_read();
-    if (read_ret == NO_REQUEST) {
+    HTTP_CODE read_ret;
+    if ((read_ret = process_read()) == NO_REQUEST) {
         modfd(m_epollfd, m_sockfd, EPOLLIN, m_TRIGMode);
         return;
     }
-    bool write_ret = process_write(read_ret);
-    if (!write_ret) {
+    if (!(process_write(read_ret))) {
         close_conn();
     }
     modfd(m_epollfd, m_sockfd, EPOLLOUT, m_TRIGMode);

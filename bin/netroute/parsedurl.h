@@ -8,19 +8,21 @@
 #include <string>
 #include "../container/hashmap.h"
 
+namespace yumira {
+    struct ParsedUrl {
 
-struct ParsedUrl {
-
-    std::string path;
-    std::string protocol;
-    std::string url;
-    std::string fullpath; // not include the char begin from '?'
-    std::string query;
-    std::string port;
-    std::string host;
+        std::string path;
+        std::string protocol;
+        std::string url;
+        std::string fullpath; // not include the char begin from '?'
+        std::string query;
+        std::string port;
+        std::string host;
 
 
-    parameter_t KV;
+        parameter_t KV;
 
-};
+    };
+}
+
 #endif //TINYWEB_PARSEDURL_H

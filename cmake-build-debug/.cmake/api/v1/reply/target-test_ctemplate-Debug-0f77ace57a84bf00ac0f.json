@@ -2,7 +2,7 @@
 	"artifacts" : 
 	[
 		{
-			"path" : "tinyWeb"
+			"path" : "test_ctemplate"
 		}
 	],
 	"backtrace" : 1,
@@ -26,19 +26,13 @@
 			{
 				"command" : 0,
 				"file" : 0,
-				"line" : 17,
-				"parent" : 0
-			},
-			{
-				"command" : 1,
-				"file" : 0,
 				"line" : 21,
 				"parent" : 0
 			},
 			{
 				"command" : 1,
 				"file" : 0,
-				"line" : 24,
+				"line" : 31,
 				"parent" : 0
 			},
 			{
@@ -50,7 +44,7 @@
 			{
 				"command" : 2,
 				"file" : 0,
-				"line" : 15,
+				"line" : 16,
 				"parent" : 0
 			}
 		]
@@ -70,11 +64,15 @@
 			"includes" : 
 			[
 				{
-					"backtrace" : 4,
+					"backtrace" : 3,
 					"path" : "/usr/include/mysql"
 				},
 				{
-					"backtrace" : 5,
+					"backtrace" : 3,
+					"path" : "/usr/local/include/ctemplate"
+				},
+				{
+					"backtrace" : 4,
 					"path" : "/usr/include/libxml2"
 				}
 			],
@@ -90,17 +88,11 @@
 			"sourceIndexes" : 
 			[
 				0,
-				1,
-				2,
-				3,
-				4,
-				5,
-				7,
-				8
+				2
 			]
 		}
 	],
-	"id" : "tinyWeb::@6890427a1f51a3e7e1df",
+	"id" : "test_ctemplate::@6890427a1f51a3e7e1df",
 	"link" : 
 	{
 		"commandFragments" : 
@@ -119,35 +111,25 @@
 				"role" : "libraries"
 			},
 			{
-				"backtrace" : 2,
-				"fragment" : "-lxml2",
-				"role" : "libraries"
-			},
-			{
-				"backtrace" : 3,
-				"fragment" : "-lpthread",
+				"backtrace" : 1,
+				"fragment" : "-lctemplate",
 				"role" : "libraries"
 			},
 			{
 				"backtrace" : 1,
-				"fragment" : "-lmysqlclient",
+				"fragment" : "-lctemplate",
 				"role" : "libraries"
 			},
 			{
 				"backtrace" : 2,
-				"fragment" : "-lxml2",
-				"role" : "libraries"
-			},
-			{
-				"backtrace" : 3,
 				"fragment" : "-lpthread",
 				"role" : "libraries"
 			}
 		],
 		"language" : "CXX"
 	},
-	"name" : "tinyWeb",
-	"nameOnDisk" : "tinyWeb",
+	"name" : "test_ctemplate",
+	"nameOnDisk" : "test_ctemplate",
 	"paths" : 
 	{
 		"build" : ".",
@@ -160,20 +142,14 @@
 			"sourceIndexes" : 
 			[
 				0,
-				1,
-				2,
-				3,
-				4,
-				5,
-				7,
-				8
+				2
 			]
 		},
 		{
 			"name" : "Header Files",
 			"sourceIndexes" : 
 			[
-				6
+				1
 			]
 		}
 	],
@@ -182,54 +158,18 @@
 		{
 			"backtrace" : 1,
 			"compileGroupIndex" : 0,
-			"path" : "main.cpp",
+			"path" : "bin/render/render_utils.cpp",
 			"sourceGroupIndex" : 0
 		},
 		{
 			"backtrace" : 1,
-			"compileGroupIndex" : 0,
-			"path" : "timer/lst_timer.cpp",
-			"sourceGroupIndex" : 0
-		},
-		{
-			"backtrace" : 1,
-			"compileGroupIndex" : 0,
-			"path" : "bin/http/http_conn.cpp",
-			"sourceGroupIndex" : 0
-		},
-		{
-			"backtrace" : 1,
-			"compileGroupIndex" : 0,
-			"path" : "log/log.cpp",
-			"sourceGroupIndex" : 0
-		},
-		{
-			"backtrace" : 1,
-			"compileGroupIndex" : 0,
-			"path" : "CGImysql/sql_connection_pool.cpp",
-			"sourceGroupIndex" : 0
-		},
-		{
-			"backtrace" : 1,
-			"compileGroupIndex" : 0,
-			"path" : "webserver.cpp",
-			"sourceGroupIndex" : 0
-		},
-		{
-			"backtrace" : 1,
-			"path" : "configure.h",
+			"path" : "bin/render/render_utils.h",
 			"sourceGroupIndex" : 1
 		},
 		{
 			"backtrace" : 1,
 			"compileGroupIndex" : 0,
-			"path" : "configure.cpp",
-			"sourceGroupIndex" : 0
-		},
-		{
-			"backtrace" : 1,
-			"compileGroupIndex" : 0,
-			"path" : "devlop/UserMain.cpp",
+			"path" : "bin/render/test_render_func.cpp",
 			"sourceGroupIndex" : 0
 		}
 	],

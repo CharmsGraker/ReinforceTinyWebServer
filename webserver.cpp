@@ -1,7 +1,7 @@
 #include "webserver.h"
 
 
-WebServer::WebServer() {
+yumira::WebServer::WebServer() {
     //http_conn类对象
     users = new http_conn[MAX_FD];
     // register http route here
@@ -15,11 +15,13 @@ WebServer::WebServer() {
     strcpy(m_root, server_abspath);
     strcat(m_root, resourceFolder.c_str());
 
+    configs.put("template_root", m_root);
+
     //定时器
     users_timer = new client_data[MAX_FD];
 }
 
-WebServer::~WebServer() {
+yumira::WebServer::~WebServer() {
     close(m_epollfd);
     close(m_listenfd);
     close(m_pipefd[1]);
@@ -29,8 +31,9 @@ WebServer::~WebServer() {
     delete m_pool;
 }
 
-void WebServer::init(int port, string user, string passWord, string databaseName, int log_write,
-                     int opt_linger, int trigmode, int sql_num, int thread_num, int close_log, int actor_model) {
+void yumira::WebServer::init(int port, string user, string passWord, string databaseName, int log_write,
+                             int opt_linger, int trigmode, int sql_num, int thread_num, int close_log,
+                             int actor_model) {
     m_port = port;
     m_user = user;
     m_passWord = passWord;
@@ -46,16 +49,16 @@ void WebServer::init(int port, string user, string passWord, string databaseName
 
 }
 
-ConfigurePtr WebServer::bindConf(Configure &conf) {
+ConfigurePtr yumira::WebServer::bindConf(Configure &conf) {
     // return binded conf poniter
     return this->configObj = &conf;
 }
 
-void WebServer::loadFromConf(Configure &conf) {
+void yumira::WebServer::loadFromConf(Configure &conf) {
     this->parseFromConf(*bindConf(conf));
 }
 
-void WebServer::setTrigMode() {
+void yumira::WebServer::setTrigMode() {
     //LT + LT
     if (0 == m_TRIGMode) {
         m_LISTENTrigmode = 0;
@@ -78,7 +81,7 @@ void WebServer::setTrigMode() {
     }
 }
 
-void WebServer::log_write() {
+void yumira::WebServer::log_write() {
     if (M_ENABLED_LOG == m_close_log) {
         //初始化日志
         if (1 == m_log_write)
@@ -88,7 +91,7 @@ void WebServer::log_write() {
     }
 }
 
-void WebServer::sql_pool() {
+void yumira::WebServer::sql_pool() {
     //初始化数据库连接池
     m_connPool = connection_pool::GetInstance();
 
@@ -104,12 +107,12 @@ void WebServer::sql_pool() {
     users->initmysql_result(m_connPool);
 }
 
-void WebServer::createThreadPool() {
+void yumira::WebServer::createThreadPool() {
     //线程池
     m_pool = new threadPool<http_conn>(m_actormodel, m_connPool, m_thread_num);
 }
 
-void WebServer::eventListen() {
+void yumira::WebServer::eventListen() {
     //网络编程基础步骤
     m_listenfd = socket(PF_INET, SOCK_STREAM, 0);
     if (m_listenfd < 0) {
@@ -165,7 +168,7 @@ void WebServer::eventListen() {
     Utils::u_epollfd = m_epollfd;
 }
 
-void WebServer::timer(int connfd, struct sockaddr_in client_address) {
+void yumira::WebServer::timer(int connfd, struct sockaddr_in client_address) {
     users[connfd].init(connfd, client_address, m_root, m_CONNTrigmode, m_close_log, m_user, m_passWord, m_databaseName);
 
     //初始化client_data数据
@@ -184,7 +187,7 @@ void WebServer::timer(int connfd, struct sockaddr_in client_address) {
 
 //若有数据传输，则将定时器往后延迟3个单位
 //并对新的定时器在链表上的位置进行调整
-void WebServer::adjust_timer(util_timer *timer) {
+void yumira::WebServer::adjust_timer(util_timer *timer) {
     time_t cur = time(NULL);
     timer->expire = cur + 3 * TIMESLOT;
     utils.m_timer_lst.adjust_timer(timer);
@@ -192,7 +195,7 @@ void WebServer::adjust_timer(util_timer *timer) {
     LOG_INFO("%s", "adjust timer once");
 }
 
-void WebServer::deal_timer(util_timer *timer, int sockfd) {
+void yumira::WebServer::deal_timer(util_timer *timer, int sockfd) {
     timer->cb_func(&users_timer[sockfd]);
     if (timer) {
         utils.m_timer_lst.del_timer(timer);
@@ -201,7 +204,7 @@ void WebServer::deal_timer(util_timer *timer, int sockfd) {
     LOG_INFO("close fd %d", users_timer[sockfd].sockfd);
 }
 
-bool WebServer::dealclinetdata() {
+bool yumira::WebServer::dealclinetdata() {
     struct sockaddr_in client_address;
     socklen_t len_client_addr = sizeof(client_address);
     if (0 == m_LISTENTrigmode) {
@@ -235,7 +238,7 @@ bool WebServer::dealclinetdata() {
     return true;
 }
 
-bool WebServer::dealwithsignal(bool &timeout, bool &stop_server) {
+bool yumira::WebServer::dealwithsignal(bool &timeout, bool &stop_server) {
     int ret = 0;
     int sig;
     char buf_signals[1024];
@@ -261,7 +264,7 @@ bool WebServer::dealwithsignal(bool &timeout, bool &stop_server) {
     return true;
 }
 
-void WebServer::dealwithread(int sockfd) {
+void yumira::WebServer::dealwithread(int sockfd) {
     util_timer *timer = users_timer[sockfd].timer;
 
     //reactor
@@ -300,7 +303,7 @@ void WebServer::dealwithread(int sockfd) {
     }
 }
 
-void WebServer::dealwithwrite(int sockfd) {
+void yumira::WebServer::dealwithwrite(int sockfd) {
     util_timer *timer = users_timer[sockfd].timer;
     //reactor
     if (1 == m_actormodel) {
@@ -334,7 +337,7 @@ void WebServer::dealwithwrite(int sockfd) {
     }
 }
 
-void WebServer::eventLoop() {
+void yumira::WebServer::eventLoop() {
     // start de with event
     bool timeout = false;
     stop_server = false;
@@ -386,7 +389,7 @@ void WebServer::eventLoop() {
 }
 
 void
-WebServer::parseFromConf(Configure &conf) {
+yumira::WebServer::parseFromConf(Configure &conf) {
     this->init(atoi(conf.getProp("port").c_str()),
                conf.getProp("db_user"),
                conf.getProp("db_passwd"),
@@ -399,3 +402,4 @@ WebServer::parseFromConf(Configure &conf) {
                atoi(conf.getProp("disableLogger").c_str()),
                atoi(conf.getProp("concurrentActor").c_str()));
 }
+

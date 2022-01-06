@@ -15,14 +15,15 @@
 
 using namespace string_util;
 
+using namespace yumira;
 
 template<class urlParser, class ConnectionAdapter>
 class Request {
     std::string _route;
     typedef decltype(urlParser::parse("just for example to calculate return type.")) parsed_url_t;
 
-    Request(parsed_url_t addr, http_req_method_t _method) :
-            pa_addr(addr), method(_method) {};
+    Request(parsed_url_t addr,http_req_method_t _method,ConnectionAdapter adapter) :
+            pa_addr(addr), method(_method),adapter(adapter) {};
 
     Request() {};
 
@@ -43,12 +44,12 @@ public:
     /** url means the href route,not include params */
 
     static Request
-    makeRequest(std::string raw_url, http_req_method_t method) {
+    makeRequest(std::string raw_url, http_req_method_t method,ConnectionAdapter adapter) {
         printf("[makeRequest]");
-        return Request(urlParser::parse(raw_url), method);
+        return Request(urlParser::parse(raw_url), method,adapter);
     }
 
-    HashMap<std::string, std::string> &args() {
+    parameter_t &args() {
         if (get_parsed_param().empty()) {
             throw NullException("null hashmap!");
         }

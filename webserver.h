@@ -24,7 +24,6 @@
 using namespace yumira;
 
 
-
 const int MAX_FD = 65536;           //最大文件描述符
 const int MAX_EVENT_NUMBER = 10000; //最大事件数
 const int TIMESLOT = 5;             //最小超时单位
@@ -38,7 +37,7 @@ namespace yumira {
         int M_ENABLED_LOG = 0;
 
         int stop_server = 0;
-        ConfigurePtr configObj= nullptr;
+        ConfigurePtr configObj = nullptr;
 
         string M_DEFAULT_URL = "localhost";
         int M_DEFAULT_PORT = 3306;
@@ -53,9 +52,9 @@ namespace yumira {
                   int thread_num, int close_log, int actor_model);
 
 
-        ConfigurePtr bindConf(Configure & conf);
+        ConfigurePtr bindConf(Configure &conf);
 
-        void loadFromConf(Configure& conf);
+        void loadFromConf(Configure &conf);
 
         void createThreadPool();
 
@@ -126,11 +125,24 @@ namespace yumira {
         client_data *users_timer;
         Utils utils;
         storage_t configs;
+
+    private:
+        void
+        __show_configs() {
+            fprintf(stdout, "server configs: {\n");
+            for (auto &config: configs) {
+                fprintf(stdout, "\t[%s],", config.first.c_str());
+            }
+            fprintf(stdout, "\n}\n");
+
+        }
     };
+
+
 }
 
 namespace yumira {
-    extern yumira::yumira_server_t* current_app;
+    extern yumira::yumira_server_t *current_app;
 }
 #else
 #endif

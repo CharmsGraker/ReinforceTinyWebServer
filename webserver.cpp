@@ -15,10 +15,18 @@ yumira::WebServer::WebServer() {
     strcpy(m_root, server_abspath);
     strcat(m_root, resourceFolder.c_str());
 
-    configs.put("template_root", m_root);
+
+    Node *p_m_root = new StringNode(m_root);
+    Node *p_resourceFolder = new StringNode(resourceFolder);
+    Node *p_server_abspath = new StringNode(server_abspath);
+    /** store useful info */
+    configs.put("template_root", p_m_root);
+    configs.put("template_relative_path", p_resourceFolder);
+    configs.put("app_root",p_server_abspath);
 
     //定时器
     users_timer = new client_data[MAX_FD];
+    __show_configs();
 }
 
 yumira::WebServer::~WebServer() {
@@ -29,6 +37,9 @@ yumira::WebServer::~WebServer() {
     delete[] users;
     delete[] users_timer;
     delete m_pool;
+    for (auto &ele: configs) {
+        delete ele.second;
+    }
 }
 
 void yumira::WebServer::init(int port, string user, string passWord, string databaseName, int log_write,

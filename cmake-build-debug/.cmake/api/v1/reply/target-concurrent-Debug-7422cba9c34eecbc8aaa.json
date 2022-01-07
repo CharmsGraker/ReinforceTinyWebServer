@@ -2,7 +2,7 @@
 	"artifacts" : 
 	[
 		{
-			"path" : "testUtils"
+			"path" : "concurrent"
 		}
 	],
 	"backtrace" : 1,
@@ -11,6 +11,7 @@
 		"commands" : 
 		[
 			"add_executable",
+			"target_link_libraries",
 			"include_directories"
 		],
 		"files" : 
@@ -25,17 +26,23 @@
 			{
 				"command" : 0,
 				"file" : 0,
-				"line" : 20,
+				"line" : 22,
 				"parent" : 0
 			},
 			{
 				"command" : 1,
 				"file" : 0,
+				"line" : 35,
+				"parent" : 0
+			},
+			{
+				"command" : 2,
+				"file" : 0,
 				"line" : 9,
 				"parent" : 0
 			},
 			{
-				"command" : 1,
+				"command" : 2,
 				"file" : 0,
 				"line" : 16,
 				"parent" : 0
@@ -57,15 +64,15 @@
 			"includes" : 
 			[
 				{
-					"backtrace" : 2,
+					"backtrace" : 3,
 					"path" : "/usr/include/mysql"
 				},
 				{
-					"backtrace" : 2,
+					"backtrace" : 3,
 					"path" : "/usr/local/include/ctemplate"
 				},
 				{
-					"backtrace" : 3,
+					"backtrace" : 4,
 					"path" : "/usr/include/libxml2"
 				}
 			],
@@ -80,11 +87,12 @@
 			},
 			"sourceIndexes" : 
 			[
-				0
+				0,
+				1
 			]
 		}
 	],
-	"id" : "testUtils::@6890427a1f51a3e7e1df",
+	"id" : "concurrent::@6890427a1f51a3e7e1df",
 	"link" : 
 	{
 		"commandFragments" : 
@@ -106,12 +114,17 @@
 				"backtrace" : 1,
 				"fragment" : "-lctemplate",
 				"role" : "libraries"
+			},
+			{
+				"backtrace" : 2,
+				"fragment" : "-lpthread",
+				"role" : "libraries"
 			}
 		],
 		"language" : "CXX"
 	},
-	"name" : "testUtils",
-	"nameOnDisk" : "testUtils",
+	"name" : "concurrent",
+	"nameOnDisk" : "concurrent",
 	"paths" : 
 	{
 		"build" : ".",
@@ -123,13 +136,7 @@
 			"name" : "Source Files",
 			"sourceIndexes" : 
 			[
-				0
-			]
-		},
-		{
-			"name" : "Header Files",
-			"sourceIndexes" : 
-			[
+				0,
 				1
 			]
 		}
@@ -139,13 +146,14 @@
 		{
 			"backtrace" : 1,
 			"compileGroupIndex" : 0,
-			"path" : "utils/helpfulUtils.cpp",
+			"path" : "bin/concurrent/test_threadLocal.cpp",
 			"sourceGroupIndex" : 0
 		},
 		{
 			"backtrace" : 1,
-			"path" : "utils/helpfulUtils.h",
-			"sourceGroupIndex" : 1
+			"compileGroupIndex" : 0,
+			"path" : "bin/concurrent/ThreadLocal.cpp",
+			"sourceGroupIndex" : 0
 		}
 	],
 	"type" : "EXECUTABLE"

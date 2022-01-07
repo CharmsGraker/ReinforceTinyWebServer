@@ -96,12 +96,25 @@ public:
     }
 
     static void register_interceptor(Router *routePtr) {
-        // user want straight register route,so construct a blueprint
+        /**
+         *  if user want to register Router as a Interceptor,
+         *  then need create a Blueprint for it,and set Router as "/"
+         *  for implement this, to set Route suffix
+         * */
+
         auto *new_bp = new Blueprint<Router>(routePtr->getBaseName().c_str());
 
+        // first ensure regist this Router
         new_bp->registRoute(routePtr);
-//    printf("new bp name: %s", new_bp->get_bp_name().c_str());
-//    printf("%d\n", new_bp);
+
+        // clear all route suffix
+        new_bp->set_route_suffix("");
+#ifdef DEBUG
+        printf("new bp name: %s", new_bp->get_bp_name().c_str());
+        printf("%d\n", new_bp);
+        cout << "routePtr: " << routePtr->getBaseName() << endl;
+
+#endif
         register_interceptor(new_bp);
     }
 
@@ -222,6 +235,9 @@ private:
     _need_remake_request() const {
         return this->remakeRequest;
     }
+
+    int
+    __map_file_into_cache();
 
 
 public:

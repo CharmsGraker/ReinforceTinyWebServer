@@ -20,8 +20,12 @@
 
 #include "../../current_app.h"
 #include "../UserMain.h"
+#include "../../bin/concurrent/ThreadLocal.h"
+#include "../../utils/helpfulUtils.h"
 
 using namespace yumira;
-url_t render_template(url_t html_url, parameter_t &KVMap);
+template<class Url,class Parameter>
+Url render_template(Url html_url, Parameter &KVMap);
+
 
 #endif //TINYWEB_RENDER_UTILS_H

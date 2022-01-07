@@ -389,6 +389,10 @@ http_conn::do_request() {
         return url;
     };
 
+    auto resetRealFile = [this](const char *path, size_t size) {
+        strncpy(m_real_file, path, size);
+    };
+
     while (true) {
         _clean_request_flag();
 
@@ -485,33 +489,47 @@ http_conn::do_request() {
             e.what();
             exit(1);
         }
+        // set href file here
+        if (st_url_real.useTemplate()) {
+            resetRealFile(st_url_real.template_addr().c_str(), st_url_real.template_addr().size());
+        }
 
 
-        if (stat(m_real_file, &m_file_stat) < 0)
+
+        auto noSuchFile = [this]() { return stat(m_real_file, &m_file_stat) < 0; };
+        auto noPermissionToAccessFile = [this]() { return !(m_file_stat.st_mode & S_IROTH); };
+        auto is_folder = [this]() { return S_ISDIR(m_file_stat.st_mode); };
+
+        // init file here
+        if (noSuchFile())
             return NO_RESOURCE;
 
-        if (!(m_file_stat.st_mode & S_IROTH))
+        if (noPermissionToAccessFile())
             return FORBIDDEN_REQUEST;
 
-        if (S_ISDIR(m_file_stat.st_mode))
+        if (is_folder())
             return BAD_REQUEST;
 
-        if (!st_url_real.useTemplate()) {
-            // if not use template
-            // do open file description
-            int fd = open(m_real_file, O_RDONLY);
-            printf("[INFO] read real file from storage: %s\n", m_real_file);
-
-            // projection file to memory cache
-            m_file_address = (char *) mmap(nullptr, m_file_stat.st_size, PROT_READ, MAP_PRIVATE, fd, 0);
-            close(fd); // avoid waste
-        } else {
-            m_file_address = st_url_real.template_addr();
-        }
+        __map_file_into_cache();
 
         return FILE_REQUEST;
     }
 
+}
+
+int http_conn::__map_file_into_cache() {
+    /**
+     *  do open file description
+     * */
+    int fd = open(m_real_file, O_RDONLY);
+    if (errno != 0) {
+        fprintf(stderr, "error when open %s\n", strerror(errno));
+    }
+    printf("[INFO] read file from storage: %s\n", m_real_file);
+
+    // projection file to memory cache
+    m_file_address = (char *) mmap(nullptr, m_file_stat.st_size, PROT_READ, MAP_PRIVATE, fd, 0);
+    close(fd); // avoid waste
 }
 
 void http_conn::unmap() {

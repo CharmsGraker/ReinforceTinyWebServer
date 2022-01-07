@@ -4,25 +4,35 @@
 
 #ifndef TINYWEB_URL_STORAGE_H
 #define TINYWEB_URL_STORAGE_H
-#include <string>
+
+#include <string.h>
+#include "../http/http_const_declare.h"
+
+
 struct url_storage {
 private:
-    char *tpl_addr = nullptr;
+    template<class Url, class Parameter>
+    friend Url render_template(Url html_url, Parameter &KVMap);
+
+    std::string tpl_addr;
+    size_t _file_size;
+    int _fd;
+
 public:
     std::string url;
 
-    url_storage() : url(""), tpl_addr(nullptr) {
+    url_storage() : url(""), tpl_addr("") {
         printf("[url_storage] construct.\n");
 
     }
 
-    explicit url_storage(std::string url) : url(url), tpl_addr(nullptr) {
+    explicit url_storage(std::string url) : url(url), tpl_addr("") {
 
     }
 
     void
-    set_template_ptr(char *byte_ptr) {
-        if (!byte_ptr) {
+    set_template_ptr(const std::string& byte_ptr) {
+        if (byte_ptr.empty()) {
             fprintf(stderr, "bad set template ptr!");
             return;
         }
@@ -31,7 +41,7 @@ public:
 
     bool
     useTemplate() const {
-        return tpl_addr != nullptr;
+        return !tpl_addr.empty();
     }
 
     size_t length() const {
@@ -47,9 +57,9 @@ public:
         return url.c_str();
     }
 
-    char *template_addr() {
+    std::string template_addr() {
         if (useTemplate()) {
-            return tpl_addr;
+            return  tpl_addr;
         }
     };
 
@@ -66,6 +76,16 @@ public:
 
     }
 
+    const size_t
+    fileSize() const {
+        return _file_size;
+    }
+
+    const int
+    fd() const {
+        return _fd;
+    }
+
     url_storage &
     operator=(url_storage obj) {
         url = obj.url;
@@ -73,4 +93,5 @@ public:
         return *this;
     }
 };
+
 #endif //TINYWEB_URL_STORAGE_H

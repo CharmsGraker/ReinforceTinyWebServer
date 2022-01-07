@@ -6,6 +6,8 @@
 #include "request.h"
 
 #include "http_request_enum.h"
+#include "../concurrent/ThreadLocal.h"
+
 
 struct unused_http_conn_view {
 
@@ -76,12 +78,13 @@ public:
             printf("bad route viewer\n");
             return URL_STATUS::VIEW_NULL;
         }
+        // set ThreadLocal Object here
+        ThreadLocal::put("route", getFullRoute());
 
         if ((href_url = ((url_t) _full_view_f(&request))).empty()) {
             // make default res url
-            href_url = url_t(getFullRoute()+ ".html") ;
+            href_url = url_t(getFullRoute() + ".html");
         }
-
         out_url = href_url;
     }
 
@@ -93,12 +96,17 @@ public:
         if (_prefix.empty()) {
             printf("error when get route name!");
             throw exception();
-        } else if (_prefix == "/") {
+        }
+
+        if (_prefix == "/") {
             // no need to join "." between "/" and route_name
-            pos = _suffix.find('/');
-            return _prefix + _suffix.substr(pos != _suffix.npos ? pos + 1 : 0);
+            return _suffix;
         } else {
-            return _prefix + __sep() + _suffix.substr(pos != _suffix.npos ? pos + 1 : 0);
+            if (_suffix.empty()) {
+                return _prefix + "/";
+            }
+            cout << "route name: " << _prefix + __sep() + _suffix;
+            return _prefix + __sep() + _suffix.substr(1);
         }
     }
 
@@ -114,6 +122,11 @@ public:
     void
     set_prefix(const string &prefix) {
         this->_prefix = prefix;
+    }
+
+    void
+    set_suffix(const string &suffix) {
+        this->_suffix = suffix;
     }
 };
 

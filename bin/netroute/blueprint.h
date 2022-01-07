@@ -57,6 +57,16 @@ public:
 
     }
 
+
+    void
+    set_route_suffix(const char *suffix) {
+        // set suffix for route belongs to this blueprint
+        for (auto &route: routerList) {
+            route->set_suffix(suffix);
+        }
+
+    }
+
     void
     set_bp_name(string new_bp_name) {
         if (new_bp_name.empty()) {

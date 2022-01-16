@@ -1,0 +1,96 @@
+{
+	"configurations" : 
+	[
+		{
+			"directories" : 
+			[
+				{
+					"build" : ".",
+					"jsonFile" : "directory-.-Debug-f5ebdc15457944623624.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.21"
+					},
+					"projectIndex" : 0,
+					"source" : ".",
+					"targetIndexes" : 
+					[
+						0,
+						1,
+						2,
+						3,
+						4
+					]
+				}
+			],
+			"name" : "Debug",
+			"projects" : 
+			[
+				{
+					"directoryIndexes" : 
+					[
+						0
+					],
+					"name" : "tinyWeb",
+					"targetIndexes" : 
+					[
+						0,
+						1,
+						2,
+						3,
+						4
+					]
+				}
+			],
+			"targets" : 
+			[
+				{
+					"directoryIndex" : 0,
+					"id" : "concurrent::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-concurrent-Debug-375454262f6c99135fdc.json",
+					"name" : "concurrent",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "parse_xml::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-parse_xml-Debug-f6c77f77f74b573d504d.json",
+					"name" : "parse_xml",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "test_ctemplate::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-test_ctemplate-Debug-5fbb5c091c7cb0dbe181.json",
+					"name" : "test_ctemplate",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "test_util::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-test_util-Debug-6423dddc520da67eaa6b.json",
+					"name" : "test_util",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "tinyWeb::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-tinyWeb-Debug-ec3158c44d4a33a92104.json",
+					"name" : "tinyWeb",
+					"projectIndex" : 0
+				}
+			]
+		}
+	],
+	"kind" : "codemodel",
+	"paths" : 
+	{
+		"build" : "/home/nekonoyume/codeDev/CPlusPlus/tinyWeb/cmake-build-debug",
+		"source" : "/home/nekonoyume/codeDev/CPlusPlus/tinyWeb"
+	},
+	"version" : 
+	{
+		"major" : 2,
+		"minor" : 3
+	}
+}

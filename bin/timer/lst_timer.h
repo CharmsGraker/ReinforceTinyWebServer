@@ -26,22 +26,23 @@
 
 class util_timer;
 
-struct client_data {
+struct st_client_data {
     sockaddr_in address;
     int sockfd;
     util_timer *timer;
 };
 
-class util_timer {
-public:
-    util_timer() : prev(NULL), next(NULL) {}
 
-public:
+typedef st_client_data client_data_t;
+
+struct util_timer {
     time_t expire;
 
-    void (*cb_func)(client_data *);
+    util_timer() : prev(nullptr), next(nullptr) {}
 
-    client_data *user_data;
+    void (*cb_func)(st_client_data *);
+
+    st_client_data *user_data;
     util_timer *prev;
     util_timer *next;
 };
@@ -69,14 +70,14 @@ private:
 
 class Utils {
 public:
-    Utils() {}
+    Utils() {};
 
-    ~Utils() {}
+    ~Utils() = default;
 
     void init(int timeslot);
 
     //对文件描述符设置非阻塞
-    int setnonblocking(int fd);
+    int setNonBlocking(int fd);
 
     //将内核事件表注册读事件，ET模式，选择开启EPOLLONESHOT
     void addfd(int epollfd, int fd, bool one_shot, int TRIGMode);
@@ -99,6 +100,6 @@ public:
     int m_TIMESLOT;
 };
 
-void cb_func(client_data *user_data);
+void callback_func(client_data_t *user_data);
 
 #endif

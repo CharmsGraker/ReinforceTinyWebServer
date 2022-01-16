@@ -51,7 +51,7 @@ public:
         return errno == 0;
     };
 
-    int main();
+    static int main();
 
     ~UserMain() { if (getInstance())delete getInstance(); }
 };

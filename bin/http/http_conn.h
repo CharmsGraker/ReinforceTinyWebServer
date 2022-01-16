@@ -33,11 +33,12 @@
 #include "../netroute/router.h"
 #include "../netroute/blueprint.h"
 #include "../http/http_connect_adapter.h"
+#include "../threadpool/task.h"
 
 
 using namespace yumira;
 
-class http_conn {
+class http_conn:public Task {
 public:
     static const int FILENAME_LEN = 200;
     static const int READ_BUFFER_SIZE = 2048;
@@ -93,6 +94,16 @@ public:
 
     static void register_interceptor(const Blueprint<Router> &bp) {
         get_interceptors()->push_back((Blueprint<Router> *) &bp);
+    }
+
+    static void
+    decrease_active_user(int cnt) {
+        m_user_count -= cnt;
+    }
+
+    static int
+    activeConnectionSize() {
+        return m_user_count;
     }
 
     static void register_interceptor(Router *routePtr) {
@@ -242,13 +253,14 @@ private:
 
 public:
     static int m_epollfd;
-    static int m_user_count;
     int m_state;  //读为0, 写为1
     friend class HttpConnectionAdapter<http_conn>;
 
     MYSQL *mysql; // real query store in http_conn
 
 private:
+    static int m_user_count; // active user connection
+
     int m_sockfd;
     sockaddr_in m_address;
     char m_read_buf[READ_BUFFER_SIZE];

@@ -15,7 +15,7 @@ connection_pool::connection_pool() {
     m_FreeConn = 0;
 }
 
-connection_pool *connection_pool::GetInstance() {
+connection_pool *connection_pool::getInstance() {
     static connection_pool connPool;
     return &connPool;
 }
@@ -67,8 +67,7 @@ MYSQL *connection_pool::GetConnection() {
             con = connList.front();
             connList.pop_front();
 
-            --m_FreeConn;
-            ++m_CurConn;
+            --m_FreeConn,++m_CurConn;
             lock.unlock();
 
         } catch (exception &e) {
@@ -88,8 +87,7 @@ bool connection_pool::ReleaseConnection(MYSQL *con) {
     try {
 
         connList.push_back(con);
-        ++m_FreeConn;
-        --m_CurConn;
+        ++m_FreeConn,--m_CurConn;
 
         lock.unlock();
 
@@ -102,7 +100,7 @@ bool connection_pool::ReleaseConnection(MYSQL *con) {
 }
 
 //销毁数据库连接池
-void connection_pool::DestroyPool() {
+void connection_pool::destroyPool() {
     lock.lock();
     if (!connList.empty()) {
         MYSQL *con;
@@ -114,8 +112,7 @@ void connection_pool::DestroyPool() {
         }
         bool cleanState = false;
         while (!cleanState) {
-            m_CurConn = 0;
-            m_FreeConn = 0;
+            m_CurConn = m_FreeConn = 0;
             connList.clear();
             cleanState = true;
         }
@@ -124,12 +121,12 @@ void connection_pool::DestroyPool() {
 }
 
 //当前空闲的连接数
-int connection_pool::GetFreeConn() {
+int connection_pool::getFreeConn() const {
     return m_FreeConn;
 }
 
 connection_pool::~connection_pool() {
-    DestroyPool();
+    destroyPool();
 }
 
 connectionRAII::connectionRAII(MYSQL **SQL, connection_pool *connPool) {

@@ -34,4 +34,15 @@ public:
     }
 };
 
+class NetworkExpcetion: std::runtime_error {
+public:
+    NetworkExpcetion(): runtime_error("[NotExistKeyException]") {
+
+    }
+
+
+    NetworkExpcetion(std::string msg): runtime_error("[NotExistKeyException]"+msg) {
+
+    }
+};
 #endif //TINYWEB_ALL_EXCEPTION_H

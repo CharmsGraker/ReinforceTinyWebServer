@@ -21,16 +21,14 @@
 #include "configure.h"
 
 
-using namespace yumira;
-
-
-const int MAX_FD = 65536;           //最大文件描述符
-const int MAX_EVENT_NUMBER = 10000; //最大事件数
-const int TIMESLOT = 5;             //最小超时单位
-
-typedef Configure *ConfigurePtr;
 
 namespace yumira {
+    const int MAX_FD = 65536;           //最大文件描述符
+    const int MAX_EVENT_NUMBER = 10000; //最大事件数
+    const int TIMESLOT = 5;             //最小超时单位
+
+    typedef Configure *ConfigurePtr;
+
     class WebServer {
     private:
         int M_DISABLED_LOG = 1;
@@ -39,8 +37,9 @@ namespace yumira {
         int stop_server = 0;
         ConfigurePtr configObj = nullptr;
 
-        string M_DEFAULT_URL = "localhost";
+        std::string M_DEFAULT_URL = "localhost";
         int M_DEFAULT_PORT = 3306;
+        const char *severLogPath = "./ServerLog";
 
     public:
         WebServer();
@@ -64,11 +63,11 @@ namespace yumira {
 
         void setTrigMode();
 
-        void eventListen();
+        void registerEventListen();
 
         void eventLoop();
 
-        void timer(int connfd, struct sockaddr_in client_address);
+        void createTimerForUser(int connfd, struct sockaddr_in client_address);
 
         void adjust_timer(util_timer *timer);
 
@@ -76,7 +75,7 @@ namespace yumira {
 
         bool dealclinetdata();
 
-        bool dealwithsignal(bool &timeout, bool &stop_server);
+        bool deal_sys_signal(bool &timeout, bool &stop_server);
 
         void dealwithread(int sockfd);
 
@@ -96,7 +95,7 @@ namespace yumira {
 
         int m_pipefd[2];
         int m_epollfd;
-        http_conn *users; // connection for http
+        http_conn *httpConnForUsers; // connection for http
 
         string resourceFolder = "/root";
 
@@ -122,7 +121,7 @@ namespace yumira {
         int m_CONNTrigmode;
 
         //定时器相关
-        client_data *users_timer;
+        client_data_t *users_timer;
         Utils utils;
         storage_t configs;
 

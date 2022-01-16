@@ -46,7 +46,7 @@ int main(int argc, char *argv[]) {
     int err = userMain->operator()();
     if (!err) {
         //监听
-        server.eventListen();
+        server.registerEventListen();
         printf("after eventListen\n");
 
         //运行

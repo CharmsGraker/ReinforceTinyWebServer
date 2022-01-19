@@ -15,11 +15,11 @@ link_libraries(ctemplate)
 
 include_directories(/usr/include/libxml2/)
 
-add_executable(tinyWeb main.cpp bin/timer/lst_timer.cpp bin/http/http_conn.cpp bin/log/log.cpp bin/CGImysql/sql_connection_pool.cpp webserver.cpp configure.h configure.cpp devlop/UserMain.cpp bin/http/http_connect_adapter.h bin/http/http_const_declare.h config.h current_app.h bin/container/url_storage.h bin/concurrent/ThreadLocal.cpp bin/concurrent/ThreadLocal.h bin/threadpool/threadpool.cpp)
-add_executable(parse_xml utils/c/test_parse.c utils/c/create_xml.c utils/c/parse_xml.c  utils/c/parse_xml.h utils/c/create_xml.h  bin/netroute/router.h devlop/UserMain.cpp bin/UserMain.h bin/netroute/blueprint.h bin/netroute/http_request_enum.h utils/string_utils.cpp utils/string_utils.h  bin/netroute/request.h bin/all_exception.h bin/netroute/urlparser.h bin/container/hashmap.h bin/netroute/parsedurl.h bin/CGImysql/sql_query_adapter.h bin/container/storage.h devlop/threadpoolScheduler.cpp devlop/threadpoolScheduler.h)
+add_executable(tinyWeb main.cpp bin/timer/lst_timer.cpp bin/http/http_conn.cpp bin/log/log.cpp bin/CGImysql/sql_connection_pool.cpp webserver.cpp configure.h configure.cpp devlop/UserMain.cpp bin/http/http_connect_adapter.h bin/http/http_const_declare.h config.h current_app.h bin/container/url_storage.h bin/concurrent/ThreadLocal.cpp bin/concurrent/ThreadLocal.h bin/threadpool/threadpool.cpp config.cpp)
+add_executable(parse_xml utils/c/test_parse.c utils/c/create_xml.c utils/c/parse_xml.c  utils/c/parse_xml.h utils/c/create_xml.h  bin/netroute/router.h devlop/UserMain.cpp bin/UserMain.h bin/netroute/blueprint.h bin/netroute/http_request_enum.h utils/string_utils.cpp utils/string_utils.h  bin/netroute/request.h bin/all_exception.h bin/netroute/urlparser.h bin/container/hashmap.h bin/netroute/parsedurl.h bin/CGImysql/sql_query_adapter.h bin/container/storage.h devlop/threadpool_default_scheduler.cpp devlop/threadpool_default_scheduler.h)
 
 add_executable(test_ctemplate bin/render/render_utils.cpp bin/render/render_utils.h bin/render/test_render_func.cpp)
-add_executable(concurrent bin/concurrent/test_threadLocal.cpp bin/concurrent/ThreadLocal.cpp bin/threadpool/scheduler.h bin/threadpool/threadpool.cpp bin/threadpool/task.h bin/threadpool/scheduler.h)
+add_executable(concurrent bin/concurrent/test_threadLocal.cpp bin/concurrent/ThreadLocal.cpp  bin/threadpool/threadpool.cpp bin/threadpool/task.h)
 add_executable(test_util utils/test_utils.cpp  utils/helpfulUtils.cpp utils/helpfulUtils.cpp)
 
 target_link_libraries(parse_xml xml2)

@@ -4,6 +4,10 @@ it was not code by me.<br/></br> I'm trying to improve it.
 I'm a noob, so it just for learning myself.
 
 # Update
+### 2022.1.19
+has been so long update this log....<br/>
+add many abstract class for interface<br/>
+introduce Constructor pattern to `conn_pool`
 ### 2022.1.4
 convert code, use template to construct Router.<br/>
 compile become little slowly opz.However it is very flexible now.<br/>

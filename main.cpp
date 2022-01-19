@@ -1,4 +1,3 @@
-#include "config.h"
 #include "bin/UserMain.h"
 
 namespace yumira {
@@ -43,8 +42,7 @@ int main(int argc, char *argv[]) {
 
     UserMain *userMain = UserMain::getInstance();
 
-    int err = userMain->operator()();
-    if (!err) {
+    if (!(*userMain)()) {
         //监听
         server.registerEventListen();
         printf("after eventListen\n");

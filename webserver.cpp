@@ -1,5 +1,5 @@
 #include "webserver.h"
-#include "devlop/threadpoolScheduler.h"
+#include "devlop/threadpool_default_scheduler.h"
 
 yumira::WebServer::WebServer() {
     //http_conn类对象
@@ -12,9 +12,9 @@ yumira::WebServer::WebServer() {
     char server_abspath[200];
     getcwd(server_abspath, 200);
 
-    m_root = (char *) malloc(strlen(server_abspath) + strlen(resourceFolder.c_str()) + 1);
+    m_root = (char *) malloc(strlen(server_abspath) + strlen(resourceFolder) + 1);
     strcpy(m_root, server_abspath);
-    strcat(m_root, resourceFolder.c_str());
+    strcat(m_root, resourceFolder);
 
 
     /** store useful info */
@@ -37,14 +37,18 @@ yumira::WebServer::~WebServer() {
     close(m_pipefd[0]);
     delete[] httpConnForUsers;
     delete[] users_timer;
-    delete m_pool;
+    delete http_conn_pool;
     for (auto &ele: configs) {
         delete ele.second;
     }
 }
 
-void yumira::WebServer::init(int port, string user, string passWord, string databaseName, int log_write,
-                             int opt_linger, int trigmode, int sql_num, int thread_num, int close_log,
+void yumira::WebServer::init(int port, string user,
+                             string passWord, string databaseName,
+                             int log_write,
+                             int opt_linger,
+                             int trigmode, int sql_num, int thread_num,
+                             int close_log,
                              int actor_model) {
     m_port = port;
     m_user = user;
@@ -53,10 +57,10 @@ void yumira::WebServer::init(int port, string user, string passWord, string data
     m_sql_num = sql_num;
     m_thread_num = thread_num;
     m_log_write = log_write;
-    m_OPT_LINGER = opt_linger;
+    SOCKET_OPT_LINGER = opt_linger;
     m_TRIGMode = trigmode;
     m_close_log = close_log;
-    m_actormodel = actor_model;
+    SERVER_ACTOR_MODE = actor_model;
 
 
 }
@@ -97,23 +101,23 @@ void yumira::WebServer::log_write() {
     if (M_ENABLED_LOG == m_close_log) {
         //初始化日志
         if (1 == m_log_write)
-            Log::getInstance()->init(severLogPath, m_close_log, 2000, 800000, 800);
+            Logger::getInstance()->init(severLogPath, m_close_log, 2000, 800000, 800);
         else
-            Log::getInstance()->init(severLogPath, m_close_log, 2000, 800000, 0);
+            Logger::getInstance()->init(severLogPath, m_close_log, 2000, 800000, 0);
     }
 }
 
 void yumira::WebServer::sql_pool() {
     //初始化数据库连接池
-    m_connPool = connection_pool::getInstance();
 
-    m_connPool->init(M_DEFAULT_URL,
-                     m_user,
-                     m_passWord,
-                     m_databaseName,
-                     M_DEFAULT_PORT,
-                     m_sql_num,
-                     m_close_log);
+    m_connPool = connection_pool::builder()
+            .url(M_DEFAULT_URL)
+            .user(m_user)
+            .passWord(m_passWord)
+            .dataBaseName(m_databaseName)
+            .port(M_DEFAULT_PORT)
+            .maxConn(m_sql_num)
+            .close_log(m_close_log).build();
 
     //初始化数据库读取表
     httpConnForUsers->initmysql_result(m_connPool);
@@ -121,8 +125,8 @@ void yumira::WebServer::sql_pool() {
 
 void yumira::WebServer::createThreadPool() {
     //线程池
-    m_pool = new threadPool<http_conn>(m_thread_num);
-    auto scheduler = new taskScheduler(m_pool,m_actormodel, m_connPool);
+    http_conn_pool = new threadPool<http_conn>(m_thread_num);
+    auto scheduler = new ThreadPoolTaskDefaultScheduler<http_conn>(http_conn_pool, SERVER_ACTOR_MODE, m_connPool);
 
 }
 
@@ -133,11 +137,19 @@ void yumira::WebServer::registerEventListen() {
         fprintf(stderr, "[WARN] create socket failed!\n%s\n", strerror(errno));
     }
 
-    //优雅关闭连接
-    if (0 == m_OPT_LINGER) {
-        struct linger tmp = {0, 1};
+    /** gracefully close connection.
+     *  means when close a TCP connection,will send the residual data to client */
+    if (0 == SOCKET_OPT_LINGER) {
+        struct linger tmp = {0, 1}; // { on/off linger, risidual time }
+        /**
+         * l_onoff been not zero, l_linger > 0:
+         *      close action determined by 2 conditions:
+         *          1) if there exist data ?
+         *          2) if the socket is block?
+         *              for block socket, close will wait a period of time set in "l_linger" .
+         * */
         setsockopt(m_listenfd, SOL_SOCKET, SO_LINGER, &tmp, sizeof(tmp));
-    } else if (1 == m_OPT_LINGER) {
+    } else if (1 == SOCKET_OPT_LINGER) {
         struct linger tmp = {1, 1};
         setsockopt(m_listenfd, SOL_SOCKET, SO_LINGER, &tmp, sizeof(tmp));
     }
@@ -149,8 +161,9 @@ void yumira::WebServer::registerEventListen() {
     address.sin_addr.s_addr = htonl(INADDR_ANY);
     address.sin_port = htons(m_port);
 
-    int flag = 1;
-    setsockopt(m_listenfd, SOL_SOCKET, SO_REUSEADDR, &flag, sizeof(flag));
+    // force recycling use local address 5.11
+    constexpr int REUSE = 1;
+    setsockopt(m_listenfd, SOL_SOCKET, SO_REUSEADDR, &REUSE, sizeof(REUSE));
 
     if ((ret = bind(m_listenfd, (struct sockaddr *) &address, sizeof(address))) < 0) {
         throw NetworkExpcetion("bind() failed!");
@@ -162,7 +175,7 @@ void yumira::WebServer::registerEventListen() {
     utils.init(TIMESLOT);
 
     //epoll创建内核事件表
-    epoll_event events[MAX_EVENT_NUMBER];
+//    epoll_event events[MAX_EVENT_NUMBER];
     m_epollfd = epoll_create(5);
     assert(m_epollfd != -1);
 
@@ -186,6 +199,8 @@ void yumira::WebServer::registerEventListen() {
 }
 
 void yumira::WebServer::createTimerForUser(int connfd, struct sockaddr_in client_address) {
+    /** create work thread here
+     * */
     httpConnForUsers[connfd].init(connfd, client_address, m_root, m_CONNTrigmode, m_close_log, m_user, m_passWord,
                                   m_databaseName);
 
@@ -256,8 +271,8 @@ bool yumira::WebServer::dealclinetdata() {
     return true;
 }
 
-bool yumira::WebServer::deal_sys_signal(bool &timeout, bool &stop_server) {
-    int ret = 0;
+bool yumira::WebServer::deal_sys_signal(bool &timeout, bool &stopServer) {
+    ssize_t ret = 0;
     int sig;
     char buf_signals[1024];
     ret = recv(m_pipefd[0], buf_signals, sizeof(buf_signals), 0);
@@ -273,7 +288,7 @@ bool yumira::WebServer::deal_sys_signal(bool &timeout, bool &stop_server) {
                     break;
                 }
                 case SIGTERM: {
-                    stop_server = true;
+                    stopServer = true;
                     break;
                 }
             }
@@ -282,17 +297,18 @@ bool yumira::WebServer::deal_sys_signal(bool &timeout, bool &stop_server) {
     return true;
 }
 
-void yumira::WebServer::dealwithread(int sockfd) {
+void yumira::WebServer::deal_with_read(int sockfd) {
+    /** do EPOLL_IN event here */
     util_timer *timer = users_timer[sockfd].timer;
 
     //reactor
-    if (1 == m_actormodel) {
+    if (SERVER_REACTOR_MODE == SERVER_ACTOR_MODE) {
         if (timer) {
             adjust_timer(timer);
         }
 
         //若监测到读事件，将该事件放入请求队列
-        m_pool->append(httpConnForUsers + sockfd, 0);
+        http_conn_pool->append(httpConnForUsers + sockfd, 0);
 
         while (true) {
             if (1 == httpConnForUsers[sockfd].improv) {
@@ -306,11 +322,11 @@ void yumira::WebServer::dealwithread(int sockfd) {
         }
     } else {
         //proactor
-        if (httpConnForUsers[sockfd].read_once()) {
+        if (httpConnForUsers[sockfd].read_once()) { // let main thread read finished, then submit to work thread do logical work
             LOG_INFO("deal with the client(%s)", inet_ntoa(httpConnForUsers[sockfd].get_address()->sin_addr));
 
             //若监测到读事件，将该事件放入请求队列
-            m_pool->append(httpConnForUsers + sockfd);
+            http_conn_pool->append(httpConnForUsers + sockfd);
 
             if (timer) {
                 adjust_timer(timer);
@@ -321,15 +337,15 @@ void yumira::WebServer::dealwithread(int sockfd) {
     }
 }
 
-void yumira::WebServer::dealwithwrite(int sockfd) {
+void yumira::WebServer::deal_with_write(int sockfd) {
     util_timer *timer = users_timer[sockfd].timer;
     //reactor
-    if (1 == m_actormodel) {
+    if (SERVER_REACTOR_MODE == SERVER_ACTOR_MODE) {
         if (timer) {
             adjust_timer(timer);
         }
-
-        m_pool->append(httpConnForUsers + sockfd, 1);
+        // reactor means worker thread actually do the request, so put thre quest to threadPool workQueue
+        http_conn_pool->append(httpConnForUsers + sockfd, 1);
 
         while (true) {
             if (1 == httpConnForUsers[sockfd].improv) {
@@ -342,7 +358,7 @@ void yumira::WebServer::dealwithwrite(int sockfd) {
             }
         }
     } else {
-        //proactor
+        //PROACTOR mode
         if (httpConnForUsers[sockfd].write()) {
             LOG_INFO("send data to the client(%s)", inet_ntoa(httpConnForUsers[sockfd].get_address()->sin_addr));
 
@@ -356,6 +372,8 @@ void yumira::WebServer::dealwithwrite(int sockfd) {
 }
 
 void yumira::WebServer::eventLoop() {
+    /** the main thread only handler new request event or signal
+     * actuall process is in worker thread of threadPool has been create before. */
     // start de with event
     bool timeout = false;
     stop_server = false;
@@ -364,34 +382,38 @@ void yumira::WebServer::eventLoop() {
 
     while (!stop_server) {
         int n_fd;
+        // main thread need call epoll_wait to wait for socket which has data to read
         if ((n_fd = epoll_wait(m_epollfd, events, MAX_EVENT_NUMBER, -1)) < 0
             && errno != EINTR) {
             LOG_ERROR("%s", "epoll failure");
             break;
         }
 
+        // detect read events, handle the events to worker threads
         for (int i = 0; i < n_fd; ++i) {
             int sockfd = events[i].data.fd;
 
             //处理新到的客户连接
             if (sockfd == m_listenfd) {
+                // allocate new connection for user if there are some free http connections.
                 bool flag = dealclinetdata();
                 if (!flag)
                     continue;
             } else if (events[i].events & (EPOLLRDHUP | EPOLLHUP | EPOLLERR)) {
                 //服务器端关闭连接，移除对应的定时器
                 deal_timer(users_timer[sockfd].timer, sockfd);
-            }
+            } else if ((sockfd == m_pipefd[0]) && (events[i].events & EPOLLIN)) {
                 //处理信号
-            else if ((sockfd == m_pipefd[0]) && (events[i].events & EPOLLIN)) {
+
                 if (!deal_sys_signal(timeout, reinterpret_cast<bool &>(stop_server)))
                     LOG_ERROR("%s", "deal client data failure");
-            }
+            } else if (events[i].events & EPOLLIN) {
+                // a read event has been arrived. let worker thread handle it
                 //处理客户连接上接收到的数据
-            else if (events[i].events & EPOLLIN) {
-                dealwithread(sockfd);
+                deal_with_read(sockfd);
             } else if (events[i].events & EPOLLOUT) {
-                dealwithwrite(sockfd);
+                // a write event has been arrived.
+                deal_with_write(sockfd);
             }
         }
         if (timeout) {

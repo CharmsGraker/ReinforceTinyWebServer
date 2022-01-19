@@ -1,5 +1,5 @@
 #include "render_utils.h"
-
+#include "../../utils/helpfulUtils.h"
 
 std::string getcwd() {
     char buf[PATH_MAX];

@@ -1,8 +1,9 @@
-#include "threadpoolScheduler.h"
+#include "threadpool_default_scheduler.h"
 
-
+// specialize template method
+template<>
 void
-taskScheduler::__call(http_conn *task) {
+ThreadPoolTaskDefaultScheduler<http_conn>::call(http_conn *task) {
     if (1 == this->m_actor_model) {
         if (0 == task->m_state) {
             if (task->read_once()) {

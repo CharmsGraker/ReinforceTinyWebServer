@@ -136,7 +136,7 @@ int Utils::setNonBlocking(int fd) {
 
 //将内核事件表注册读事件，ET模式，选择开启EPOLLONESHOT
 void Utils::addfd(int epollfd, int fd, bool one_shot, int TRIGMode) {
-    epoll_event event;
+    epoll_event event{};
     event.data.fd = fd;
 
     if (1 == TRIGMode)

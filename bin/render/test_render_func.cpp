@@ -1,7 +1,3 @@
-#include <bits/fcntl-linux.h>
-#include <fcntl.h>
-#include <bits/mman-linux.h>
-#include <sys/mman.h>
 #include "render_utils.h"
 #include "../../utils/helpfulUtils.h"
 

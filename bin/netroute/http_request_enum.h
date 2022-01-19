@@ -34,7 +34,7 @@ namespace yumira {
     typedef url_t (*view_func_raw_t)(default_request_infer_t);
 
 
-#ifndef CONFIG_H
+#ifndef TINYWEB_CONFIG_H
 #ifndef CONNECTION_TYPE
 #define CONNECTION_TYPE default_connection_t;
     typedef default_connection_t runtime_connection_t;

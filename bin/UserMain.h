@@ -6,9 +6,6 @@
 #define TINYWEB_USERMAIN_H
 
 #include "../webserver.h"
-#include "../config.h"
-
-
 
 class UserMain {
 private:

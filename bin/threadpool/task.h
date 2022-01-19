@@ -7,17 +7,18 @@
 
 class Task {
 public:
-    Task(){};
+    Task()= default;;
     virtual void process()=0;
-    virtual ~Task(){};
+    virtual ~Task()= default;
 };
 
 class abstractTaskScheduler {
 public:
-    abstractTaskScheduler(){};
+    abstractTaskScheduler()=default;
 
      virtual void call(Task *task)=0;
-     virtual ~abstractTaskScheduler() {};
+
+     virtual ~abstractTaskScheduler() = default;
 
 };
 

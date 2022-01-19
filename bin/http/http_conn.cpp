@@ -278,9 +278,9 @@ http_conn::HTTP_CODE http_conn::parse_request_line(char *text) {
     //当url为/时，显示判断界面
     if (strlen(m_url) == 1)
         //url_for(HTTP_ROOT);
-        strcat(m_url, "judge.html");
+        strcat(m_url, INDEX_HTML_FILENAME);
     m_check_state = CHECK_STATE_HEADER;
-    printf("raw_url: %s, m_string=%s\n", m_url, m_string);
+//    printf("raw_url: %s, m_string=%s\n", m_url, m_string);
 
     return NO_REQUEST;
 }
@@ -435,7 +435,7 @@ http_conn::do_request() {
             if (!request_url.isResRequest()) {
                 if (_need_remake_request()) continue;
 
-                Router *router;
+                Router *route_handler;
 
                 // make sure to correct bp name concat for routers
                 // traverse blueprint(s) to handle this request
@@ -448,19 +448,19 @@ http_conn::do_request() {
 
                     //printf("loop bp:%s\n", bp->get_bp_name().c_str());
                     //printf("%d\n", bp);
-                    if ((router = bp->canDealWith(request)) != nullptr) {
+                    if ((route_handler = bp->canDealWith(request)) != nullptr) {
                         // the request actual method type won't be check here. it let user to determine that.
 
-                        if (router->view(request, st_url_real) == URL_STATUS::VIEW_NOT_FOUND) {
+                        if (route_handler->view(request, st_url_real) == URL_STATUS::VIEW_NOT_FOUND) {
                             // do with retry
                             //goto retry;
                         }
 
                         // check status here, so this is a recurrent point
                         if (st_url_real.isResRequest()) {
-
+#ifdef DEBUG
                             cout << "\tm_url_real: " << st_url_real.url << std::endl;
-
+#endif
                             // ask for file like html
                             // concat full path pointer to file
                             strncpy(m_real_file + len_root_path, st_url_real.url.c_str(), st_url_real.length());
@@ -535,7 +535,7 @@ int http_conn::__map_file_into_cache() {
 void http_conn::unmap() {
     if (m_file_address) {
         munmap(m_file_address, m_file_stat.st_size);
-        m_file_address = 0;
+        m_file_address = nullptr;
     }
 }
 
@@ -695,7 +695,7 @@ void http_conn::process() {
     modfd(m_epollfd, m_sockfd, EPOLLOUT, m_TRIGMode);
 }
 
-void http_conn::set_href_url(const string html_path) {
+void http_conn::set_href_url(const string& html_path) {
     return set_href_url((const char *) html_path.c_str());
 }
 

@@ -19,20 +19,24 @@
 #include "bin/timer/lst_timer.h"
 
 #include "configure.h"
-
-
+#include "config.h"
 
 namespace yumira {
-    const int MAX_FD = 65536;           //最大文件描述符
-    const int MAX_EVENT_NUMBER = 10000; //最大事件数
-    const int TIMESLOT = 5;             //最小超时单位
+    constexpr static int M_DISABLED_LOG = 1;
+    constexpr static int M_ENABLED_LOG = 0;
+
+    /** about server mode:
+     *      Reactor
+     *      Proactor
+     * */
+    constexpr static int SERVER_REACTOR_MODE = 1;
+    constexpr static int SERVER_PROACTOR_MODE = 2;
+
 
     typedef Configure *ConfigurePtr;
 
     class WebServer {
-    private:
-        int M_DISABLED_LOG = 1;
-        int M_ENABLED_LOG = 0;
+
 
         int stop_server = 0;
         ConfigurePtr configObj = nullptr;
@@ -77,9 +81,9 @@ namespace yumira {
 
         bool deal_sys_signal(bool &timeout, bool &stop_server);
 
-        void dealwithread(int sockfd);
+        void deal_with_read(int sockfd);
 
-        void dealwithwrite(int sockfd);
+        void deal_with_write(int sockfd);
 
         void parseFromConf(Configure &conf);
 
@@ -91,13 +95,12 @@ namespace yumira {
         char *m_root;
         int m_log_write;
         int m_close_log;
-        int m_actormodel;
+        int SERVER_ACTOR_MODE;
 
         int m_pipefd[2];
         int m_epollfd;
         http_conn *httpConnForUsers; // connection for http
 
-        string resourceFolder = "/root";
 
 
         //数据库相关
@@ -108,14 +111,14 @@ namespace yumira {
         int m_sql_num;
 
         //线程池相关
-        threadPool<http_conn> *m_pool;
+        threadPool<http_conn> *http_conn_pool;
         int m_thread_num;
 
         //epoll_event相关
         epoll_event events[MAX_EVENT_NUMBER];
 
         int m_listenfd;
-        int m_OPT_LINGER;
+        int SOCKET_OPT_LINGER;
         int m_TRIGMode;
         int m_LISTENTrigmode;
         int m_CONNTrigmode;

@@ -43,7 +43,8 @@ public:
     static const int FILENAME_LEN = 200;
     static const int READ_BUFFER_SIZE = 2048;
     static const int WRITE_BUFFER_SIZE = 1024;
-    typedef http_conn thisConnectionType;
+    const char * INDEX_HTML_FILENAME = "judge.html";
+
 
     enum CHECK_STATE {
         CHECK_STATE_REQUESTLINE = 0,
@@ -154,7 +155,7 @@ public:
 
     void set_href_url(const char *html_path);
 
-    void set_href_url(const string html_path);
+    void set_href_url(const string& html_path);
 
     const url_t
     url_for(http_conn *conn, std::string routeName) {
@@ -298,9 +299,8 @@ private:
     char m_real_file[FILENAME_LEN];
     char *doc_root;
     char *m_string;
-    bool remakeRequest = false; // reloop do_request method, but dont broke the http connection
+    bool remakeRequest = false; // re loop do_request method, but dont broke the http connection
     string relative_url_path;
-    string HTTP_ROOT = "/";
 };
 
 

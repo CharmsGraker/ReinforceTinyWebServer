@@ -105,7 +105,7 @@ public:
             if (_suffix.empty()) {
                 return _prefix + "/";
             }
-            cout << "route name: " << _prefix + __sep() + _suffix;
+//            cout << "route name: " << _prefix + __sep() + _suffix;
             return _prefix + __sep() + _suffix.substr(1);
         }
     }

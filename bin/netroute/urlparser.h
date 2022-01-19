@@ -7,11 +7,12 @@
 
 #include "../../utils/string_utils.h"
 #include "parsedurl.h"
+#include <cstring>
+#include <strings.h>
 
 using namespace string_util;
 
-#include <cstring>
-#include <strings.h>
+
 
 
 class abstractParser {

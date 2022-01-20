@@ -166,10 +166,10 @@ void yumira::WebServer::registerEventListen() {
     setsockopt(m_listenfd, SOL_SOCKET, SO_REUSEADDR, &REUSE, sizeof(REUSE));
 
     if ((ret = bind(m_listenfd, (struct sockaddr *) &address, sizeof(address))) < 0) {
-        throw NetworkExpcetion("bind() failed!");
+        throw NetworkExpcetion("[WARN] bind() failed!");
     }
     if ((ret = listen(m_listenfd, 5)) < 0) {
-        throw NetworkExpcetion("listen() failed!");
+        throw NetworkExpcetion("[WARN] listen() failed!");
     }
 
     utils.init(TIMESLOT);

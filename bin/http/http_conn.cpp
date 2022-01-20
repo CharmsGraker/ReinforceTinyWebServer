@@ -242,9 +242,11 @@ http_conn::HTTP_CODE http_conn::parse_request_line(char *text) {
 //    printf("%s\n", m_url);
 
     char *method = text;
-    if (strcasecmp(method, "GET") == 0)
+    if (strcasecmp(method, "GET") == 0) {
+        printf("GET request arrived\n");
         m_method = GET;
-    else if (strcasecmp(method, "POST") == 0) {
+    } else if (strcasecmp(method, "POST") == 0) {
+        printf("POST request arrived\n");
         m_method = POST;
         cgi = 1;
     } else
@@ -396,17 +398,27 @@ http_conn::do_request() {
     while (true) {
         _clean_request_flag();
 
-        url_t st_url_real;
+        url_t st_url_real; // construct Url
+        {
+            string url;
+            if (m_url) {
+                url = m_url;
+            }
+            if (cgi == 1) {
+                string m_queryInfo;
+                if (m_string) {
+                    m_queryInfo = m_string;
+                }
+//            printf("m_url: %s,m_string: %s", m_url, m_string);
+                // check null, string constructor not support null
+                relative_url_path = to_fill_route(url) + m_queryInfo;
 
-        if (cgi == 1) {
-            string url = m_url;
-            relative_url_path = to_fill_route(url) + string(m_string);
+            } else {
+                relative_url_path = string(url);
 
-        } else {
-            relative_url_path = string(m_url);
-
+            }
         }
-        printf("relative_url: %s, ", relative_url_path.c_str());
+        printf("relative_url: %s\n", relative_url_path.c_str());
         auto request = Request<runtime_urlparser_t, runtime_connection_adapter_t>::makeRequest(
                 (std::string) relative_url_path, (http_req_method_t) m_method, runtime_connection_adapter_t(this));
 
@@ -493,7 +505,6 @@ http_conn::do_request() {
         if (st_url_real.useTemplate()) {
             resetRealFile(st_url_real.template_addr().c_str(), st_url_real.template_addr().size());
         }
-
 
 
         auto noSuchFile = [this]() { return stat(m_real_file, &m_file_stat) < 0; };
@@ -695,7 +706,7 @@ void http_conn::process() {
     modfd(m_epollfd, m_sockfd, EPOLLOUT, m_TRIGMode);
 }
 
-void http_conn::set_href_url(const string& html_path) {
+void http_conn::set_href_url(const string &html_path) {
     return set_href_url((const char *) html_path.c_str());
 }
 

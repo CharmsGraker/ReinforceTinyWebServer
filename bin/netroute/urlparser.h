@@ -13,8 +13,6 @@
 using namespace string_util;
 
 
-
-
 class abstractParser {
 public:
     // to provide this method if you want to custom.
@@ -25,7 +23,7 @@ public:
 class UrlParser : abstractParser {
 public:
     /** to implements of parse a raw url */
-    static ParsedUrl parse(const std::string& raw_url) {
+    static ParsedUrl parse(const std::string &raw_url) {
         ParsedUrl parsed;
         parsed_url(raw_url, parsed);
         return parsed;
@@ -72,7 +70,12 @@ public:
             for (auto &line: split(addr.query, '&')) {
                 // line will be like ["user=graker","passwd=123",]
                 auto KV = split(line, '=');
-                K = KV[0], V = KV[1];
+                if (KV.size() == 2) {
+                    K = KV[0], V = KV[1];
+                } else if (KV.size() == 1) {
+                    K = KV[0], V = "";
+                }
+                // assignment
                 addr.KV[K] = V;
             }
             return 0;

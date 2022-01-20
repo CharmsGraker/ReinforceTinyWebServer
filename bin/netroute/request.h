@@ -22,13 +22,14 @@ class Request {
     std::string _route;
     typedef decltype(urlParser::parse("just for example to calculate return type.")) parsed_url_t;
 
-    Request(parsed_url_t addr,http_req_method_t _method,ConnectionAdapter adapter) :
-            pa_addr(addr), method(_method),adapter(adapter) {};
+    Request(parsed_url_t addr, http_req_method_t _method, ConnectionAdapter adapter) :
+            pa_addr(addr), method(_method), adapter(adapter) {};
 
     Request() {};
 
     parameter_t &
     get_parsed_param() {
+        printf("get_parsed_param()\n");
         return pa_addr.KV;
     }
 
@@ -44,16 +45,23 @@ public:
     /** url means the href route,not include params */
 
     static Request
-    makeRequest(std::string raw_url, http_req_method_t method,ConnectionAdapter adapter) {
+    makeRequest(std::string raw_url, http_req_method_t method, ConnectionAdapter adapter) {
         printf("[makeRequest]");
-        return Request(urlParser::parse(raw_url), method,adapter);
+        return Request(urlParser::parse(raw_url), method, adapter);
     }
 
     parameter_t &args() {
-        if (get_parsed_param().empty()) {
-            throw NullException("null hashmap!");
+        try {
+            printf("into args()\n");
+            std::cout << get_parsed_param().empty() << std::endl;
+            if (get_parsed_param().empty()) {
+                throw NullException("null hashmap!");
+            }
+            return get_parsed_param();
+        } catch (NullException &e) {
+            e.what();
+            exit(1);
         }
-        return get_parsed_param();
     }
 
 

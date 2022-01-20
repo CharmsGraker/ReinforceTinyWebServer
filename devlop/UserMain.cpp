@@ -32,19 +32,24 @@ login(runtime_request_infer_t req) {
         //将用户名和密码提取出来
         char name[100], password[100];
 
-        printf("url in login view=%s\n", req->route().c_str());
+        printf("url in /login view=%s\n", req->route().c_str());
+
+
         auto KVmap = req->args();
-        strcpy(name, KVmap["user"].c_str());
-        strcpy(password, KVmap["password"].c_str());
-
-
+        strcpy(name, KVmap.get("user").c_str());
+        strcpy(password, KVmap.get("password").c_str());
+        printf("%s",KVmap.get("user").c_str());
         printf("[INFO] name=%s,passwd=%s\n", name, password);
-        if (userTable.find(name) != userTable.end() && userTable[name] == password) {
+        printf("%d %d", strcmp(name,""), strcmp(password,""));
+        if (strlen(name) && strlen(password) && userTable.find(name) != userTable.end() && userTable[name] == password) {
+            printf("find user\n");
             return render_template(url_t("/welcome.html"), KVmap);
-        } else
+        } else {
+            printf("cant not find user\n");
             return url_t("/logError.html");
+        }
     }
-    return url_t("/log.html");
+    return url_t("/index_module/index.html");
 }
 
 url_t

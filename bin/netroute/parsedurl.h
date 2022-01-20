@@ -10,7 +10,6 @@
 
 namespace yumira {
     struct ParsedUrl {
-
         std::string path;
         std::string protocol;
         std::string url;
@@ -18,7 +17,6 @@ namespace yumira {
         std::string query;
         std::string port;
         std::string host;
-
 
         parameter_t KV;
 

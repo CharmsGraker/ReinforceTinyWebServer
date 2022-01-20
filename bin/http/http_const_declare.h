@@ -15,7 +15,7 @@ namespace yumira {
 
     typedef url_storage url_t;
     typedef StorageMap storage_t;
-    typedef std::map<std::string, std::string> parameter_t;
+    typedef HashMap<std::string, std::string> parameter_t;
     typedef WebServer *ServerPtr;
     typedef WebServer yumira_server_t;
 

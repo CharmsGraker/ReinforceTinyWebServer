@@ -10,10 +10,7 @@
 
 using namespace std;
 
-connection_pool::connection_pool() {
-    m_CurConn = 0;
-    m_FreeConn = 0;
-}
+connection_pool::connection_pool() { m_CurConn = m_FreeConn = 0; }
 
 connection_pool *connection_pool::getInstance() {
     static connection_pool connPool;
@@ -28,32 +25,6 @@ connection_pool::MYSQL_OCCUR_ERROR(MYSQL *connect) const {
     }
 };
 
-////构造初始化
-//void
-//connection_pool::init(const string &url, const string &userTabName, const string &PassWord,
-//                      const string &DBName, const int &port, const int &MaxConn, const int &close_log) {
-//    m_url = url;
-//    m_Port = port;
-//    m_User = userTabName;
-//    m_PassWord = PassWord;
-//    m_DatabaseName = DBName;
-//    m_close_log = close_log;
-//
-//    for (int i = 0; i < MaxConn; ++i) {
-//        MYSQL *con = mysql_init(nullptr);
-//
-//        MYSQL_OCCUR_ERROR(con);
-//        con = mysql_real_connect(con, url.c_str(), userTabName.c_str(),
-//                                 PassWord.c_str(), DBName.c_str(), port, nullptr, 0);
-//        MYSQL_OCCUR_ERROR(con);
-//        connList.push_back(con);
-//        ++m_FreeConn;
-//    }
-//
-//    reserve = Semaphore(m_FreeConn); // ree resoure add to semaphore
-//
-//    m_MaxConn = m_FreeConn;
-//}
 
 //构造初始化
 void
@@ -85,7 +56,7 @@ MYSQL *connection_pool::getConnection() {
             con = connList.front();
             connList.pop_front();
 
-            --m_FreeConn,++m_CurConn;
+            --m_FreeConn, ++m_CurConn;
             lock.unlock();
 
         } catch (exception &e) {
@@ -105,7 +76,7 @@ bool connection_pool::releaseConnection(MYSQL *con) {
     try {
 
         connList.push_back(con);
-        ++m_FreeConn,--m_CurConn;
+        ++m_FreeConn, --m_CurConn;
 
         lock.unlock();
 

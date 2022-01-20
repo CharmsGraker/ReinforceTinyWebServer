@@ -17,10 +17,14 @@ public:
 };
 
 class NullException:public std::runtime_error {
+    std::string error_info;
 public:
     NullException():NullException(""){};
-    NullException(std::string msg): runtime_error("[NullException]"+msg) {
+    NullException(std::string msg): runtime_error("[NullException]"),error_info(msg) {
 
+    }
+    const char * what() const noexcept override {
+        fprintf(stderr,"[FATAL] NullException: %s\n",error_info.c_str());
     }
 };
 

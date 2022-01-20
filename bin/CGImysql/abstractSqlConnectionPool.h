@@ -25,7 +25,6 @@ public:
 
     virtual SQL *getConnection() = 0;                 //获取数据库连接
     virtual bool releaseConnection(SQL *conn) = 0; //释放连接
-    virtual void destroyPool() = 0;
 
     virtual ~SqlConnectionPoolBase() = default;
 };

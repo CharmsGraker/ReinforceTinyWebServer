@@ -94,8 +94,7 @@ private:
 
     ~connection_pool();
 
-    void destroyPool();                     //销毁所有连接
-
+    void destroyPool(); // clean all connection when trigger deconstruct
     void MYSQL_OCCUR_ERROR(MYSQL *connect) const;
 
 private:
@@ -108,12 +107,12 @@ private:
 
 
 public:
-    string m_url;             //主机地址
-    int m_Port;         //数据库端口号
+    string m_url;           //主机地址
+    int m_Port;             //数据库端口号
     string m_User;         //登陆数据库用户名
     string m_PassWord;     //登陆数据库密码
     string m_DatabaseName; //使用数据库名
-    int m_close_log;    //日志开关
+    int m_close_log;        //日志开关
 };
 
 class connectionRAII {

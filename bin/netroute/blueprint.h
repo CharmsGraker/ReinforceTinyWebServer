@@ -1,7 +1,3 @@
-//
-// Created by nekonoyume on 2022/1/3.
-//
-
 #ifndef TINYWEB_BLUEPRINT_H
 #define TINYWEB_BLUEPRINT_H
 
@@ -9,37 +5,30 @@
 #include "request.h"
 #include "router.h"
 
-template<typename Route>
-class Blueprint {
-    string _bp_name = nullptr;
-    vector<Route*> routerList;
-
+class Blueprint : public Router {
+    vector<Router *> routerList;
 public:
-    Blueprint(const char *bp_name) : _bp_name(bp_name) {}
+    Blueprint(const char *bp_name) : Router(bp_name, bp_name) {}
 
     void
-    registRoute(Route*router) {
+    registerRoute(Router *router) {
         routerList.push_back(router);
     }
 
-    string get_bp_name() const {
-        return _bp_name;
+    const string &getBluePrintName() {
+        return (const string &) this->getBaseName();
     }
 
-    template<class Request>
-    Route *
-    canDealWith(Request &request) {
-        Route *handler = nullptr;
-        string url_route = request.pa_addr.path;
-        auto match_pattern = [](const char *s, const char *pattern) {
-            return strncasecmp(s, pattern, strlen(pattern)) == 0;
-        };
+    Router *
+    canDealWith(Request* req) {
+        Router *handler = nullptr;
+        string url_route = req->pa_addr.path;
+
         // should let bp to pattern url, instead of url to pattern bp,because bp are much shorter to parse
-        if (match_pattern(url_route.c_str(), get_bp_name().c_str())) {
-            printf("[INFO] matched Blueprint [\"%s\"]\n", get_bp_name().c_str());
+        if (((Router *) this)->canDealWith(url_route.c_str())) {
+            LOG_INFO("matched Blueprint [\"%s\"]\n",getBluePrintName().c_str());
             for (auto &router: routerList) {
-                if (match_pattern(url_route.c_str(), router->getFullRoute().c_str())) {
-                    printf(", choose route: \"%s\"\n", router->getFullRoute().c_str());
+                if (router->canDealWith(url_route.c_str())) {
                     handler = router;
                     break;
                 }
@@ -49,17 +38,7 @@ public:
     };
 
     void
-    set_route_prefix() {
-        // set prefix for route belongs to this blueprint
-        for (auto &route: routerList) {
-            route->set_prefix(get_bp_name().c_str());
-        }
-
-    }
-
-
-    void
-    set_route_suffix(const char *suffix) {
+    set_suffix(const string &suffix) override {
         // set suffix for route belongs to this blueprint
         for (auto &route: routerList) {
             route->set_suffix(suffix);
@@ -72,16 +51,23 @@ public:
         if (new_bp_name.empty()) {
             new_bp_name = "/"; // register to root bp
         }
-        _bp_name = new_bp_name;
+        this->getBaseName() = new_bp_name;
     }
 
     void
-    set_route_prefix(const char *new_bp_name) {
+    set_prefix(const char *new_bp_name) override {
         set_bp_name(new_bp_name);
-        set_route_prefix();
-
+        this->set_prefix();
     }
 
+    void
+    set_prefix() {
+        // set prefix for route belongs to this blueprint
+        for (auto &route: routerList) {
+            route->set_prefix(this->getBluePrintName().c_str());
+        }
+
+    }
 };
 
 #endif //TINYWEB_BLUEPRINT_H

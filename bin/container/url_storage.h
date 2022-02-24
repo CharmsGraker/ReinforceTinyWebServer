@@ -1,37 +1,35 @@
-//
-// Created by nekonoyume on 2022/1/6.
-//
-
 #ifndef TINYWEB_URL_STORAGE_H
 #define TINYWEB_URL_STORAGE_H
 
 #include <string.h>
-#include "../http/http_const_declare.h"
+#include <stdio.h>
+#include <string>
+using namespace std;
 
-
-struct url_storage {
+class url_storage {
 private:
     template<class Url, class Parameter>
     friend Url render_template(Url html_url, Parameter &KVMap);
 
     std::string tpl_addr;
-    size_t _file_size;
+    std::size_t _file_size;
     int _fd;
 
 public:
     std::string url;
+    static class url_storage NULL_URL;
 
-    url_storage() : url(""), tpl_addr("") {
-        printf("[url_storage] construct.\n");
-
-    }
-
-    explicit url_storage(std::string url) : url(url), tpl_addr("") {
+    url_storage() :  _fd(-1), _file_size(-1) {
+//        printf("[url_storage] construct.\n");
 
     }
+
+    explicit url_storage(const std::string __url) : url(__url), tpl_addr("") {};
+    explicit url_storage(const char * __url) : url(__url), tpl_addr("") {};
+    url_storage(const url_storage &obj) : url(obj.url), tpl_addr(obj.tpl_addr) {}
 
     void
-    set_template_ptr(const std::string& byte_ptr) {
+    set_template_ptr(const std::string &byte_ptr) {
         if (byte_ptr.empty()) {
             fprintf(stderr, "bad set template ptr!");
             return;
@@ -44,39 +42,32 @@ public:
         return !tpl_addr.empty();
     }
 
-    size_t length() const {
+    std::size_t length() const {
         return url.length();
     }
 
-    bool isResRequest() {
+    bool isResRequest() const {
         return url.find('.') != url.npos;
     };
 
     const char *
-    which() {
+    which() const {
         return url.c_str();
     }
 
     std::string template_addr() {
         if (useTemplate()) {
-            return  tpl_addr;
+            return tpl_addr;
         }
     };
 
     bool
-    empty() {
+    empty() const {
         return url.empty();
     }
 
-    url_storage(url_storage &obj) : url(obj.url), tpl_addr(obj.tpl_addr) {
 
-    }
-
-    url_storage(url_storage &&obj) noexcept: url(std::move(obj.url)), tpl_addr(obj.tpl_addr) {
-
-    }
-
-    const size_t
+    const std::size_t
     fileSize() const {
         return _file_size;
     }
@@ -87,10 +78,14 @@ public:
     }
 
     url_storage &
-    operator=(url_storage obj) {
+    operator=(const url_storage obj) {
         url = obj.url;
         tpl_addr = obj.tpl_addr;
         return *this;
+    }
+
+    bool operator==(const url_storage &o) {
+        return (url == o.url) && (tpl_addr == o.tpl_addr);
     }
 };
 

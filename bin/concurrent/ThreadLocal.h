@@ -12,12 +12,13 @@
 #include <map>
 #include <string>
 #include <sys/wait.h>
+#include <iostream>
 
 
 typedef long tid_t;
 #define gettid() syscall(__NR_gettid)
 
-typedef std::map<std::string, std::string> local_map_t;
+typedef std::map<std::string, void*> local_map_t;
 
 class ThreadLocal {
 public:
@@ -27,7 +28,6 @@ public:
     static const int THREADLOCAL_LOCKED = 1;
 
 private:
-
     static std::map<tid_t, local_map_t *> *getThreadLocalMap() {
         tid_t tid = gettid();
         printf("\t thread %ld enter to getThreadLocalMap()\n", tid);
@@ -41,34 +41,51 @@ private:
 
     static
     void
-    __init__current_thread_map() {
+    initLocalMap() {
         tid_t tid = gettid();
         printf("current thread: [%ld] init localMap\n", tid);
         (*getThreadLocalMap())[tid] = new local_map_t();
     };
+public:
 
-    static local_map_t *
-    __current_thread_map() {
+    static local_map_t*
+    getLocalMap(){
         if ((*getThreadLocalMap())[gettid()] == nullptr) {
-            __init__current_thread_map();
+            initLocalMap();
         }
         return (*getThreadLocalMap())[gettid()];
     }
 
-
-public:
-
-    static std::string
-    get(const std::string &key) {
-        auto val = (*__current_thread_map())[key];
+    template<typename T>
+    static
+    T& get(const std::string &key) {
+        void* val = (*getLocalMap())[key];
         tid_t tid = gettid();
         printf("%ld exit ThreadLocal get()\n", tid);
-        return val;
+        return *((T*)(val));
+    }
+
+    template<typename T>
+    static void
+    put(std::string& key, T& value) {
+        (*getLocalMap())[key] = (void*)&value;
+        tid_t tid = gettid();
+
+        printf("%ld exit ThreadLocal put()\n", tid);
     }
 
     static void
-    put(std::string key, std::string value) {
-        (*__current_thread_map())[key] = value;
+    put(const std::string& key, char * value) {
+        (*getLocalMap())[key] = (void*)value;
+        tid_t tid = gettid();
+
+        printf("%ld exit ThreadLocal put()\n", tid);
+    }
+
+    template<typename T>
+    static void
+    put(const std::string& key,T value) {
+        (*getLocalMap())[key] = (void*)(&value);
         tid_t tid = gettid();
 
         printf("%ld exit ThreadLocal put()\n", tid);
@@ -76,9 +93,14 @@ public:
     }
 
     static void
-    put(const char *key, std::string &value) {
-        return put(std::string(key), value);
+    put(const std::string& key,void * value_ptr) {
+        (*getLocalMap())[key] =value_ptr;
+        tid_t tid = gettid();
+
+        printf("%ld exit ThreadLocal put()\n", tid);
+
     }
+
 
     ~ThreadLocal() {
         for (auto localmapKV: *getThreadLocalMap()) {
@@ -94,5 +116,4 @@ public:
         return std::to_string(gettid());
     }
 };
-
 #endif //TINYWEB_THREADLOCAL_H

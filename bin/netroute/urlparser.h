@@ -6,31 +6,27 @@
 #define TINYWEB_URLPARSER_H
 
 #include "../../utils/string_utils.h"
-#include "parsedurl.h"
 #include <cstring>
 #include <strings.h>
 
 using namespace string_util;
 
 
-class abstractParser {
-public:
-    // to provide this method if you want to custom.
-    static ParsedUrl parse() {};
-};
 
 
-class UrlParser : abstractParser {
+template<class U>
+class UrlParser {
 public:
     /** to implements of parse a raw url */
-    static ParsedUrl parse(const std::string &raw_url) {
-        ParsedUrl parsed;
+    static U
+    parse(const std::string &raw_url) {
+        U parsed;
         parsed_url(raw_url, parsed);
         return parsed;
     }
 
     static void
-    parsed_url(const std::string &url_in, ParsedUrl &addr_out) {
+    parsed_url(const std::string &url_in, U &addr_out) {
         const char *p = url_in.c_str();
         static std::string HTTP_PROTOCOL = "http://";
         static std::string HTTPS_PROTOCOL = "https://";
@@ -54,7 +50,6 @@ public:
             exit(1);
         }
 
-
         std::string K, V;
         addr_out.url = url_in; // full url
         addr_out.fullpath = p; // full url
@@ -63,10 +58,10 @@ public:
         if ((pos = url_in.find('?', 0)) != url_in.npos) {
             addr_out.fullpath = url_in.substr(0, pos + 1); // get full domain and route, include ?
             addr_out.query = url_in.substr(pos + 1);
-            printf("query: %s\n", addr_out.query.c_str());
+//            printf("query: %s\n", addr_out.query.c_str());
         }
 
-        auto safe_parse_param = [&K, &V](ParsedUrl &addr) {
+        auto safe_parse_param = [&K, &V](U &addr) {
             for (auto &line: split(addr.query, '&')) {
                 // line will be like ["user=graker","passwd=123",]
                 auto KV = split(line, '=');

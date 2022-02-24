@@ -1,6 +1,3 @@
-//
-// Created by nekonoyume on 2022/1/4.
-//
 
 #ifndef TINYWEB_REQUEST_H
 #define TINYWEB_REQUEST_H
@@ -12,42 +9,62 @@
 
 #include "./../../utils/string_utils.h"
 #include "../http/http_const_declare.h"
+#include "../netroute/urlparser.h"
+#include "../netroute/parsedurl.h"
 
 using namespace string_util;
 
 using namespace yumira;
 
-template<class urlParser, class ConnectionAdapter>
+namespace yumira {
+    class http_conn;
+}
+//template<class urlParser, class ConnectionAdapter>
 class Request {
     std::string _route;
-    typedef decltype(urlParser::parse("just for example to calculate return type.")) parsed_url_t;
 
-    Request(parsed_url_t addr, http_req_method_t _method, ConnectionAdapter adapter) :
-            pa_addr(addr), method(_method), adapter(adapter) {};
+
+    Request(ParsedUrl addr, http_req_method_t _method, http_conn *httpConn) :
+            pa_addr(addr), method(_method), connection(httpConn) {};
 
     Request() {};
 
     parameter_t &
     get_parsed_param() {
-        printf("get_parsed_param()\n");
+//        printf("get_parsed_param()\n");
         return pa_addr.KV;
     }
 
-private:
-    ConnectionAdapter adapter;
+    http_conn *connection;
+
+    static Request *
+    makeNewRequest(std::string &raw_url, http_req_method_t method, http_conn *httpConn) {
+        return new Request(UrlParser<ParsedUrl>::parse(raw_url), method, httpConn);
+    }
+
 public:
     http_req_method_t method;
 
-    typedef ConnectionAdapter adapter_t;
-    parsed_url_t pa_addr;
+    ParsedUrl pa_addr;
 
 
     /** url means the href route,not include params */
 
-    static Request
-    makeRequest(std::string raw_url, http_req_method_t method, ConnectionAdapter adapter) {
+
+
+    static Request *
+    makeRequest(Request *request, std::string &raw_url, http_req_method_t method, http_conn *httpConn) {
         printf("[makeRequest]");
-        return Request(urlParser::parse(raw_url), method, adapter);
+        if (!request) {
+            return makeNewRequest(raw_url, method, httpConn);
+        } else {
+            return new(request)Request(UrlParser<ParsedUrl>::parse(raw_url), method, httpConn);
+        }
+    }
+
+    http_conn *
+    getConnection() {
+        return connection;
     }
 
     parameter_t &args() {
@@ -70,12 +87,12 @@ public:
         return pa_addr.path;
     }
 
-    ConnectionAdapter
-    getAdapter() {
-        return adapter;
+    static
+    void
+    release(Request *req) {
+        delete req;
+        req = nullptr;
     }
-
-
 };
 
 #endif //TINYWEB_REQUEST_H

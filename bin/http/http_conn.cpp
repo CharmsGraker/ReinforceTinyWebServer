@@ -20,6 +20,8 @@ const char *error_500_form = "There was an unusual problem serving the request f
 namespace yumira {
     Locker m_lock;
     std::map<std::string, std::string> userTable;
+    thread_local Request* request = nullptr;
+
 }
 
 static struct httpHeaderEnum {
@@ -37,7 +39,7 @@ auto is_route_request = [](const string &url) {
 };
 
 
-void http_conn::initmysql_result(connection_pool *connPool) {
+void yumira::http_conn::initmysql_result(connection_pool *connPool) {
     //先从连接池中取一个连接
     MYSQL *mysql = nullptr;
     connectionRAII mysqlcon(&mysql, connPool);
@@ -107,21 +109,22 @@ void modfd(int epollfd, int fd, int ev, int TRIGMode) {
     epoll_ctl(epollfd, EPOLL_CTL_MOD, fd, &event);
 }
 
-int http_conn::m_user_count = 0;
-int http_conn::m_epollfd = -1;
+int yumira::http_conn::m_user_count = 0;
+int yumira::http_conn::m_epollfd = -1;
 
 //关闭连接，关闭一个连接，客户总量减一
-void http_conn::close_conn(bool real_close) {
+void yumira::http_conn::close_conn(bool real_close) {
     if (real_close && (m_sockfd != -1)) {
         printf("close sockfd %d\n", m_sockfd);
         removefd(m_epollfd, m_sockfd);
         m_sockfd = -1;
         m_user_count--;
+        Request::release(request);
     }
 }
 
 //初始化连接,外部调用初始化套接字地址
-void http_conn::init(int sockfd, const sockaddr_in &addr, char *root, int TRIGMode,
+void yumira::http_conn::init(int sockfd, const sockaddr_in &addr, char *root, int TRIGMode,
                      int close_log, string user, string passwd, string sqlname) {
     m_sockfd = sockfd;
     m_address = addr;
@@ -143,7 +146,7 @@ void http_conn::init(int sockfd, const sockaddr_in &addr, char *root, int TRIGMo
 
 //初始化新接受的连接
 //check_state默认为分析请求行状态
-void http_conn::init() {
+void yumira::http_conn::init() {
     mysql = nullptr;
     bytes_to_send = 0;
     bytes_have_send = 0;
@@ -170,7 +173,8 @@ void http_conn::init() {
 
 //从状态机，用于分析出一行内容
 //返回值为行的读取状态，有LINE_OK,LINE_BAD,LINE_OPEN
-http_conn::LINE_STATUS http_conn::parse_line() {
+yumira::http_conn::LINE_STATUS
+yumira::http_conn::parse_line() {
     char temp;
     for (; m_checked_idx < m_read_idx; ++m_checked_idx) {
         temp = m_read_buf[m_checked_idx];
@@ -197,7 +201,8 @@ http_conn::LINE_STATUS http_conn::parse_line() {
 
 //循环读取客户数据，直到无数据可读或对方关闭连接
 //非阻塞ET工作模式下，需要一次性将数据读完
-bool http_conn::read_once() {
+bool
+yumira::http_conn::read_once() {
     if (m_read_idx >= READ_BUFFER_SIZE) {
         return false;
     }
@@ -232,14 +237,15 @@ bool http_conn::read_once() {
 }
 
 //解析http请求行，获得请求方法，目标url及http版本号
-http_conn::HTTP_CODE http_conn::parse_request_line(char *text) {
+yumira::http_conn::HTTP_CODE
+yumira::http_conn::parse_request_line(char *text) {
     m_url = strpbrk(text, " \t");
     if (!m_url) {
         return BAD_REQUEST;
     }
     *m_url++ = '\0';
     // set to head
-//    printf("%s\n", m_url);
+    printf("%s\n", m_url);
 
     char *method = text;
     if (strcasecmp(method, "GET") == 0) {
@@ -279,7 +285,6 @@ http_conn::HTTP_CODE http_conn::parse_request_line(char *text) {
     // register index html here
     //当url为/时，显示判断界面
     if (strlen(m_url) == 1)
-        //url_for(HTTP_ROOT);
         strcat(m_url, INDEX_HTML_FILENAME);
     m_check_state = CHECK_STATE_HEADER;
 //    printf("raw_url: %s, m_string=%s\n", m_url, m_string);
@@ -289,9 +294,10 @@ http_conn::HTTP_CODE http_conn::parse_request_line(char *text) {
 
 
 //解析http请求的一个头部信息
-http_conn::HTTP_CODE http_conn::parse_headers(char *text) {
+yumira::http_conn::HTTP_CODE
+yumira::http_conn::parse_headers(char *text) {
     // has new http request can reach this method,log this will look up http exchange so many message
-    printf("\t%s\n", text);
+//    printf("\t%s\n", text);
 
     if (text[0] == '\0') {
         if (m_content_length != 0) {
@@ -323,7 +329,8 @@ http_conn::HTTP_CODE http_conn::parse_headers(char *text) {
 }
 
 //判断http请求是否被完整读入
-http_conn::HTTP_CODE http_conn::parse_content(char *text) {
+yumira::http_conn::HTTP_CODE
+yumira::http_conn::parse_content(char *text) {
     if (m_read_idx >= (m_content_length + m_checked_idx)) {
         text[m_content_length] = '\0';
 
@@ -334,7 +341,8 @@ http_conn::HTTP_CODE http_conn::parse_content(char *text) {
     return NO_REQUEST;
 }
 
-http_conn::HTTP_CODE http_conn::process_read() {
+yumira::http_conn::HTTP_CODE
+yumira::http_conn::process_read() {
     // real do process http connection
 
     LINE_STATUS line_status = LINE_OK;
@@ -384,8 +392,8 @@ http_conn::HTTP_CODE http_conn::process_read() {
 }
 
 
-http_conn::HTTP_CODE
-http_conn::do_request() {
+yumira::http_conn::HTTP_CODE
+yumira::http_conn::do_request() {
     auto to_fill_route = [](string &url) {
         if (url.find('?') == url.npos) url += '?';
         return url;
@@ -418,11 +426,10 @@ http_conn::do_request() {
 
             }
         }
-        printf("relative_url: %s\n", relative_url_path.c_str());
-        auto request = Request<runtime_urlparser_t, runtime_connection_adapter_t>::makeRequest(
-                (std::string) relative_url_path, (http_req_method_t) m_method, runtime_connection_adapter_t(this));
+//        printf("relative_url: %s\n", relative_url_path.c_str());
+        request = Request::makeRequest(request,relative_url_path,  m_method, this);
 
-        printf("[INFO] enter to do_request(), m_url=%s\n", request.route().c_str());
+//        printf("[INFO] enter to do_request(), m_url=%s\n", request.route().c_str());
 
         /*
          * this function deal with http resource get request.
@@ -434,14 +441,14 @@ http_conn::do_request() {
 
         int len_root_path = strlen(doc_root);
 
-        printf("m_string: %s, cgi= %d\n", m_string, cgi);
-        printf("m_url: %s\n", m_url);
+//        printf("m_string: %s, cgi= %d\n", m_string, cgi);
+//        printf("m_url: %s\n", m_url);
 
         try {
-            printf("\tenter to try block...\n");
-            auto request_url = url_t(request.route());
+//            printf("\tenter to try block...\n");
+            auto request_url = url_t(request->route());
 
-            printf("request_url=%s\n", request_url.which());
+//            printf("request_url=%s\n", request_url.which());
 
 
             if (!request_url.isResRequest()) {
@@ -451,28 +458,25 @@ http_conn::do_request() {
 
                 // make sure to correct bp name concat for routers
                 // traverse blueprint(s) to handle this request
-                printf("[INFO] total interceptors: %ld\n", get_interceptors()->size());
+//                printf("[INFO] total interceptors: %ld\n", get_interceptors()->size());
 
-                for (auto &bp: *get_interceptors()) {
-
-                    // initialized bp's route info
-                    bp->set_route_prefix();
-
+                for (auto &bp: *getInterceptors()) {
+                    bp->set_prefix();
                     //printf("loop bp:%s\n", bp->get_bp_name().c_str());
                     //printf("%d\n", bp);
                     if ((route_handler = bp->canDealWith(request)) != nullptr) {
                         // the request actual method type won't be check here. it let user to determine that.
-
-                        if (route_handler->view(request, st_url_real) == URL_STATUS::VIEW_NOT_FOUND) {
+                        URL_STATUS ret;
+                        ThreadLocal::put<Request>("request",*request);
+                        if ((ret = route_handler->view(st_url_real)) == URL_STATUS::VIEW_NOT_FOUND) {
                             // do with retry
                             //goto retry;
+                        } else if (ret & URL_STATUS::RESOURCE_NOT_FOUND) {
+
                         }
 
                         // check status here, so this is a recurrent point
                         if (st_url_real.isResRequest()) {
-#ifdef DEBUG
-                            cout << "\tm_url_real: " << st_url_real.url << std::endl;
-#endif
                             // ask for file like html
                             // concat full path pointer to file
                             strncpy(m_real_file + len_root_path, st_url_real.url.c_str(), st_url_real.length());
@@ -487,7 +491,7 @@ http_conn::do_request() {
                     }
                 }
                 if (_need_remake_request()) {
-                    printf("[INFO] remake request...\n");
+//                    printf("[INFO] remake request...\n");
                     continue;
                 }
 
@@ -498,14 +502,13 @@ http_conn::do_request() {
             nullException.what();
         } catch (exception &e) {
             fprintf(stderr, "[FATAL] do_request() error!\n");
-            e.what();
-            exit(1);
+            Request::release(request);
+            throw exception();
         }
         // set href file here
         if (st_url_real.useTemplate()) {
             resetRealFile(st_url_real.template_addr().c_str(), st_url_real.template_addr().size());
         }
-
 
         auto noSuchFile = [this]() { return stat(m_real_file, &m_file_stat) < 0; };
         auto noPermissionToAccessFile = [this]() { return !(m_file_stat.st_mode & S_IROTH); };
@@ -522,13 +525,12 @@ http_conn::do_request() {
             return BAD_REQUEST;
 
         __map_file_into_cache();
-
         return FILE_REQUEST;
     }
-
 }
 
-int http_conn::__map_file_into_cache() {
+int
+yumira::http_conn::__map_file_into_cache() {
     /**
      *  do open file description
      * */
@@ -536,21 +538,23 @@ int http_conn::__map_file_into_cache() {
     if (errno != 0) {
         fprintf(stderr, "error when open %s\n", strerror(errno));
     }
-    printf("[INFO] read file from storage: %s\n", m_real_file);
+//    printf("[INFO] read file from storage: %s\n", m_real_file);
 
     // projection file to memory cache
     m_file_address = (char *) mmap(nullptr, m_file_stat.st_size, PROT_READ, MAP_PRIVATE, fd, 0);
     close(fd); // avoid waste
 }
 
-void http_conn::unmap() {
+void
+yumira::http_conn::unmap() {
     if (m_file_address) {
         munmap(m_file_address, m_file_stat.st_size);
         m_file_address = nullptr;
     }
 }
 
-bool http_conn::write() {
+bool
+yumira::http_conn::write() {
     int temp = 0;
 
     if (bytes_to_send == 0) {
@@ -596,7 +600,8 @@ bool http_conn::write() {
     }
 }
 
-bool http_conn::add_response(const char *format, ...) {
+bool
+yumira::http_conn::add_response(const char *format, ...) {
     if (m_write_idx >= WRITE_BUFFER_SIZE)
         return false;
     va_list arg_list;
@@ -614,36 +619,44 @@ bool http_conn::add_response(const char *format, ...) {
     return true;
 }
 
-bool http_conn::add_status_line(int status, const char *title) {
+bool
+yumira::http_conn::add_status_line(int status, const char *title) {
     return add_response("%s %d %s\r\n", "HTTP/1.1", status, title);
 }
 
-bool http_conn::add_headers(int content_len) {
+bool
+yumira::http_conn::add_headers(int content_len) {
     return add_content_length(content_len) && add_linger() &&
            add_blank_line();
 }
 
-bool http_conn::add_content_length(int content_len) {
+bool
+yumira::http_conn::add_content_length(int content_len) {
     return add_response("Content-Length:%d\r\n", content_len);
 }
 
-bool http_conn::add_content_type() {
+bool
+yumira::http_conn::add_content_type() {
     return add_response("Content-Type:%s\r\n", "text/html");
 }
 
-bool http_conn::add_linger() {
+bool
+yumira::http_conn::add_linger() {
     return add_response("Connection:%s\r\n", m_linger ? "keep-alive" : "close");
 }
 
-bool http_conn::add_blank_line() {
+bool
+yumira::http_conn::add_blank_line() {
     return add_response("%s", "\r\n");
 }
 
-bool http_conn::add_content(const char *content) {
+bool
+yumira::http_conn::add_content(const char *content) {
     return add_response("%s", content);
 }
 
-bool http_conn::process_write(HTTP_CODE ret) {
+bool
+yumira::http_conn::process_write(yumira::http_conn::HTTP_CODE ret) {
     switch (ret) {
         case INTERNAL_ERROR: {
             add_status_line(500, error_500_title);
@@ -694,7 +707,8 @@ bool http_conn::process_write(HTTP_CODE ret) {
     return true;
 }
 
-void http_conn::process() {
+void
+yumira::http_conn::process() {
     HTTP_CODE read_ret;
     if ((read_ret = process_read()) == NO_REQUEST) {
         modfd(m_epollfd, m_sockfd, EPOLLIN, m_TRIGMode);
@@ -703,22 +717,35 @@ void http_conn::process() {
     if (!(process_write(read_ret))) {
         close_conn();
     }
+
+
     modfd(m_epollfd, m_sockfd, EPOLLOUT, m_TRIGMode);
 }
 
-void http_conn::set_href_url(const string &html_path) {
+void
+yumira::http_conn::set_href_url(const string &html_path) {
     return set_href_url((const char *) html_path.c_str());
 }
 
-void http_conn::set_href_url(const char *html_path) {
+void
+yumira::http_conn::set_href_url(const char *html_path) {
     strcpy(m_url, html_path);
     strncpy(m_real_file + strlen(doc_root), m_url, strlen(m_url));
 }
 
 
-http_conn::~http_conn() {
+yumira::http_conn::~http_conn() {
     // free interceptors elements
-    for (auto &blueprint: *get_interceptors()) {
+    for (auto &blueprint: *getInterceptors()) {
         delete blueprint;
     }
 }
+
+void close_user_fd(client_data_t *user_data) {
+    // remove client fd from epoll moniter
+    epoll_ctl(Utils::u_epollfd, EPOLL_CTL_DEL, user_data->sockfd, nullptr);
+    assert(user_data);
+    close(user_data->sockfd);
+    yumira::http_conn::decrease_active_user(1);
+}
+

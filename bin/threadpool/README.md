@@ -5,6 +5,7 @@
 > * 同步I/O模拟proactor模式
 > * 半同步/半反应堆
 > * 线程池
+> * 已经将线程池的任务执行解耦，由ThreadPoolTaskScheduler类来决定调度任务的具体细节
 
 
 

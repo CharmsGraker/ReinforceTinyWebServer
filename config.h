@@ -3,7 +3,7 @@
 namespace yumira {
     const int MAX_FD = 65536;           //最大文件描述符
     const int TIMESLOT = 5;             //最小超时单位
-    constexpr int MAX_EVENT_NUMBER = 10000; //最大事件数
+    constexpr static int MAX_EVENT_NUMBER = 10000; //最大事件数
     extern const char *resourceFolder;
 
 }

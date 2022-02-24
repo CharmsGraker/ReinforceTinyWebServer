@@ -18,23 +18,22 @@
 /** to avoid infinite loop import,
  * please declare all class here */
 
-class http_conn;
 
 using namespace string_util;
 
 
 namespace yumira {
+    class http_conn;
 
     typedef http_conn default_connection_t;
     typedef HttpConnectionAdapter<default_connection_t> default_connection_adapter;
-    typedef UrlParser default_urlparser_t;
-    typedef Request<default_urlparser_t, default_connection_adapter> *default_request_infer_t;
+    typedef UrlParser<ParsedUrl> default_urlparser_t;
+    typedef Request *default_request_infer_t;
     typedef std::unordered_map<std::string, std::string> url_param_container_t;
 
-    typedef url_t (*view_func_raw_t)(default_request_infer_t);
+    typedef url_t (*viewType)();
 
-
-#ifndef TINYWEB_CONFIG_H
+#ifndef CONFIG_H
 #ifndef CONNECTION_TYPE
 #define CONNECTION_TYPE default_connection_t;
     typedef default_connection_t runtime_connection_t;

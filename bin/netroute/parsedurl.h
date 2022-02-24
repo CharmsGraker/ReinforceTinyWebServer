@@ -7,6 +7,7 @@
 
 #include <string>
 #include "../container/hashmap.h"
+#include "../http/http_const_declare.h"
 
 namespace yumira {
     struct ParsedUrl {

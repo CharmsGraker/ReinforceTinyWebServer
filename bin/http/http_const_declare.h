@@ -13,7 +13,7 @@
 namespace yumira {
     class WebServer;
 
-    typedef url_storage url_t;
+    using url_t = url_storage;
     typedef StorageMap storage_t;
     typedef HashMap<std::string, std::string> parameter_t;
     typedef WebServer *ServerPtr;
@@ -33,5 +33,8 @@ namespace yumira {
         CONNECT,
         PATH
     };
+
+
+
 };
 #endif //TINYWEB_HTTP_CONST_DECLARE_H

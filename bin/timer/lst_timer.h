@@ -57,7 +57,7 @@ public:
 
     void adjust_timer(util_timer *timer);
 
-    void del_timer(util_timer *timer);
+    void remove(util_timer *timer);
 
     void tick();
 
@@ -80,7 +80,7 @@ public:
     int setNonBlocking(int fd);
 
     //将内核事件表注册读事件，ET模式，选择开启EPOLLONESHOT
-    void addfd(int epollfd, int fd, bool one_shot, int TRIGMode);
+    void regist_fd(const int& epollfd, int fd, bool one_shot, int TRIGMode);
 
     //信号处理函数
     static void sig_handler(int sig);
@@ -100,6 +100,6 @@ public:
     int m_TIMESLOT;
 };
 
-void callback_func(client_data_t *user_data);
+void close_user_fd(client_data_t *user_data);
 
 #endif

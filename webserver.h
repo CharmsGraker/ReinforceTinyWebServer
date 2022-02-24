@@ -29,15 +29,13 @@ namespace yumira {
      *      Reactor
      *      Proactor
      * */
-    constexpr static int SERVER_REACTOR_MODE = 1;
-    constexpr static int SERVER_PROACTOR_MODE = 2;
+    static int REACTOR_MODE = 1;
+    static int PROACTOR_MODE = 2;
 
 
     typedef Configure *ConfigurePtr;
 
     class WebServer {
-
-
         int stop_server = 0;
         ConfigurePtr configObj = nullptr;
 
@@ -71,13 +69,14 @@ namespace yumira {
 
         void eventLoop();
 
+    private:
         void createTimerForUser(int connfd, struct sockaddr_in client_address);
 
         void adjust_timer(util_timer *timer);
 
-        void deal_timer(util_timer *timer, int sockfd);
+        void remove_timer(util_timer *timer, int sockfd);
 
-        bool dealclinetdata();
+        bool deal_client_data();
 
         bool deal_sys_signal(bool &timeout, bool &stop_server);
 
@@ -95,13 +94,11 @@ namespace yumira {
         char *m_root;
         int m_log_write;
         int m_close_log;
-        int SERVER_ACTOR_MODE;
+        int actorMode;
 
         int m_pipefd[2];
         int m_epollfd;
         http_conn *httpConnForUsers; // connection for http
-
-
 
         //数据库相关
         connection_pool *m_connPool;
@@ -115,7 +112,7 @@ namespace yumira {
         int m_thread_num;
 
         //epoll_event相关
-        epoll_event events[MAX_EVENT_NUMBER];
+        epoll_event epollEvents[MAX_EVENT_NUMBER];
 
         int m_listenfd;
         int SOCKET_OPT_LINGER;
@@ -136,11 +133,8 @@ namespace yumira {
                 fprintf(stdout, "\t[%s],", config.first.c_str());
             }
             fprintf(stdout, "\n}\n");
-
         }
     };
-
-
 }
 
 namespace yumira {

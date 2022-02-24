@@ -15,11 +15,19 @@ template<class HTTPConnection>
 class HttpConnectionAdapter {
 private:
     HTTPConnection *real_conn;
+
+    bool
+    redirect(const char *url, url_t &redirect_url, http_req_method_t method) {
+        if (!real_conn) {
+            return false;
+        }
+        redirect_url = url_t(real_conn->redirect(url, method));
+        return true;
+    }
+
 public:
 
-    explicit HttpConnectionAdapter(HTTPConnection *connection) : real_conn(connection) {
-
-    }
+    explicit HttpConnectionAdapter(HTTPConnection *connection) : real_conn(connection) {};
 
     MYSQL *
     query() {
@@ -32,20 +40,10 @@ public:
     url_t
     redirect(const char *url, http_req_method_t method) {
         url_t redirect_url;
-        if (redirect(url, redirect_url, method)){
+        if (redirect(url, redirect_url, method)) {
             return redirect_url;
         }
-    }
-
-
-    bool
-    redirect(const char *url, url_t &redirect_url, http_req_method_t method) {
-        if (!real_conn) {
-            redirect_url = url_t("");
-            return false;
-        }
-        redirect_url = url_t(real_conn->redirect(url, method));
-        return true;
+        return url_t::NULL_URL;
     }
 };
 

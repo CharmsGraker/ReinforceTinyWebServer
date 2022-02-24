@@ -68,8 +68,10 @@ bool Logger::init(const char *file_name, int close_log, int log_buf_size, int sp
 }
 
 void Logger::write_log(int level, const char *format, ...) {
+    if(m_close_log)
+        return;
     struct timeval now = {0, 0};
-    gettimeofday(&now, NULL);
+    gettimeofday(&now, nullptr);
     time_t t = now.tv_sec;
     struct tm *sys_tm = localtime(&t);
     struct tm my_tm = *sys_tm;
@@ -110,7 +112,7 @@ void Logger::write_log(int level, const char *format, ...) {
             m_today = my_tm.tm_mday;
             m_count = 0;
         } else {
-            snprintf(new_log, 255, "%s%s%s.%lld", dir_name, tail, log_name, m_count / m_split_lines);
+            snprintf(new_log, 255, "%s%s%s.%ld", dir_name, tail, log_name, m_count / m_split_lines);
         }
         m_fp = fopen(new_log, "a");
     }

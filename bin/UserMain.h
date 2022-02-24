@@ -52,6 +52,4 @@ public:
 
     ~UserMain() { if (getInstance())delete getInstance(); }
 };
-
-
 #endif //TINYWEB_USERMAIN_H

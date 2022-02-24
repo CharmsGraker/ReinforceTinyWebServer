@@ -4,4 +4,6 @@
     <config name="db_name" value="lightdb"></config>
     <config name="db_user" value="root"></config>
     <config name="db_passwd" value="root"></config>
+    <config name="disableLogger" value="0"></config>
+    <config name="concurrentActor" value="1"></config>
 </configs>

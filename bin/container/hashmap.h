@@ -34,17 +34,6 @@ public:
         return container->operator[](key);
     }
 
-    V& get(const K & key) {
-        printf("into KV hashMap get\n");
-        if (container->count(key) <= 0) {
-            if (throw_exception) throw NotExistKeyException();
-            std::cout << "[HashMap<K,V>] visit key: " << key << ", but get null." << std::endl;
-        }
-        printf("key count: %d\n",container->count(key));
-        auto val = &container->operator[](key);
-        return *val;
-    }
-
     bool empty() {
         return container->empty();
     }
@@ -58,5 +47,4 @@ public:
     }
 
 };
-
 #endif //TINYWEB_HASHMAP_H

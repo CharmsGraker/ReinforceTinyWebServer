@@ -21,6 +21,7 @@ Configure::_init_store_container() {
     return 0;
 }
 
+typedef std::pair<std::string,std::string> PAIR_CC;
 void
 Configure::setDefaultProp() {
     assert(tab != nullptr);
@@ -64,43 +65,45 @@ public:
 };
 
 template<typename T>
-int checkNull(T x) noexcept(false) {
-    if (x == NULL || x == nullptr) {
+void checkNull(T x) {
+    if (x == NULL || !x) {
         throw NullPointerException((char *) "[WARN] checkNull Failed!");
     }
 }
 
 string Configure::getProp(const char *propName) {
     try {
-        if (!checkNull(tab)) {
-            bool flg_empty = false;
-            bool flg_countLess = false;
-            // printf("%ld", tab->size());
+        checkNull(tab);
 
-            FLUSH_STDOUT();
-            if (tab->empty() || tab->count(propName) <= 0) {
-                fprintf(stderr, "error in Config::getProp(), propName=%s\n", propName);
-                if (flg_countLess) fprintf(stderr, "%s\n", "count <= 0 ");
-                throw IOException();
-            }
+        bool flg_empty = false;
+        bool flg_countLess = false;
+        // printf("%ld", tab->size());
+
+        FLUSH_STDOUT();
+        if (tab->empty() || tab->count(propName) <= 0) {
+            fprintf(stderr, "error in Config::getProp(), propName=%s\n", propName);
+            if (flg_countLess) fprintf(stderr, "%s\n", "count <= 0 ");
+            throw IOException();
         }
+        return (string) (*tab)[propName];
+
     } catch (NullPointerException &e) {
         fprintf(stderr, "Config tab is null!\n");
     }
-
-    return (string) (*tab)[propName];
 }
 
 int Configure::setProp(const char *attr, const char *val) {
-    if (checkNull(tab)) {
-        (*tab)[(char *) attr] = (char *) val;
+    try {
+        checkNull(tab);
+        (*tab)[attr] = val;
         return 0;
+    } catch (NullPointerException &e) {
+        return -1;
     }
-    return -1;
 }
 
-int Configure::loadConfigFromXml(char *file_path) {
-    xmlDocPtr doc = NULL;   //xml整个文档的树形结构
+int Configure::loadConfigFromXml(const char *file_path) {
+    xmlDocPtr doc = nullptr;   //xml整个文档的树形结构
     if (openXMlFile(file_path, &doc) < 0) {
         printf("err when open %s", file_path);
     }

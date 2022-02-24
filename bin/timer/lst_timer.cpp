@@ -52,7 +52,7 @@ void sort_timer_lst::adjust_timer(util_timer *timer) {
     }
 }
 
-void sort_timer_lst::del_timer(util_timer *timer) {
+void sort_timer_lst::remove(util_timer *timer) {
     if (!timer) {
         return;
     }
@@ -80,23 +80,25 @@ void sort_timer_lst::del_timer(util_timer *timer) {
 }
 
 void sort_timer_lst::tick() {
+    // timer will be sort, so when we find a node not expired, then stop
     if (!head) {
         return;
     }
 
-    time_t cur = time(NULL);
-    util_timer *tmp = head;
-    while (tmp) {
-        if (cur < tmp->expire) {
+    time_t current_time = time(nullptr);
+    util_timer *cur_timer = head;
+    while (cur_timer) {
+        if (current_time < cur_timer->expire) {
             break;
         }
-        tmp->cb_func(tmp->user_data);
-        head = tmp->next;
-        if (head) {
-            head->prev = NULL;
+        // callback and remove, reset the head to cur->next
+        cur_timer->cb_func(cur_timer->user_data);
+        if (cur_timer->next) {
+            head = cur_timer->next;
+            head->prev = nullptr;
         }
-        delete tmp;
-        tmp = head;
+        delete cur_timer;
+        cur_timer = head;
     }
 }
 
@@ -128,14 +130,19 @@ void Utils::init(int timeslot) {
 
 //对文件描述符设置非阻塞
 int Utils::setNonBlocking(int fd) {
+    /**
+     * @return old fd option
+     * */
     int old_option = fcntl(fd, F_GETFL);
+    // only valid for device or net file
     int new_option = old_option | O_NONBLOCK;
+    // F_SETFL: Set file status flags
     fcntl(fd, F_SETFL, new_option);
     return old_option;
 }
 
 //将内核事件表注册读事件，ET模式，选择开启EPOLLONESHOT
-void Utils::addfd(int epollfd, int fd, bool one_shot, int TRIGMode) {
+void Utils::regist_fd(const int& epoll_fd, int fd, bool one_shot, int TRIGMode) {
     epoll_event event{};
     event.data.fd = fd;
 
@@ -146,21 +153,22 @@ void Utils::addfd(int epollfd, int fd, bool one_shot, int TRIGMode) {
 
     if (one_shot)
         event.events |= EPOLLONESHOT;
-    epoll_ctl(epollfd, EPOLL_CTL_ADD, fd, &event);
+    epoll_ctl(epoll_fd, EPOLL_CTL_ADD, fd, &event);
     setNonBlocking(fd);
 }
 
 //信号处理函数
-void Utils::sig_handler(int sig) {
+void Utils::sig_handler(int signal) {
     //为保证函数的可重入性，保留原来的errno
     int save_errno = errno;
-    int msg = sig;
+    int msg = signal;
+    // send to pipe, will receive msg at contrary pipe
     send(u_pipefd[1], (char *) &msg, 1, 0);
     errno = save_errno;
 }
 
 //设置信号函数
-void Utils::addsig(int sig, void(handler)(int), bool restart) {
+void Utils::addsig(int sig, void(sig_handler)(int), bool restart) {
     /**
      * register handler for sig provide in param "sig"
      * @param sig:
@@ -169,7 +177,7 @@ void Utils::addsig(int sig, void(handler)(int), bool restart) {
 
     struct sigaction sa;
     memset(&sa, '\0', sizeof(sa));
-    sa.sa_handler = handler;
+    sa.sa_handler = sig_handler;
     if (restart)
         sa.sa_flags |= SA_RESTART;
     sigfillset(&sa.sa_mask);
@@ -191,10 +199,3 @@ int *Utils::u_pipefd = nullptr;
 int Utils::u_epollfd = 0;
 
 class Utils;
-
-void callback_func(client_data_t *user_data) {
-    epoll_ctl(Utils::u_epollfd, EPOLL_CTL_DEL, user_data->sockfd, nullptr);
-    assert(user_data);
-    close(user_data->sockfd);
-    http_conn::decrease_active_user(1);
-}

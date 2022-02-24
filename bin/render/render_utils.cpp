@@ -46,8 +46,8 @@ render_template(url_t html_url, parameter_t &KVMap) {
                 auto project_root = current_app->configs.get<StringNode *>("app_root")->real_str;
                 std::string rendered_file_abspath =
                         string(*project_root) + "/bin/.tpl/" + string(*resRoot) +
-                        ThreadLocal::get("route") + "/" +
-                        ThreadLocal::get("current_user") +
+                        ThreadLocal::get<std::string>("route") + "/" +
+                        ThreadLocal::get<std::string>("current_user") +
                         html_url.url;
 
                 cout << "render template store path: " << rendered_file_abspath << endl;

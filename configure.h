@@ -27,7 +27,7 @@ class Configure {
 
         void gen_conf(int argc, char *argv[]);
 
-        int loadConfigFromXml(char *file_path);
+        int loadConfigFromXml(const char *file_path);
 
         int setProp(const char *attr, const char *val);
 

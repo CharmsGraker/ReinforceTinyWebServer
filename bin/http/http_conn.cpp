@@ -4,6 +4,7 @@
 #include <fstream>
 #include "../../config.h"
 
+#include "../netroute/request.h"
 
 //定义http响应的一些状态信息
 const char *ok_200_title = "OK";
@@ -20,8 +21,8 @@ const char *error_500_form = "There was an unusual problem serving the request f
 namespace yumira {
     Locker m_lock;
     std::map<std::string, std::string> userTable;
+    Environment* environment = nullptr;
     thread_local Request* request = nullptr;
-
 }
 
 static struct httpHeaderEnum {
@@ -124,18 +125,17 @@ void yumira::http_conn::close_conn(bool real_close) {
 }
 
 //初始化连接,外部调用初始化套接字地址
-void yumira::http_conn::init(int sockfd, const sockaddr_in &addr, char *root, int TRIGMode,
-                     int close_log, string user, string passwd, string sqlname) {
+void yumira::http_conn::init(int sockfd, const sockaddr_in &addr, char *root, int triggerMode,
+                      string user, string passwd, string sqlname) {
     m_sockfd = sockfd;
     m_address = addr;
 
     addfd(m_epollfd, sockfd, true, m_TRIGMode);
-    m_user_count++;
+    ++m_user_count;
 
     //当浏览器出现连接重置时，可能是网站根目录出错或http响应格式出错或者访问的文件中内容完全为空
     doc_root = root;
-    m_TRIGMode = TRIGMode;
-    m_close_log = close_log;
+    m_TRIGMode = triggerMode;
 
     strcpy(sql_user, user.c_str());
     strcpy(sql_passwd, passwd.c_str());
@@ -146,7 +146,8 @@ void yumira::http_conn::init(int sockfd, const sockaddr_in &addr, char *root, in
 
 //初始化新接受的连接
 //check_state默认为分析请求行状态
-void yumira::http_conn::init() {
+void
+yumira::http_conn::init() {
     mysql = nullptr;
     bytes_to_send = 0;
     bytes_have_send = 0;
@@ -154,9 +155,9 @@ void yumira::http_conn::init() {
     m_linger = false;
     m_method = GET;
     m_url = nullptr;
-    m_version = 0;
+    m_version = nullptr;
     m_content_length = 0;
-    m_host = 0;
+    m_host = nullptr;
     m_start_line = 0;
     m_checked_idx = 0;
     m_read_idx = 0;
@@ -445,20 +446,13 @@ yumira::http_conn::do_request() {
 //        printf("m_url: %s\n", m_url);
 
         try {
-//            printf("\tenter to try block...\n");
-            auto request_url = url_t(request->route());
-
-//            printf("request_url=%s\n", request_url.which());
-
-
-            if (!request_url.isResRequest()) {
+            if (!request->isResRequest()) {
                 if (_need_remake_request()) continue;
 
                 Router *route_handler;
 
                 // make sure to correct bp name concat for routers
                 // traverse blueprint(s) to handle this request
-//                printf("[INFO] total interceptors: %ld\n", get_interceptors()->size());
 
                 for (auto &bp: *getInterceptors()) {
                     bp->set_prefix();
@@ -468,7 +462,8 @@ yumira::http_conn::do_request() {
                         // the request actual method type won't be check here. it let user to determine that.
                         URL_STATUS ret;
                         ThreadLocal::put<Request>("request",*request);
-                        if ((ret = route_handler->view(st_url_real)) == URL_STATUS::VIEW_NOT_FOUND) {
+
+                        if ((ret = route_handler->view(environment)) == URL_STATUS::VIEW_NOT_FOUND) {
                             // do with retry
                             //goto retry;
                         } else if (ret & URL_STATUS::RESOURCE_NOT_FOUND) {
@@ -476,10 +471,11 @@ yumira::http_conn::do_request() {
                         }
 
                         // check status here, so this is a recurrent point
-                        if (st_url_real.isResRequest()) {
+                        if (request->isResRequest()) {
                             // ask for file like html
                             // concat full path pointer to file
-                            strncpy(m_real_file + len_root_path, st_url_real.url.c_str(), st_url_real.length());
+                            const char * real_url = request->getParsedUrl().getUrl().c_str();
+                            strncpy(m_real_file + len_root_path, real_url, strlen(real_url));
 
                             // successfully deal request
                             _clean_request_flag();
@@ -506,8 +502,8 @@ yumira::http_conn::do_request() {
             throw exception();
         }
         // set href file here
-        if (st_url_real.useTemplate()) {
-            resetRealFile(st_url_real.template_addr().c_str(), st_url_real.template_addr().size());
+        if (request->getParsedUrl().use_template) {
+            resetRealFile(request->getParsedUrl().tpl_addr.c_str(), request->getParsedUrl().tpl_addr.size());
         }
 
         auto noSuchFile = [this]() { return stat(m_real_file, &m_file_stat) < 0; };
@@ -748,4 +744,3 @@ void close_user_fd(client_data_t *user_data) {
     close(user_data->sockfd);
     yumira::http_conn::decrease_active_user(1);
 }
-

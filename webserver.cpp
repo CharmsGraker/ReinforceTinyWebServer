@@ -203,8 +203,12 @@ void yumira::WebServer::registerEventListen() {
 void yumira::WebServer::createTimerForUser(int connfd, struct sockaddr_in client_address) {
     /** create work thread here
      * */
-    httpConnForUsers[connfd].init(connfd, client_address,
-                                  m_root, m_CONNTrigmode, m_close_log, m_user, m_passWord,
+    httpConnForUsers[connfd].init(connfd,
+                                  client_address,
+                                  m_root,
+                                  m_CONNTrigmode,
+                                  m_user,
+                                  m_passWord,
                                   m_databaseName);
 
     //初始化client_data数据

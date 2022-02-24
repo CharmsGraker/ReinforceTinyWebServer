@@ -7,6 +7,7 @@
 #include <assert.h>
 #include "http_request_enum.h"
 #include "../concurrent/ThreadLocal.h"
+#include "../http/environment.h"
 
 
 using namespace std;
@@ -22,8 +23,9 @@ enum URL_STATUS {
 using namespace yumira;
 
 namespace yumira {
-    extern thread_local Request* request;
+    extern thread_local Request *request;
 }
+
 
 class Router {
 private:
@@ -37,14 +39,14 @@ private:
 
     char _sep;
 
-    static std::string __seperator()  {
+    static std::string __seperator() {
         return ".";
     };
 
     viewType view_handler = nullptr;
 
 private:
-    URL_STATUS __view(url_t &out_url) {
+    URL_STATUS __view(Environment *environment) {
         printf("[INFO] into %s view...\n", getFullRoute().c_str());
 
         // check view func
@@ -56,11 +58,11 @@ private:
         ThreadLocal::put<string>("route", getFullRoute());
         // push request to view_handler
         request = &ThreadLocal::get<Request>("request");
-        cout<<request->route()<<endl;
+
         assert(request);
 
-        href_url = (url_t) view_handler();
-        cout<<href_url.url<<endl;
+        replaceUrlOf(request->getParsedUrl(), view_handler());
+
         if (href_url == url_t::NULL_URL) {
             return URL_STATUS::DISCONNECT;
         } else if (href_url.empty()) {
@@ -68,8 +70,16 @@ private:
             href_url = url_t(getFullRoute() + ".html");
             return URL_STATUS::RESOURCE_NOT_FOUND;
         }
-        out_url = href_url;
         return URL_STATUS::VALID_URL;
+    }
+
+    static void
+    replaceUrlOf(ParsedUrl &parsedUrl, url_storage trueUrl) {
+        parsedUrl.url = std::move(trueUrl.url);
+        parsedUrl.tpl_addr = std::move(trueUrl.template_addr());
+        parsedUrl.use_template = trueUrl.useTemplate();
+        parsedUrl.fileSize = trueUrl.fileSize();
+        parsedUrl.fd = trueUrl.fd();
     }
 
 public:
@@ -101,7 +111,7 @@ public:
 
 
     bool canDealWith(const char *url) {
-        auto match_pattern = [](const char *s, const char *pattern)->bool {
+        auto match_pattern = [](const char *s, const char *pattern) -> bool {
             return strncasecmp(s, pattern, strlen(pattern)) == 0;
         };
         return match_pattern(url, getFullRoute().c_str());
@@ -110,9 +120,9 @@ public:
 
     /**
      * the connection method state was wrapper in request */
-    URL_STATUS view(url_t &out_url) {
+    URL_STATUS view(Environment *environ) {
         // let user to decide invoke which
-        return __view(out_url);
+        return __view(environ);
     }
 
     string getFullRoute() {

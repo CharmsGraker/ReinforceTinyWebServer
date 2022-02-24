@@ -3097,3 +3097,546 @@ Connection:keep-alive
 2022-02-24 10:45:19.159782 [info]: timer out
 2022-02-24 10:45:24.159863 [info]: timer out
 2022-02-24 10:45:29.159919 [info]: timer out
+2022-02-24 10:46:41.016400 [info]: adjust timer once
+2022-02-24 10:46:41.016468 [info]: append read event from sock fd: 16 to Http Connection Pool:-1780167920
+2022-02-24 10:46:41.016548 [info]: POST /login HTTP/1.1
+2022-02-24 10:46:41.016612 [info]: Host: localhost:9007
+2022-02-24 10:46:41.016629 [info]: Connection: keep-alive
+2022-02-24 10:46:41.016642 [info]: Content-Length: 27
+2022-02-24 10:46:41.016656 [info]: Cache-Control: max-age=0
+2022-02-24 10:46:41.016665 [info]: ops!unknown header: Cache-Control: max-age=0
+2022-02-24 10:46:41.016677 [info]: sec-ch-ua: " Not A;Brand";v="99", "Chromium";v="96", "Google Chrome";v="96"
+2022-02-24 10:46:41.016686 [info]: ops!unknown header: sec-ch-ua: " Not A;Brand";v="99", "Chromium";v="96", "Google Chrome";v="96"
+2022-02-24 10:46:41.016698 [info]: sec-ch-ua-mobile: ?0
+2022-02-24 10:46:41.016707 [info]: ops!unknown header: sec-ch-ua-mobile: ?0
+2022-02-24 10:46:41.016718 [info]: sec-ch-ua-platform: "Linux"
+2022-02-24 10:46:41.016727 [info]: ops!unknown header: sec-ch-ua-platform: "Linux"
+2022-02-24 10:46:41.016738 [info]: Upgrade-Insecure-Requests: 1
+2022-02-24 10:46:41.016747 [info]: ops!unknown header: Upgrade-Insecure-Requests: 1
+2022-02-24 10:46:41.016758 [info]: Origin: http://localhost:9007
+2022-02-24 10:46:41.016777 [info]: ops!unknown header: Origin: http://localhost:9007
+2022-02-24 10:46:41.016789 [info]: Content-Type: application/x-www-form-urlencoded
+2022-02-24 10:46:41.016797 [info]: ops!unknown header: Content-Type: application/x-www-form-urlencoded
+2022-02-24 10:46:41.016809 [info]: User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.45 Safari/537.36
+2022-02-24 10:46:41.016817 [info]: ops!unknown header: User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.45 Safari/537.36
+2022-02-24 10:46:41.016829 [info]: Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9
+2022-02-24 10:46:41.016837 [info]: ops!unknown header: Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9
+2022-02-24 10:46:41.016849 [info]: Sec-Fetch-Site: same-origin
+2022-02-24 10:46:41.016857 [info]: ops!unknown header: Sec-Fetch-Site: same-origin
+2022-02-24 10:46:41.016868 [info]: Sec-Fetch-Mode: navigate
+2022-02-24 10:46:41.016876 [info]: ops!unknown header: Sec-Fetch-Mode: navigate
+2022-02-24 10:46:41.016886 [info]: Sec-Fetch-User: ?1
+2022-02-24 10:46:41.016894 [info]: ops!unknown header: Sec-Fetch-User: ?1
+2022-02-24 10:46:41.016905 [info]: Sec-Fetch-Dest: document
+2022-02-24 10:46:41.016913 [info]: ops!unknown header: Sec-Fetch-Dest: document
+2022-02-24 10:46:41.016924 [info]: Referer: http://localhost:9007/login?
+2022-02-24 10:46:41.016932 [info]: ops!unknown header: Referer: http://localhost:9007/login?
+2022-02-24 10:46:41.016943 [info]: Accept-Encoding: gzip, deflate, br
+2022-02-24 10:46:41.016951 [info]: ops!unknown header: Accept-Encoding: gzip, deflate, br
+2022-02-24 10:46:41.016962 [info]: Accept-Language: zh-CN,zh;q=0.9
+2022-02-24 10:46:41.016970 [info]: ops!unknown header: Accept-Language: zh-CN,zh;q=0.9
+2022-02-24 10:46:41.016980 [info]: 
+2022-02-24 10:46:41.016992 [info]: user=graker&password=123456
+2022-02-24 10:46:41.017065 [info]: matched Blueprint ["/"]
+
+2022-02-24 10:46:41.056267 [info]: request:HTTP/1.1 200 OK
+
+2022-02-24 10:46:41.056292 [info]: request:HTTP/1.1 200 OK
+Content-Length:736
+
+2022-02-24 10:46:41.056298 [info]: request:HTTP/1.1 200 OK
+Content-Length:736
+Connection:keep-alive
+
+2022-02-24 10:46:41.056303 [info]: request:HTTP/1.1 200 OK
+Content-Length:736
+Connection:keep-alive
+
+
+2022-02-24 10:46:41.056321 [info]: adjust timer once
+2022-02-24 10:46:41.056362 [info]: append write event from sock fd: 16 to Http Connection Pool:-1780167920
+2022-02-24 10:46:41.214496 [info]: timer out
+2022-02-24 10:46:46.214693 [info]: timer out
+2022-02-24 10:46:51.215136 [info]: timer out
+2022-02-24 10:46:56.215256 [info]: timer out
+2022-02-24 10:47:01.215303 [info]: timer out
+2022-02-24 10:47:06.215389 [info]: timer out
+2022-02-24 10:47:11.215835 [info]: timer out
+2022-02-24 10:47:16.215910 [info]: timer out
+2022-02-24 10:47:21.216085 [info]: timer out
+2022-02-24 10:47:26.216111 [info]: timer out
+2022-02-24 10:47:31.216143 [info]: timer out
+2022-02-24 17:23:29.599743 [info]: timer out
+2022-02-24 17:23:34.599981 [info]: timer out
+2022-02-24 17:23:39.600025 [info]: timer out
+2022-02-24 17:23:44.600053 [info]: timer out
+2022-02-24 17:23:49.600105 [info]: timer out
+2022-02-24 17:23:54.600560 [info]: timer out
+2022-02-24 17:23:57.155823 [info]: adjust timer once
+2022-02-24 17:23:57.155879 [info]: append read event from sock fd: 16 to Http Connection Pool:-1676596464
+2022-02-24 17:23:57.155942 [info]: GET / HTTP/1.1
+2022-02-24 17:23:57.156013 [info]: Host: localhost:9007
+2022-02-24 17:23:57.156029 [info]: Connection: keep-alive
+2022-02-24 17:23:57.156042 [info]: sec-ch-ua: " Not A;Brand";v="99", "Chromium";v="96", "Google Chrome";v="96"
+2022-02-24 17:23:57.156051 [info]: ops!unknown header: sec-ch-ua: " Not A;Brand";v="99", "Chromium";v="96", "Google Chrome";v="96"
+2022-02-24 17:23:57.156062 [info]: sec-ch-ua-mobile: ?0
+2022-02-24 17:23:57.156070 [info]: ops!unknown header: sec-ch-ua-mobile: ?0
+2022-02-24 17:23:57.156095 [info]: sec-ch-ua-platform: "Linux"
+2022-02-24 17:23:57.156103 [info]: ops!unknown header: sec-ch-ua-platform: "Linux"
+2022-02-24 17:23:57.156114 [info]: Upgrade-Insecure-Requests: 1
+2022-02-24 17:23:57.156120 [info]: ops!unknown header: Upgrade-Insecure-Requests: 1
+2022-02-24 17:23:57.156131 [info]: User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.45 Safari/537.36
+2022-02-24 17:23:57.156138 [info]: ops!unknown header: User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.45 Safari/537.36
+2022-02-24 17:23:57.156148 [info]: Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9
+2022-02-24 17:23:57.156156 [info]: ops!unknown header: Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9
+2022-02-24 17:23:57.156166 [info]: Purpose: prefetch
+2022-02-24 17:23:57.156172 [info]: ops!unknown header: Purpose: prefetch
+2022-02-24 17:23:57.156182 [info]: Sec-Fetch-Site: none
+2022-02-24 17:23:57.156188 [info]: ops!unknown header: Sec-Fetch-Site: none
+2022-02-24 17:23:57.156197 [info]: Sec-Fetch-Mode: navigate
+2022-02-24 17:23:57.156204 [info]: ops!unknown header: Sec-Fetch-Mode: navigate
+2022-02-24 17:23:57.156213 [info]: Sec-Fetch-User: ?1
+2022-02-24 17:23:57.156220 [info]: ops!unknown header: Sec-Fetch-User: ?1
+2022-02-24 17:23:57.156229 [info]: Sec-Fetch-Dest: document
+2022-02-24 17:23:57.156236 [info]: ops!unknown header: Sec-Fetch-Dest: document
+2022-02-24 17:23:57.156245 [info]: Accept-Encoding: gzip, deflate, br
+2022-02-24 17:23:57.156252 [info]: ops!unknown header: Accept-Encoding: gzip, deflate, br
+2022-02-24 17:23:57.156261 [info]: Accept-Language: zh-CN,zh;q=0.9
+2022-02-24 17:23:57.156268 [info]: ops!unknown header: Accept-Language: zh-CN,zh;q=0.9
+2022-02-24 17:23:57.156277 [info]: 
+2022-02-24 17:23:57.156320 [info]: request:HTTP/1.1 200 OK
+
+2022-02-24 17:23:57.156330 [info]: request:HTTP/1.1 200 OK
+Content-Length:589
+
+2022-02-24 17:23:57.156336 [info]: request:HTTP/1.1 200 OK
+Content-Length:589
+Connection:keep-alive
+
+2022-02-24 17:23:57.156343 [info]: request:HTTP/1.1 200 OK
+Content-Length:589
+Connection:keep-alive
+
+
+2022-02-24 17:23:57.156368 [info]: adjust timer once
+2022-02-24 17:23:57.156397 [info]: append write event from sock fd: 16 to Http Connection Pool:-1676596464
+2022-02-24 17:23:59.435099 [info]: adjust timer once
+2022-02-24 17:23:59.435138 [info]: append read event from sock fd: 16 to Http Connection Pool:-1676596464
+2022-02-24 17:23:59.435193 [info]: GET /login? HTTP/1.1
+2022-02-24 17:23:59.435252 [info]: Host: localhost:9007
+2022-02-24 17:23:59.435266 [info]: Connection: keep-alive
+2022-02-24 17:23:59.435278 [info]: sec-ch-ua: " Not A;Brand";v="99", "Chromium";v="96", "Google Chrome";v="96"
+2022-02-24 17:23:59.435286 [info]: ops!unknown header: sec-ch-ua: " Not A;Brand";v="99", "Chromium";v="96", "Google Chrome";v="96"
+2022-02-24 17:23:59.435296 [info]: sec-ch-ua-mobile: ?0
+2022-02-24 17:23:59.435303 [info]: ops!unknown header: sec-ch-ua-mobile: ?0
+2022-02-24 17:23:59.435313 [info]: sec-ch-ua-platform: "Linux"
+2022-02-24 17:23:59.435320 [info]: ops!unknown header: sec-ch-ua-platform: "Linux"
+2022-02-24 17:23:59.435330 [info]: Upgrade-Insecure-Requests: 1
+2022-02-24 17:23:59.435337 [info]: ops!unknown header: Upgrade-Insecure-Requests: 1
+2022-02-24 17:23:59.435347 [info]: User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.45 Safari/537.36
+2022-02-24 17:23:59.435354 [info]: ops!unknown header: User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.45 Safari/537.36
+2022-02-24 17:23:59.435366 [info]: Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9
+2022-02-24 17:23:59.435375 [info]: ops!unknown header: Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9
+2022-02-24 17:23:59.435396 [info]: Sec-Fetch-Site: same-origin
+2022-02-24 17:23:59.435405 [info]: ops!unknown header: Sec-Fetch-Site: same-origin
+2022-02-24 17:23:59.435416 [info]: Sec-Fetch-Mode: navigate
+2022-02-24 17:23:59.435423 [info]: ops!unknown header: Sec-Fetch-Mode: navigate
+2022-02-24 17:23:59.435432 [info]: Sec-Fetch-User: ?1
+2022-02-24 17:23:59.435439 [info]: ops!unknown header: Sec-Fetch-User: ?1
+2022-02-24 17:23:59.435449 [info]: Sec-Fetch-Dest: document
+2022-02-24 17:23:59.435455 [info]: ops!unknown header: Sec-Fetch-Dest: document
+2022-02-24 17:23:59.435464 [info]: Referer: http://localhost:9007/
+2022-02-24 17:23:59.435471 [info]: ops!unknown header: Referer: http://localhost:9007/
+2022-02-24 17:23:59.435480 [info]: Accept-Encoding: gzip, deflate, br
+2022-02-24 17:23:59.435487 [info]: ops!unknown header: Accept-Encoding: gzip, deflate, br
+2022-02-24 17:23:59.435496 [info]: Accept-Language: zh-CN,zh;q=0.9
+2022-02-24 17:23:59.435503 [info]: ops!unknown header: Accept-Language: zh-CN,zh;q=0.9
+2022-02-24 17:23:59.435512 [info]: 
+2022-02-24 17:23:59.435533 [info]: matched Blueprint ["/"]
+
+2022-02-24 17:23:59.435635 [info]: request:HTTP/1.1 200 OK
+
+2022-02-24 17:23:59.435646 [info]: request:HTTP/1.1 200 OK
+Content-Length:1323
+
+2022-02-24 17:23:59.435653 [info]: request:HTTP/1.1 200 OK
+Content-Length:1323
+Connection:keep-alive
+
+2022-02-24 17:23:59.435659 [info]: request:HTTP/1.1 200 OK
+Content-Length:1323
+Connection:keep-alive
+
+
+2022-02-24 17:23:59.435683 [info]: adjust timer once
+2022-02-24 17:23:59.435700 [info]: append write event from sock fd: 16 to Http Connection Pool:-1676596464
+2022-02-24 17:23:59.542834 [info]: adjust timer once
+2022-02-24 17:23:59.542881 [info]: append read event from sock fd: 16 to Http Connection Pool:-1676596464
+2022-02-24 17:23:59.542956 [info]: GET /index_module/src/css/main.css HTTP/1.1
+2022-02-24 17:23:59.542998 [info]: adjust timer once
+2022-02-24 17:23:59.543037 [info]: append read event from sock fd: 17 to Http Connection Pool:-1676596464
+2022-02-24 17:23:59.543048 [info]: Host: localhost:9007
+2022-02-24 17:23:59.543076 [info]: Connection: keep-alive
+2022-02-24 17:23:59.543079 [info]: GET /index_module/src/js/main.js HTTP/1.1
+2022-02-24 17:23:59.543097 [info]: sec-ch-ua: " Not A;Brand";v="99", "Chromium";v="96", "Google Chrome";v="96"
+2022-02-24 17:23:59.543117 [info]: Host: localhost:9007
+2022-02-24 17:23:59.543126 [info]: ops!unknown header: sec-ch-ua: " Not A;Brand";v="99", "Chromium";v="96", "Google Chrome";v="96"
+2022-02-24 17:23:59.543138 [info]: Connection: keep-alive
+2022-02-24 17:23:59.543150 [info]: sec-ch-ua-mobile: ?0
+2022-02-24 17:23:59.543153 [info]: sec-ch-ua: " Not A;Brand";v="99", "Chromium";v="96", "Google Chrome";v="96"
+2022-02-24 17:23:59.543164 [info]: ops!unknown header: sec-ch-ua-mobile: ?0
+2022-02-24 17:23:59.543172 [info]: ops!unknown header: sec-ch-ua: " Not A;Brand";v="99", "Chromium";v="96", "Google Chrome";v="96"
+2022-02-24 17:23:59.543187 [info]: User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.45 Safari/537.36
+2022-02-24 17:23:59.543195 [info]: sec-ch-ua-mobile: ?0
+2022-02-24 17:23:59.543197 [info]: ops!unknown header: User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.45 Safari/537.36
+2022-02-24 17:23:59.543204 [info]: ops!unknown header: sec-ch-ua-mobile: ?0
+2022-02-24 17:23:59.543219 [info]: sec-ch-ua-platform: "Linux"
+2022-02-24 17:23:59.543224 [info]: User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.45 Safari/537.36
+2022-02-24 17:23:59.543230 [info]: ops!unknown header: sec-ch-ua-platform: "Linux"
+2022-02-24 17:23:59.543237 [info]: ops!unknown header: User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.45 Safari/537.36
+2022-02-24 17:23:59.543251 [info]: Accept: text/css,*/*;q=0.1
+2022-02-24 17:23:59.543257 [info]: sec-ch-ua-platform: "Linux"
+2022-02-24 17:23:59.543277 [info]: ops!unknown header: Accept: text/css,*/*;q=0.1
+2022-02-24 17:23:59.543282 [info]: ops!unknown header: sec-ch-ua-platform: "Linux"
+2022-02-24 17:23:59.543302 [info]: Sec-Fetch-Site: same-origin
+2022-02-24 17:23:59.543306 [info]: Accept: */*
+2022-02-24 17:23:59.543320 [info]: ops!unknown header: Sec-Fetch-Site: same-origin
+2022-02-24 17:23:59.543325 [info]: ops!unknown header: Accept: */*
+2022-02-24 17:23:59.543342 [info]: Sec-Fetch-Mode: no-cors
+2022-02-24 17:23:59.543346 [info]: Sec-Fetch-Site: same-origin
+2022-02-24 17:23:59.543357 [info]: ops!unknown header: Sec-Fetch-Mode: no-cors
+2022-02-24 17:23:59.543362 [info]: ops!unknown header: Sec-Fetch-Site: same-origin
+2022-02-24 17:23:59.543376 [info]: Sec-Fetch-Dest: style
+2022-02-24 17:23:59.543378 [info]: Sec-Fetch-Mode: no-cors
+2022-02-24 17:23:59.543391 [info]: ops!unknown header: Sec-Fetch-Dest: style
+2022-02-24 17:23:59.543402 [info]: ops!unknown header: Sec-Fetch-Mode: no-cors
+2022-02-24 17:23:59.543423 [info]: Referer: http://localhost:9007/login?
+2022-02-24 17:23:59.543425 [info]: Sec-Fetch-Dest: script
+2022-02-24 17:23:59.543441 [info]: ops!unknown header: Referer: http://localhost:9007/login?
+2022-02-24 17:23:59.543451 [info]: ops!unknown header: Sec-Fetch-Dest: script
+2022-02-24 17:23:59.543472 [info]: Accept-Encoding: gzip, deflate, br
+2022-02-24 17:23:59.543474 [info]: Referer: http://localhost:9007/login?
+2022-02-24 17:23:59.543491 [info]: ops!unknown header: Accept-Encoding: gzip, deflate, br
+2022-02-24 17:23:59.543496 [info]: ops!unknown header: Referer: http://localhost:9007/login?
+2022-02-24 17:23:59.543512 [info]: Accept-Language: zh-CN,zh;q=0.9
+2022-02-24 17:23:59.543515 [info]: Accept-Encoding: gzip, deflate, br
+2022-02-24 17:23:59.543527 [info]: ops!unknown header: Accept-Language: zh-CN,zh;q=0.9
+2022-02-24 17:23:59.543538 [info]: ops!unknown header: Accept-Encoding: gzip, deflate, br
+2022-02-24 17:23:59.543558 [info]: 
+2022-02-24 17:23:59.543560 [info]: Accept-Language: zh-CN,zh;q=0.9
+2022-02-24 17:23:59.543582 [info]: ops!unknown header: Accept-Language: zh-CN,zh;q=0.9
+2022-02-24 17:23:59.543592 [info]: 
+2022-02-24 17:23:59.543616 [info]: request:HTTP/1.1 200 OK
+
+2022-02-24 17:23:59.543620 [info]: request:HTTP/1.1 200 OK
+
+2022-02-24 17:23:59.543636 [info]: request:HTTP/1.1 200 OK
+Content-Length:2320
+
+2022-02-24 17:23:59.543646 [info]: request:HTTP/1.1 200 OK
+Content-Length:3396
+
+2022-02-24 17:23:59.543668 [info]: request:HTTP/1.1 200 OK
+Content-Length:3396
+Connection:keep-alive
+
+2022-02-24 17:23:59.543659 [info]: request:HTTP/1.1 200 OK
+Content-Length:2320
+Connection:keep-alive
+
+2022-02-24 17:23:59.543678 [info]: request:HTTP/1.1 200 OK
+Content-Length:3396
+Connection:keep-alive
+
+
+2022-02-24 17:23:59.543687 [info]: request:HTTP/1.1 200 OK
+Content-Length:2320
+Connection:keep-alive
+
+
+2022-02-24 17:23:59.543707 [info]: adjust timer once
+2022-02-24 17:23:59.543736 [info]: append write event from sock fd: 17 to Http Connection Pool:-1676596464
+2022-02-24 17:23:59.587754 [info]: adjust timer once
+2022-02-24 17:23:59.587785 [info]: append write event from sock fd: 16 to Http Connection Pool:-1676596464
+2022-02-24 17:23:59.622193 [info]: timer out
+2022-02-24 17:24:03.368030 [info]: adjust timer once
+2022-02-24 17:24:03.368093 [info]: append read event from sock fd: 16 to Http Connection Pool:-1676596464
+2022-02-24 17:24:03.368133 [info]: POST /login HTTP/1.1
+2022-02-24 17:24:03.368191 [info]: Host: localhost:9007
+2022-02-24 17:24:03.368204 [info]: Connection: keep-alive
+2022-02-24 17:24:03.368216 [info]: Content-Length: 27
+2022-02-24 17:24:03.368228 [info]: Cache-Control: max-age=0
+2022-02-24 17:24:03.368235 [info]: ops!unknown header: Cache-Control: max-age=0
+2022-02-24 17:24:03.368246 [info]: sec-ch-ua: " Not A;Brand";v="99", "Chromium";v="96", "Google Chrome";v="96"
+2022-02-24 17:24:03.368253 [info]: ops!unknown header: sec-ch-ua: " Not A;Brand";v="99", "Chromium";v="96", "Google Chrome";v="96"
+2022-02-24 17:24:03.368262 [info]: sec-ch-ua-mobile: ?0
+2022-02-24 17:24:03.368279 [info]: ops!unknown header: sec-ch-ua-mobile: ?0
+2022-02-24 17:24:03.368289 [info]: sec-ch-ua-platform: "Linux"
+2022-02-24 17:24:03.368296 [info]: ops!unknown header: sec-ch-ua-platform: "Linux"
+2022-02-24 17:24:03.368305 [info]: Upgrade-Insecure-Requests: 1
+2022-02-24 17:24:03.368311 [info]: ops!unknown header: Upgrade-Insecure-Requests: 1
+2022-02-24 17:24:03.368321 [info]: Origin: http://localhost:9007
+2022-02-24 17:24:03.368327 [info]: ops!unknown header: Origin: http://localhost:9007
+2022-02-24 17:24:03.368337 [info]: Content-Type: application/x-www-form-urlencoded
+2022-02-24 17:24:03.368344 [info]: ops!unknown header: Content-Type: application/x-www-form-urlencoded
+2022-02-24 17:24:03.368353 [info]: User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.45 Safari/537.36
+2022-02-24 17:24:03.368361 [info]: ops!unknown header: User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.45 Safari/537.36
+2022-02-24 17:24:03.368371 [info]: Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9
+2022-02-24 17:24:03.368378 [info]: ops!unknown header: Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9
+2022-02-24 17:24:03.368387 [info]: Sec-Fetch-Site: same-origin
+2022-02-24 17:24:03.368394 [info]: ops!unknown header: Sec-Fetch-Site: same-origin
+2022-02-24 17:24:03.368403 [info]: Sec-Fetch-Mode: navigate
+2022-02-24 17:24:03.368410 [info]: ops!unknown header: Sec-Fetch-Mode: navigate
+2022-02-24 17:24:03.368418 [info]: Sec-Fetch-User: ?1
+2022-02-24 17:24:03.368425 [info]: ops!unknown header: Sec-Fetch-User: ?1
+2022-02-24 17:24:03.368435 [info]: Sec-Fetch-Dest: document
+2022-02-24 17:24:03.368441 [info]: ops!unknown header: Sec-Fetch-Dest: document
+2022-02-24 17:24:03.368460 [info]: Referer: http://localhost:9007/login?
+2022-02-24 17:24:03.368467 [info]: ops!unknown header: Referer: http://localhost:9007/login?
+2022-02-24 17:24:03.368477 [info]: Accept-Encoding: gzip, deflate, br
+2022-02-24 17:24:03.368484 [info]: ops!unknown header: Accept-Encoding: gzip, deflate, br
+2022-02-24 17:24:03.368493 [info]: Accept-Language: zh-CN,zh;q=0.9
+2022-02-24 17:24:03.368500 [info]: ops!unknown header: Accept-Language: zh-CN,zh;q=0.9
+2022-02-24 17:24:03.368509 [info]: 
+2022-02-24 17:24:03.368518 [info]: user=graker&password=123456
+2022-02-24 17:24:03.368571 [info]: matched Blueprint ["/"]
+
+2022-02-24 17:24:03.445302 [info]: request:HTTP/1.1 200 OK
+
+2022-02-24 17:24:03.445339 [info]: request:HTTP/1.1 200 OK
+Content-Length:738
+
+2022-02-24 17:24:03.445348 [info]: request:HTTP/1.1 200 OK
+Content-Length:738
+Connection:keep-alive
+
+2022-02-24 17:24:03.445355 [info]: request:HTTP/1.1 200 OK
+Content-Length:738
+Connection:keep-alive
+
+
+2022-02-24 17:24:03.445399 [info]: adjust timer once
+2022-02-24 17:24:03.445466 [info]: append write event from sock fd: 16 to Http Connection Pool:-1676596464
+2022-02-24 17:24:04.622252 [info]: timer out
+2022-02-24 17:24:09.622290 [info]: timer out
+2022-02-24 17:24:14.622446 [info]: timer out
+2022-02-24 17:24:19.622561 [info]: timer out
+2022-02-24 17:24:24.622611 [info]: timer out
+2022-02-24 17:24:29.622676 [info]: timer out
+2022-02-24 17:24:34.622743 [info]: timer out
+2022-02-24 17:24:39.622947 [info]: timer out
+2022-02-24 17:24:44.622999 [info]: timer out
+2022-02-24 17:24:49.623224 [info]: timer out
+2022-02-24 17:24:54.623256 [info]: timer out
+2022-02-24 17:24:59.623317 [info]: timer out
+2022-02-24 17:25:04.623347 [info]: timer out
+2022-02-24 17:25:09.623406 [info]: timer out
+2022-02-24 17:25:14.623427 [info]: timer out
+2022-02-24 17:25:19.623450 [info]: timer out
+2022-02-24 17:25:24.623493 [info]: timer out
+2022-02-24 17:25:29.623532 [info]: timer out
+2022-02-24 17:25:34.623557 [info]: timer out
+2022-02-24 17:25:39.623610 [info]: timer out
+2022-02-24 17:25:44.623682 [info]: timer out
+2022-02-24 17:27:04.230229 [info]: adjust timer once
+2022-02-24 17:27:04.230296 [info]: append read event from sock fd: 16 to Http Connection Pool:-2140116208
+2022-02-24 17:27:04.230377 [info]: GET /login HTTP/1.1
+2022-02-24 17:27:04.230452 [info]: Host: localhost:9007
+2022-02-24 17:27:04.230467 [info]: Connection: keep-alive
+2022-02-24 17:27:04.230480 [info]: sec-ch-ua: " Not A;Brand";v="99", "Chromium";v="96", "Google Chrome";v="96"
+2022-02-24 17:27:04.230489 [info]: ops!unknown header: sec-ch-ua: " Not A;Brand";v="99", "Chromium";v="96", "Google Chrome";v="96"
+2022-02-24 17:27:04.230500 [info]: sec-ch-ua-mobile: ?0
+2022-02-24 17:27:04.230508 [info]: ops!unknown header: sec-ch-ua-mobile: ?0
+2022-02-24 17:27:04.230518 [info]: sec-ch-ua-platform: "Linux"
+2022-02-24 17:27:04.230526 [info]: ops!unknown header: sec-ch-ua-platform: "Linux"
+2022-02-24 17:27:04.230536 [info]: Upgrade-Insecure-Requests: 1
+2022-02-24 17:27:04.230545 [info]: ops!unknown header: Upgrade-Insecure-Requests: 1
+2022-02-24 17:27:04.230557 [info]: User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.45 Safari/537.36
+2022-02-24 17:27:04.230565 [info]: ops!unknown header: User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.45 Safari/537.36
+2022-02-24 17:27:04.230576 [info]: Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9
+2022-02-24 17:27:04.230584 [info]: ops!unknown header: Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9
+2022-02-24 17:27:04.230593 [info]: Sec-Fetch-Site: none
+2022-02-24 17:27:04.230601 [info]: ops!unknown header: Sec-Fetch-Site: none
+2022-02-24 17:27:04.230610 [info]: Sec-Fetch-Mode: navigate
+2022-02-24 17:27:04.230617 [info]: ops!unknown header: Sec-Fetch-Mode: navigate
+2022-02-24 17:27:04.230626 [info]: Sec-Fetch-User: ?1
+2022-02-24 17:27:04.230634 [info]: ops!unknown header: Sec-Fetch-User: ?1
+2022-02-24 17:27:04.230642 [info]: Sec-Fetch-Dest: document
+2022-02-24 17:27:04.230649 [info]: ops!unknown header: Sec-Fetch-Dest: document
+2022-02-24 17:27:04.230658 [info]: Accept-Encoding: gzip, deflate, br
+2022-02-24 17:27:04.230666 [info]: ops!unknown header: Accept-Encoding: gzip, deflate, br
+2022-02-24 17:27:04.230675 [info]: Accept-Language: zh-CN,zh;q=0.9
+2022-02-24 17:27:04.230683 [info]: ops!unknown header: Accept-Language: zh-CN,zh;q=0.9
+2022-02-24 17:27:04.230691 [info]: 
+2022-02-24 17:27:04.230722 [info]: matched Blueprint ["/"]
+
+2022-02-24 17:27:04.230821 [info]: request:HTTP/1.1 200 OK
+
+2022-02-24 17:27:04.230832 [info]: request:HTTP/1.1 200 OK
+Content-Length:1323
+
+2022-02-24 17:27:04.230840 [info]: request:HTTP/1.1 200 OK
+Content-Length:1323
+Connection:keep-alive
+
+2022-02-24 17:27:04.230847 [info]: request:HTTP/1.1 200 OK
+Content-Length:1323
+Connection:keep-alive
+
+
+2022-02-24 17:27:04.230861 [info]: adjust timer once
+2022-02-24 17:27:04.230869 [info]: append write event from sock fd: 16 to Http Connection Pool:-2140116208
+2022-02-24 17:27:04.352161 [info]: adjust timer once
+2022-02-24 17:27:04.352210 [info]: append read event from sock fd: 16 to Http Connection Pool:-2140116208
+2022-02-24 17:27:04.352291 [info]: GET /index_module/src/css/main.css HTTP/1.1
+2022-02-24 17:27:04.352361 [info]: Host: localhost:9007
+2022-02-24 17:27:04.352385 [info]: Connection: keep-alive
+2022-02-24 17:27:04.352405 [info]: sec-ch-ua: " Not A;Brand";v="99", "Chromium";v="96", "Google Chrome";v="96"
+2022-02-24 17:27:04.352419 [info]: ops!unknown header: sec-ch-ua: " Not A;Brand";v="99", "Chromium";v="96", "Google Chrome";v="96"
+2022-02-24 17:27:04.352437 [info]: sec-ch-ua-mobile: ?0
+2022-02-24 17:27:04.352476 [info]: ops!unknown header: sec-ch-ua-mobile: ?0
+2022-02-24 17:27:04.352496 [info]: User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.45 Safari/537.36
+2022-02-24 17:27:04.352509 [info]: ops!unknown header: User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.45 Safari/537.36
+2022-02-24 17:27:04.352511 [info]: adjust timer once
+2022-02-24 17:27:04.352545 [info]: sec-ch-ua-platform: "Linux"
+2022-02-24 17:27:04.352548 [info]: append read event from sock fd: 17 to Http Connection Pool:-2140116208
+2022-02-24 17:27:04.352566 [info]: ops!unknown header: sec-ch-ua-platform: "Linux"
+2022-02-24 17:27:04.352599 [info]: Accept: text/css,*/*;q=0.1
+2022-02-24 17:27:04.352612 [info]: ops!unknown header: Accept: text/css,*/*;q=0.1
+2022-02-24 17:27:04.352628 [info]: Sec-Fetch-Site: same-origin
+2022-02-24 17:27:04.352646 [info]: ops!unknown header: Sec-Fetch-Site: same-origin
+2022-02-24 17:27:04.352631 [info]: GET /index_module/src/js/main.js HTTP/1.1
+2022-02-24 17:27:04.352665 [info]: Sec-Fetch-Mode: no-cors
+2022-02-24 17:27:04.352739 [info]: ops!unknown header: Sec-Fetch-Mode: no-cors
+2022-02-24 17:27:04.352740 [info]: Host: localhost:9007
+2022-02-24 17:27:04.352766 [info]: Sec-Fetch-Dest: style
+2022-02-24 17:27:04.352788 [info]: Connection: keep-alive
+2022-02-24 17:27:04.352798 [info]: ops!unknown header: Sec-Fetch-Dest: style
+2022-02-24 17:27:04.352812 [info]: sec-ch-ua: " Not A;Brand";v="99", "Chromium";v="96", "Google Chrome";v="96"
+2022-02-24 17:27:04.352827 [info]: Referer: http://localhost:9007/login
+2022-02-24 17:27:04.352830 [info]: ops!unknown header: sec-ch-ua: " Not A;Brand";v="99", "Chromium";v="96", "Google Chrome";v="96"
+2022-02-24 17:27:04.352845 [info]: ops!unknown header: Referer: http://localhost:9007/login
+2022-02-24 17:27:04.352857 [info]: sec-ch-ua-mobile: ?0
+2022-02-24 17:27:04.352874 [info]: Accept-Encoding: gzip, deflate, br
+2022-02-24 17:27:04.352875 [info]: ops!unknown header: sec-ch-ua-mobile: ?0
+2022-02-24 17:27:04.352890 [info]: ops!unknown header: Accept-Encoding: gzip, deflate, br
+2022-02-24 17:27:04.352902 [info]: User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.45 Safari/537.36
+2022-02-24 17:27:04.352918 [info]: Accept-Language: zh-CN,zh;q=0.9
+2022-02-24 17:27:04.352923 [info]: ops!unknown header: User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.45 Safari/537.36
+2022-02-24 17:27:04.352936 [info]: ops!unknown header: Accept-Language: zh-CN,zh;q=0.9
+2022-02-24 17:27:04.352948 [info]: sec-ch-ua-platform: "Linux"
+2022-02-24 17:27:04.352962 [info]: 
+2022-02-24 17:27:04.352965 [info]: ops!unknown header: sec-ch-ua-platform: "Linux"
+2022-02-24 17:27:04.352989 [info]: Accept: */*
+2022-02-24 17:27:04.352997 [info]: ops!unknown header: Accept: */*
+2022-02-24 17:27:04.353006 [info]: Sec-Fetch-Site: same-origin
+2022-02-24 17:27:04.353012 [info]: ops!unknown header: Sec-Fetch-Site: same-origin
+2022-02-24 17:27:04.353021 [info]: Sec-Fetch-Mode: no-cors
+2022-02-24 17:27:04.353022 [info]: request:HTTP/1.1 200 OK
+
+2022-02-24 17:27:04.353031 [info]: ops!unknown header: Sec-Fetch-Mode: no-cors
+2022-02-24 17:27:04.353056 [info]: request:HTTP/1.1 200 OK
+Content-Length:2320
+
+2022-02-24 17:27:04.353069 [info]: Sec-Fetch-Dest: script
+2022-02-24 17:27:04.353080 [info]: request:HTTP/1.1 200 OK
+Content-Length:2320
+Connection:keep-alive
+
+2022-02-24 17:27:04.353090 [info]: ops!unknown header: Sec-Fetch-Dest: script
+2022-02-24 17:27:04.353105 [info]: request:HTTP/1.1 200 OK
+Content-Length:2320
+Connection:keep-alive
+
+
+2022-02-24 17:27:04.353118 [info]: Referer: http://localhost:9007/login
+2022-02-24 17:27:04.353134 [info]: ops!unknown header: Referer: http://localhost:9007/login
+2022-02-24 17:27:04.353136 [info]: adjust timer once
+2022-02-24 17:27:04.353147 [info]: Accept-Encoding: gzip, deflate, br
+2022-02-24 17:27:04.353154 [info]: append write event from sock fd: 16 to Http Connection Pool:-2140116208
+2022-02-24 17:27:04.353161 [info]: ops!unknown header: Accept-Encoding: gzip, deflate, br
+2022-02-24 17:27:04.353179 [info]: Accept-Language: zh-CN,zh;q=0.9
+2022-02-24 17:27:04.353187 [info]: ops!unknown header: Accept-Language: zh-CN,zh;q=0.9
+2022-02-24 17:27:04.353196 [info]: 
+2022-02-24 17:27:04.353223 [info]: request:HTTP/1.1 200 OK
+
+2022-02-24 17:27:04.353239 [info]: request:HTTP/1.1 200 OK
+Content-Length:3396
+
+2022-02-24 17:27:04.353248 [info]: request:HTTP/1.1 200 OK
+Content-Length:3396
+Connection:keep-alive
+
+2022-02-24 17:27:04.353254 [info]: request:HTTP/1.1 200 OK
+Content-Length:3396
+Connection:keep-alive
+
+
+2022-02-24 17:27:04.353264 [info]: adjust timer once
+2022-02-24 17:27:04.353274 [info]: append write event from sock fd: 17 to Http Connection Pool:-2140116208
+2022-02-24 17:27:06.913057 [info]: timer out
+2022-02-24 17:27:07.933477 [info]: adjust timer once
+2022-02-24 17:27:07.933541 [info]: append read event from sock fd: 17 to Http Connection Pool:-2140116208
+2022-02-24 17:27:07.933592 [info]: POST /login HTTP/1.1
+2022-02-24 17:27:07.933623 [info]: Host: localhost:9007
+2022-02-24 17:27:07.933632 [info]: Connection: keep-alive
+2022-02-24 17:27:07.933637 [info]: Content-Length: 27
+2022-02-24 17:27:07.933644 [info]: Cache-Control: max-age=0
+2022-02-24 17:27:07.933648 [info]: ops!unknown header: Cache-Control: max-age=0
+2022-02-24 17:27:07.933653 [info]: sec-ch-ua: " Not A;Brand";v="99", "Chromium";v="96", "Google Chrome";v="96"
+2022-02-24 17:27:07.933657 [info]: ops!unknown header: sec-ch-ua: " Not A;Brand";v="99", "Chromium";v="96", "Google Chrome";v="96"
+2022-02-24 17:27:07.933662 [info]: sec-ch-ua-mobile: ?0
+2022-02-24 17:27:07.933666 [info]: ops!unknown header: sec-ch-ua-mobile: ?0
+2022-02-24 17:27:07.933671 [info]: sec-ch-ua-platform: "Linux"
+2022-02-24 17:27:07.933675 [info]: ops!unknown header: sec-ch-ua-platform: "Linux"
+2022-02-24 17:27:07.933679 [info]: Upgrade-Insecure-Requests: 1
+2022-02-24 17:27:07.933683 [info]: ops!unknown header: Upgrade-Insecure-Requests: 1
+2022-02-24 17:27:07.933688 [info]: Origin: http://localhost:9007
+2022-02-24 17:27:07.933691 [info]: ops!unknown header: Origin: http://localhost:9007
+2022-02-24 17:27:07.933696 [info]: Content-Type: application/x-www-form-urlencoded
+2022-02-24 17:27:07.933700 [info]: ops!unknown header: Content-Type: application/x-www-form-urlencoded
+2022-02-24 17:27:07.933705 [info]: User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.45 Safari/537.36
+2022-02-24 17:27:07.933709 [info]: ops!unknown header: User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.45 Safari/537.36
+2022-02-24 17:27:07.933714 [info]: Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9
+2022-02-24 17:27:07.933718 [info]: ops!unknown header: Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9
+2022-02-24 17:27:07.933723 [info]: Sec-Fetch-Site: same-origin
+2022-02-24 17:27:07.933727 [info]: ops!unknown header: Sec-Fetch-Site: same-origin
+2022-02-24 17:27:07.933732 [info]: Sec-Fetch-Mode: navigate
+2022-02-24 17:27:07.933735 [info]: ops!unknown header: Sec-Fetch-Mode: navigate
+2022-02-24 17:27:07.933740 [info]: Sec-Fetch-User: ?1
+2022-02-24 17:27:07.933744 [info]: ops!unknown header: Sec-Fetch-User: ?1
+2022-02-24 17:27:07.933748 [info]: Sec-Fetch-Dest: document
+2022-02-24 17:27:07.933752 [info]: ops!unknown header: Sec-Fetch-Dest: document
+2022-02-24 17:27:07.933756 [info]: Referer: http://localhost:9007/login
+2022-02-24 17:27:07.933760 [info]: ops!unknown header: Referer: http://localhost:9007/login
+2022-02-24 17:27:07.933765 [info]: Accept-Encoding: gzip, deflate, br
+2022-02-24 17:27:07.933769 [info]: ops!unknown header: Accept-Encoding: gzip, deflate, br
+2022-02-24 17:27:07.933774 [info]: Accept-Language: zh-CN,zh;q=0.9
+2022-02-24 17:27:07.933777 [info]: ops!unknown header: Accept-Language: zh-CN,zh;q=0.9
+2022-02-24 17:27:07.933782 [info]: 
+2022-02-24 17:27:07.933788 [info]: user=graker&password=123456
+2022-02-24 17:27:07.933824 [info]: matched Blueprint ["/"]
+
+2022-02-24 17:27:07.943270 [info]: request:HTTP/1.1 200 OK
+
+2022-02-24 17:27:07.943291 [info]: request:HTTP/1.1 200 OK
+Content-Length:736
+
+2022-02-24 17:27:07.943302 [info]: request:HTTP/1.1 200 OK
+Content-Length:736
+Connection:keep-alive
+
+2022-02-24 17:27:07.943306 [info]: request:HTTP/1.1 200 OK
+Content-Length:736
+Connection:keep-alive
+
+
+2022-02-24 17:27:07.943322 [info]: adjust timer once
+2022-02-24 17:27:07.943350 [info]: append write event from sock fd: 17 to Http Connection Pool:-2140116208
+2022-02-24 17:27:11.913104 [info]: timer out
+2022-02-24 17:27:16.913157 [info]: timer out
+2022-02-24 17:27:21.913282 [info]: timer out
+2022-02-24 17:27:26.913396 [info]: timer out
+2022-02-24 17:27:31.913444 [info]: timer out
+2022-02-24 17:27:36.913493 [info]: timer out
+2022-02-24 17:27:41.913531 [info]: timer out

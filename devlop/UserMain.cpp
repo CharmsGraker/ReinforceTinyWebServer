@@ -33,7 +33,7 @@ login() {
 //        printf("url in /login view=%s\n", req->route().c_str());
 
 
-        auto KVmap = request->args();
+        auto KVmap = request->getParams();
         strcpy(name, KVmap["user"].c_str());
         strcpy(password, KVmap["password"].c_str());
 //        printf("%s",KVmap["user"].c_str());
@@ -59,8 +59,8 @@ route_register() {
 
         //如果是注册，先检测数据库中是否有重名的
         //没有重名的，进行增加数据
-        const char *name = request->args()["user"].c_str();
-        const char *passwd = request->args()["password"].c_str();
+        const char *name = request->getParams()["user"].c_str();
+        const char *passwd = request->getParams()["password"].c_str();
 //        printf("[INFO] name=%s,passwd=%s\n", name, passwd);
 
         if (name != nullptr && passwd != nullptr && userTable.find(name) == userTable.end()) {

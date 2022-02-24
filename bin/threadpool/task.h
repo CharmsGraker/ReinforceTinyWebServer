@@ -7,8 +7,9 @@
 
 class Task {
 public:
-    Task()= default;;
-    virtual void process()=0;
+    Task()= default;
+    virtual void
+    process()=0;
     virtual ~Task()= default;
 };
 

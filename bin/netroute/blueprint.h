@@ -22,7 +22,7 @@ public:
     Router *
     canDealWith(Request* req) {
         Router *handler = nullptr;
-        string url_route = req->pa_addr.path;
+        string url_route = req->getParsedUrl().path;
 
         // should let bp to pattern url, instead of url to pattern bp,because bp are much shorter to parse
         if (((Router *) this)->canDealWith(url_route.c_str())) {
@@ -67,6 +67,14 @@ public:
             route->set_prefix(this->getBluePrintName().c_str());
         }
 
+    }
+    ~Blueprint() {
+        if(!routerList.empty()) {
+            for(auto & router:routerList) {
+                delete router;
+                router = nullptr;
+            }
+        }
     }
 };
 

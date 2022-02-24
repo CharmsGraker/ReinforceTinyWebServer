@@ -4,6 +4,7 @@
 
 #include <string>
 #include <map>
+#include <utility>
 #include "../all_exception.h"
 #include "../container/hashmap.h"
 
@@ -19,23 +20,23 @@ using namespace yumira;
 namespace yumira {
     class http_conn;
 }
-//template<class urlParser, class ConnectionAdapter>
+
 class Request {
     std::string _route;
+    http_conn *connection;
+    parameter_t KV;
 
-
-    Request(ParsedUrl addr, http_req_method_t _method, http_conn *httpConn) :
-            pa_addr(addr), method(_method), connection(httpConn) {};
-
-    Request() {};
+private:
+    Request(ParsedUrl url, http_req_method_t _method, http_conn *httpConn) :
+            parsedUrl(std::move(url)),
+            method(_method),
+            connection(httpConn) {};
 
     parameter_t &
     get_parsed_param() {
 //        printf("get_parsed_param()\n");
-        return pa_addr.KV;
+        return parsedUrl.getParams();
     }
-
-    http_conn *connection;
 
     static Request *
     makeNewRequest(std::string &raw_url, http_req_method_t method, http_conn *httpConn) {
@@ -45,12 +46,10 @@ class Request {
 public:
     http_req_method_t method;
 
-    ParsedUrl pa_addr;
+    ParsedUrl parsedUrl;
 
-
+public:
     /** url means the href route,not include params */
-
-
 
     static Request *
     makeRequest(Request *request, std::string &raw_url, http_req_method_t method, http_conn *httpConn) {
@@ -67,7 +66,12 @@ public:
         return connection;
     }
 
-    parameter_t &args() {
+    bool
+    isResRequest() {
+        return parsedUrl.isResRequest();
+    }
+    parameter_t &
+    getParams() {
         try {
             printf("into args()\n");
             std::cout << get_parsed_param().empty() << std::endl;
@@ -82,17 +86,21 @@ public:
     }
 
 
-    std::string
-    route() const {
-        return pa_addr.path;
+    ParsedUrl&
+    getParsedUrl()  {
+        return parsedUrl;
     }
 
     static
     void
     release(Request *req) {
-        delete req;
-        req = nullptr;
+        if (req) {
+            delete req;
+            req = nullptr;
+        }
     }
 };
+
+
 
 #endif //TINYWEB_REQUEST_H

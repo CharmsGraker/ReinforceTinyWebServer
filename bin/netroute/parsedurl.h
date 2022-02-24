@@ -11,15 +11,41 @@
 
 namespace yumira {
     struct ParsedUrl {
+        std::string url;
+
         std::string path;
         std::string protocol;
-        std::string url;
         std::string fullpath; // not include the char begin from '?'
         std::string query;
-        std::string port;
+        int port=-1;
         std::string host;
+        parameter_t parameters;
 
-        parameter_t KV;
+        int fd = -1;
+        size_t fileSize = -1;
+        int use_template = -1;
+        std::string tpl_addr;
+
+
+
+        std::string &
+        getUrl() {
+            return url;
+        }
+
+        parameter_t &
+        getParams() {
+            return parameters;
+        }
+
+        bool
+        isResRequest() {
+            ssize_t pos = -1;
+            if ((pos = url.rfind('/')) != url.npos) {
+                return url.find('.', pos) != url.npos;
+            }
+            return false;
+        }
 
     };
 }

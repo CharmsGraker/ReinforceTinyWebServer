@@ -8,11 +8,8 @@ template<typename T>
 class AbstractThreadPool {
 public:
     virtual bool append(T *task) = 0;
-
     AbstractThreadPool() = default;
-
     virtual void run() = 0;
-
-    virtual ~AbstractThreadPool() {};
+    virtual ~AbstractThreadPool() = default;
 };
 #endif //TINYWEB_ABSTRACT_THREADPOOL_H

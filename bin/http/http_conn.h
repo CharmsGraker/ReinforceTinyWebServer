@@ -28,13 +28,13 @@
 #include "../lock/locker.h"
 #include "../CGImysql/sql_connection_pool.h"
 #include "../timer/lst_timer.h"
-#include "../log/log.h"
 #include "../netroute/http_request_enum.h"
 #include "../netroute/router.h"
 #include "../netroute/blueprint.h"
 #include "../http/http_connect_adapter.h"
 #include "../threadpool/task.h"
 #include "../netroute/urlparser.h"
+#include "environment.h"
 
 using namespace yumira;
 namespace yumira {
@@ -75,7 +75,7 @@ namespace yumira {
         ~http_conn();
 
     public:
-        void init(int sockfd, const sockaddr_in &addr, char *, int, int, string user, string passwd, string sqlname);
+        void init(int sockfd, const sockaddr_in &addr, char *, int triggerMode, string user, string passwd, string sqlName);
 
         void close_conn(bool real_close = true);
 
@@ -291,7 +291,6 @@ namespace yumira {
 
         map<string, string> m_users;
         int m_TRIGMode;
-        int m_close_log;
 
         char sql_user[100];
         char sql_passwd[100];

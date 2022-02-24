@@ -25,6 +25,7 @@ using namespace string_util;
 namespace yumira {
     class http_conn;
 
+
     typedef http_conn default_connection_t;
     typedef HttpConnectionAdapter<default_connection_t> default_connection_adapter;
     typedef UrlParser<ParsedUrl> default_urlparser_t;

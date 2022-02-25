@@ -88,7 +88,8 @@ route_register() {
     return url_t("/register.html");
 }
 
-int UserMain::main() {
+template<>
+int UserMain<WebServerType>::main() {
 
     http_conn::registerInterceptor(new Router("/href", []() { return url_t("/h.html"); }));
 

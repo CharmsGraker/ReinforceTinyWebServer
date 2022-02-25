@@ -6,63 +6,77 @@
 #define TINYWEB_CONFIGURE_H
 
 #include <unordered_map>
+
 #define FLUSH_STDOUT(); (fflush(stdout));
 
 using namespace std;
 
 class Configure {
-        private:
-        unordered_map<string, string> *tab = nullptr;
-        int __verbose;
-        public:
-        Configure();
+private:
+    unordered_map<string, string> *tab = nullptr;
+    int __verbose;
+public:
+    Configure();
 
-        ~Configure() { delete tab; };
+    ~Configure() { delete tab; };
 
-        void setDefaultProp();
+    void setDefaultProp();
 
-        int _init_store_container();
+    int _init_store_container();
 
-        void parse_arg(int argc, char *argv[]);
+    void parse_arg(int argc, char *argv[]);
 
-        void gen_conf(int argc, char *argv[]);
+    void gen_conf(int argc, char *argv[]);
 
-        int loadConfigFromXml(const char *file_path);
+    int loadConfigFromXml(const char *file_path);
 
-        int setProp(const char *attr, const char *val);
+    int setProp(const char *attr, const char *val);
 
 
-        string getProp(const char *propName);
+    std::string getProp(const char *propName);
 
-        //端口号
-        int PORT;
+    template<typename T>
+    T
+    getPropOf(const char *propName) {
+        return (const T) getProp(propName);
+    }
 
-        //日志写入方式
-        int LOGWrite;
+    //端口号
+    int PORT;
 
-        //触发组合模式
-        int TRIGMode;
+    //日志写入方式
+    int LOGWrite;
 
-        //listenfd触发模式
-        int LISTENTrigmode;
+    //触发组合模式
+    int TRIGMode;
 
-        //connfd触发模式
-        int CONNTrigmode;
+    //listenfd触发模式
+    int LISTENTrigmode;
 
-        //优雅关闭链接
-        int OPT_LINGER;
+    //connfd触发模式
+    int CONNTrigmode;
 
-        //数据库连接池数量
-        int sql_num;
+    //优雅关闭链接
+    int OPT_LINGER;
 
-        //线程池内的线程数量
-        int thread_num;
+    //数据库连接池数量
+    int sql_num;
 
-        //是否关闭日志
-        int close_log;
+    //线程池内的线程数量
+    int thread_num;
 
-        //并发模型选择
-        int actor_model;
+    //是否关闭日志
+    int close_log;
+
+    //并发模型选择
+    int actor_model;
 
 };
+
+/** to explict specialization */
+template<>
+int
+Configure::getPropOf<int>(const char *propName);
+
+
 #endif //TINYWEB_CONFIGURE_H

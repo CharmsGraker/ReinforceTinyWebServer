@@ -461,7 +461,7 @@ yumira::http_conn::do_request() {
                     if ((route_handler = bp->canDealWith(request)) != nullptr) {
                         // the request actual method type won't be check here. it let user to determine that.
                         URL_STATUS ret;
-                        ThreadLocal::put<Request>("request",*request);
+                        ThreadLocal::put<Request>("request",request);
 
                         if ((ret = route_handler->view(environment)) == URL_STATUS::VIEW_NOT_FOUND) {
                             // do with retry

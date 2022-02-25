@@ -44,13 +44,14 @@ yumira::WebServer::~WebServer() {
     }
 }
 
-void yumira::WebServer::init(int port, string user,
-                             string passWord, string databaseName,
-                             int log_write,
-                             int opt_linger,
-                             int trigmode, int sql_num, int thread_num,
-                             int close_log,
-                             int actor_model) {
+void
+yumira::WebServer::init(int port, string user,
+                        string passWord, string databaseName,
+                        int log_write,
+                        int opt_linger,
+                        int trigmode, int sql_num, int thread_num,
+                        int close_log,
+                        int actor_model) {
     m_port = port;
     m_user = user;
     m_passWord = passWord;
@@ -66,14 +67,8 @@ void yumira::WebServer::init(int port, string user,
 
 }
 
-ConfigurePtr yumira::WebServer::bindConf(Configure &conf) {
-    // return binded conf poniter
-    return this->configObj = &conf;
-}
 
-void yumira::WebServer::loadFromConf(Configure &conf) {
-    this->parseFromConf(*bindConf(conf));
-}
+
 
 void yumira::WebServer::setTrigMode() {
     //LT + LT
@@ -162,6 +157,7 @@ void yumira::WebServer::registerEventListen() {
     address.sin_addr.s_addr = htonl(INADDR_ANY);
     address.sin_port = htons(m_port);
 
+    // force recycling use local address 5.11
     // force recycling use local address 5.11
     constexpr int REUSE = 1;
     setsockopt(m_listenfd, SOL_SOCKET, SO_REUSEADDR, &REUSE, sizeof(REUSE));
@@ -447,18 +443,5 @@ void yumira::WebServer::eventLoop() {
     }
 }
 
-void
-yumira::WebServer::parseFromConf(Configure &conf) {
-    this->init(atoi(conf.getProp("port").c_str()),
-               conf.getProp("db_user"),
-               conf.getProp("db_passwd"),
-               conf.getProp("db_name"),
-               atoi(conf.getProp("logWrite").c_str()),
-               atoi(conf.getProp("lingerOption").c_str()),
-               atoi(conf.getProp("triggerMode").c_str()),
-               atoi(conf.getProp("sqlConPoolSize").c_str()),
-               atoi(conf.getProp("httpConnPoolSize").c_str()),
-               atoi(conf.getProp("disableLogger").c_str()),
-               atoi(conf.getProp("concurrentActor").c_str()));
-}
+
 

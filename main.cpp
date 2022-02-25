@@ -1,7 +1,7 @@
 #include "bin/UserMain.h"
 
 namespace yumira {
-    yumira::yumira_server_t* current_app;
+    WebServerType * current_app;
 }
 
 int main(int argc, char *argv[]) {
@@ -13,9 +13,8 @@ int main(int argc, char *argv[]) {
     conf.gen_conf(argc, argv);
 
     yumira::WebServer server;
+
     current_app = &server;
-
-
     //初始化
     server.loadFromConf(conf);
     printf("after conf\n");
@@ -36,13 +35,11 @@ int main(int argc, char *argv[]) {
     //触发模式
     server.setTrigMode();
 
-    UserMain::setPara(argc, argv);
-    UserMain::bindServer(&server);
+    UserMain<WebServerType>::setPara(argc, argv);
+    UserMain<WebServerType>::bindServer(server);
     printf("after bindServer\n");
 
-    UserMain *userMain = UserMain::getInstance();
-
-    if (!(*userMain)()) {
+    if (!UserMain<WebServerType>::preProcess()) {
         //监听
         server.registerEventListen();
         printf("after eventListen\n");

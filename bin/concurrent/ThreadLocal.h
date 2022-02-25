@@ -24,9 +24,6 @@ class ThreadLocal {
 public:
     ThreadLocal() = default;
 
-    static const int THREADLOCAL_FREE = 0;
-    static const int THREADLOCAL_LOCKED = 1;
-
 private:
     static std::map<tid_t, local_map_t *> *getThreadLocalMap() {
         tid_t tid = gettid();
@@ -58,47 +55,43 @@ public:
 
     template<typename T>
     static
-    T& get(const std::string &key) {
+    T& getAs(const std::string &key) {
         void* val = (*getLocalMap())[key];
         tid_t tid = gettid();
         printf("%ld exit ThreadLocal get()\n", tid);
         return *((T*)(val));
     }
 
+
     template<typename T>
     static void
-    put(std::string& key, T& value) {
+    put(const std::string& key, T& value) {
         (*getLocalMap())[key] = (void*)&value;
         tid_t tid = gettid();
 
         printf("%ld exit ThreadLocal put()\n", tid);
     }
 
+    template<typename T>
     static void
-    put(const std::string& key, char * value) {
+    put(const std::string&& key, T &&value) {
+        (*getLocalMap())[key] = (void*)new T(value);
+        tid_t tid = gettid();
+
+        printf("%ld exit ThreadLocal put()\n", tid);
+    }
+
+
+    /** dont put a non dynamic memory object in ThreadLocal!
+     * */
+    template<typename T>
+    static void
+    put(const std::string key, T * value) {
+        assert(nullptr != value);
         (*getLocalMap())[key] = (void*)value;
         tid_t tid = gettid();
 
         printf("%ld exit ThreadLocal put()\n", tid);
-    }
-
-    template<typename T>
-    static void
-    put(const std::string& key,T value) {
-        (*getLocalMap())[key] = (void*)(&value);
-        tid_t tid = gettid();
-
-        printf("%ld exit ThreadLocal put()\n", tid);
-
-    }
-
-    static void
-    put(const std::string& key,void * value_ptr) {
-        (*getLocalMap())[key] =value_ptr;
-        tid_t tid = gettid();
-
-        printf("%ld exit ThreadLocal put()\n", tid);
-
     }
 
 
@@ -109,7 +102,6 @@ public:
         //dont do this! because is a static member not allocate at runtime
 //        delete getThreadLocalMap();
     }
-
 
     static const std::string getId() {
         /** will return a string like tid */

@@ -3,6 +3,7 @@
 #include <cassert>
 #include <libxml/parser.h>
 #include <getopt.h>
+#include <cstring>
 
 class IOException : exception {
 
@@ -21,7 +22,8 @@ Configure::_init_store_container() {
     return 0;
 }
 
-typedef std::pair<std::string,std::string> PAIR_CC;
+typedef std::pair<std::string, std::string> PAIR_CC;
+
 void
 Configure::setDefaultProp() {
     assert(tab != nullptr);
@@ -90,6 +92,12 @@ string Configure::getProp(const char *propName) {
     } catch (NullPointerException &e) {
         fprintf(stderr, "Config tab is null!\n");
     }
+}
+
+template<>
+int
+Configure::getPropOf<int>(const char *propName) {
+    return atoi(getProp(propName).c_str());
 }
 
 int Configure::setProp(const char *attr, const char *val) {

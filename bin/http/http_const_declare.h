@@ -16,8 +16,6 @@ namespace yumira {
     using url_t = url_storage;
     typedef StorageMap storage_t;
     typedef HashMap<std::string, std::string> parameter_t;
-    typedef WebServer *ServerPtr;
-    typedef WebServer yumira_server_t;
 
     extern Locker m_lock;
     extern std::map<std::string, std::string> userTable;

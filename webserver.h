@@ -13,6 +13,7 @@
 #include <stdlib.h>
 #include <cassert>
 #include <sys/epoll.h>
+#include <assert.h>
 
 #include "bin/threadpool/threadpool.h"
 #include "bin/http/http_conn.h"
@@ -32,12 +33,10 @@ namespace yumira {
     static int REACTOR_MODE = 1;
     static int PROACTOR_MODE = 2;
 
-
     typedef Configure *ConfigurePtr;
 
     class WebServer {
         int stop_server = 0;
-        ConfigurePtr configObj = nullptr;
 
         std::string M_DEFAULT_URL = "localhost";
         int M_DEFAULT_PORT = 3306;
@@ -48,20 +47,27 @@ namespace yumira {
 
         ~WebServer();
 
-        void init(int port, string dbUser, string dbPasswd, string databaseName,
-                  int log_write, int opt_linger, int triggerMode, int sql_num,
-                  int thread_num, int close_log, int actor_model);
+        void
+        init(int port,
+             string dbUser,
+             string dbPasswd,
+             string databaseName,
+             int log_write, int opt_linger, int triggerMode, int sql_num,
+             int thread_num, int close_log, int actor_model);
 
 
-        ConfigurePtr bindConf(Configure &conf);
+        template<class Configuration=Configure>
+        void
+        loadFromConf(Configuration &conf);
 
-        void loadFromConf(Configure &conf);
+        void
+        createThreadPool();
 
-        void createThreadPool();
+        void
+        sql_pool();
 
-        void sql_pool();
-
-        void log_write();
+        void
+        log_write();
 
         void setTrigMode();
 
@@ -84,7 +90,8 @@ namespace yumira {
 
         void deal_with_write(int sockfd);
 
-        void parseFromConf(Configure &conf);
+        template<class Configuration=Configure>
+        void parseFromConf(Configuration &conf);
 
         void add_res_path(string res_path);
 
@@ -137,8 +144,27 @@ namespace yumira {
     };
 }
 
-namespace yumira {
-    extern yumira::yumira_server_t *current_app;
+template<class Configuration>
+void
+yumira::WebServer::loadFromConf(Configuration &conf) {
+    parseFromConf(conf);
 }
+
+template<class Configuration>
+void
+yumira::WebServer::parseFromConf(Configuration &conf) {
+    this->init(conf.template getPropOf<int>("port"),
+            conf.template getPropOf<string>("db_user"),
+            conf.template getPropOf<string>("db_passwd"),
+            conf.template getPropOf<string>("db_name"),
+            conf.template getPropOf<int>("logWrite"),
+            conf.template getPropOf<int>("lingerOption"),
+            conf.template getPropOf<int>("triggerMode"),
+            conf.template getPropOf<int>("sqlConPoolSize"),
+            conf.template getPropOf<int>("httpConnPoolSize"),
+            conf.template getPropOf<int>("disableLogger"),
+            conf.template getPropOf<int>("concurrentActor"));
+}
+
 #else
 #endif

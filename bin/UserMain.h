@@ -1,20 +1,15 @@
-//
-// Created by nekonoyume on 2022/1/3.
-//
-
 #ifndef TINYWEB_USERMAIN_H
 #define TINYWEB_USERMAIN_H
 
 #include "../webserver.h"
+using WebServerType = yumira::WebServer;
 
+template<class Server>
 class UserMain {
 private:
     Locker lock;
 
-    UserMain() {};
-
-    ServerPtr server;
-
+    Server* server;
 
 public:
     int _argc;
@@ -39,11 +34,11 @@ public:
 
     static
     void
-    bindServer(yumira::WebServer *ser) {
-        getInstance()->server = ser;
+    bindServer(Server& ser) {
+        getInstance()->server = &ser;
     }
 
-    int operator()() {
+    static int preProcess() {
         getInstance()->main();
         return errno == 0;
     };

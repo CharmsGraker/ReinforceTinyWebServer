@@ -37,9 +37,7 @@ private:
     string _prefix;
     string fullName;
 
-    char _sep;
-
-    static std::string __seperator() {
+    static const std::string __seperator() {
         return ".";
     };
 
@@ -55,9 +53,9 @@ private:
             return URL_STATUS::VIEW_NULL;
         }
         // set ThreadLocal Object here
-        ThreadLocal::put<string>("route", getFullRoute());
+        ThreadLocal::put("route", getFullRoute());
         // push request to view_handler
-        request = &ThreadLocal::get<Request>("request");
+        *request = ThreadLocal::getAs<Request>("request");
 
         assert(request);
 

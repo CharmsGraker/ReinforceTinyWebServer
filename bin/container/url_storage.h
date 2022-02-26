@@ -8,16 +8,17 @@ using namespace std;
 
 class url_storage {
 private:
-    template<class Url, class Parameter>
-    friend Url render_template(Url html_url, Parameter &KVMap);
 
+public:
+    static class url_storage NULL_URL;
+    std::string url;
     std::string tpl_addr;
     std::size_t _file_size;
     int _fd;
 
 public:
-    std::string url;
-    static class url_storage NULL_URL;
+//    template<class Url, class Parameter>
+//    friend Url render_template(Url html_url, Parameter &KVMap);
 
     url_storage() :  _fd(-1), _file_size(-1) {
 //        printf("[url_storage] construct.\n");

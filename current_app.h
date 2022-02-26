@@ -4,10 +4,12 @@
 
 #ifndef TINYWEB_CURRENT_APP_H
 #define TINYWEB_CURRENT_APP_H
-
 #include "webserver.h"
+
 namespace yumira {
-    extern yumira::WebServer *current_app;
+    extern yumira::WebServer<yumira::httpConnType>* current_app;
+
+    extern std::function<url_t(url_t,parameter_t&)> render_template;
 }
 
 #endif //TINYWEB_CURRENT_APP_H

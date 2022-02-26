@@ -46,7 +46,6 @@ private:
     }
 
 private:
-    class WebServer* serverHolder=nullptr;
     char dir_name[128]; //路径名
     char log_name[128]; //log文件名
     int m_split_lines;  //日志最大行数

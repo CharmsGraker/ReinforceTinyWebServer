@@ -16,15 +16,21 @@
 #include <assert.h>
 
 #include "bin/threadpool/threadpool.h"
-#include "bin/http/http_conn.h"
 #include "bin/timer/lst_timer.h"
 
 #include "configure.h"
 #include "config.h"
+#include "bin/http/http_const_declare.h"
+#include "bin/http/http_conn.h"
 
 namespace yumira {
     constexpr static int M_DISABLED_LOG = 1;
     constexpr static int M_ENABLED_LOG = 0;
+
+    typedef void(*quit_handler)(int);
+
+    using _Url = url_t;
+    using _StorageMap = StorageMap;
 
     /** about server mode:
      *      Reactor
@@ -33,8 +39,10 @@ namespace yumira {
     static int REACTOR_MODE = 1;
     static int PROACTOR_MODE = 2;
 
-    typedef Configure *ConfigurePtr;
+    using httpConnType = http_conn;
+    using WebServerType = yumira::WebServer<yumira::httpConnType>;
 
+    template<class HttpConn=http_conn>
     class WebServer {
         int stop_server = 0;
 
@@ -45,7 +53,23 @@ namespace yumira {
     public:
         WebServer();
 
-        ~WebServer();
+        ~WebServer() {
+            LOG_WARN("deconstruct server: %d", this);
+            close(m_epollfd);
+            close(m_listenfd);
+            close(m_pipefd[1]);
+            close(m_pipefd[0]);
+            if (httpConnForUsers)
+                delete[] httpConnForUsers;
+            httpConnForUsers = nullptr;
+            if (users_timer)
+                delete[] users_timer;
+            users_timer = nullptr;
+            if (http_conn_pool)
+                delete http_conn_pool;
+            http_conn_pool = nullptr;
+
+        }
 
         void
         init(int port,
@@ -67,13 +91,25 @@ namespace yumira {
         sql_pool();
 
         void
-        log_write();
+        init_log_write();
 
         void setTrigMode();
 
         void registerEventListen();
 
         void eventLoop();
+
+        static void
+        shutdown(WebServer *server) {
+            LOG_WARN("server %d trying to shutdown", server);
+            delete server;
+            LOG_WARN("server has been shutdown");
+        }
+
+        storage_t &
+        getConfigs() {
+            return server_configs;
+        }
 
     private:
         void createTimerForUser(int connfd, struct sockaddr_in client_address);
@@ -95,6 +131,7 @@ namespace yumira {
 
         void add_res_path(string res_path);
 
+
     public:
         //基础
         int m_port;
@@ -105,7 +142,7 @@ namespace yumira {
 
         int m_pipefd[2];
         int m_epollfd;
-        http_conn *httpConnForUsers; // connection for http
+        HttpConn *httpConnForUsers; // connection for http
 
         //数据库相关
         connection_pool *m_connPool;
@@ -115,7 +152,7 @@ namespace yumira {
         int m_sql_num;
 
         //线程池相关
-        threadPool<http_conn> *http_conn_pool;
+        threadPool<HttpConn> *http_conn_pool;
         int m_thread_num;
 
         //epoll_event相关
@@ -130,13 +167,13 @@ namespace yumira {
         //定时器相关
         client_data_t *users_timer;
         Utils utils;
-        storage_t configs;
+        storage_t server_configs;
 
     private:
         void
         __show_configs() {
             fprintf(stdout, "server configs: {\n");
-            for (auto &config: configs) {
+            for (auto &config: server_configs) {
                 fprintf(stdout, "\t[%s],", config.first.c_str());
             }
             fprintf(stdout, "\n}\n");
@@ -144,27 +181,32 @@ namespace yumira {
     };
 }
 
+template<class HttpConn>
 template<class Configuration>
 void
-yumira::WebServer::loadFromConf(Configuration &conf) {
+yumira::WebServer<HttpConn>::loadFromConf(Configuration &conf) {
     parseFromConf(conf);
 }
 
+template<class HttpConn>
 template<class Configuration>
 void
-yumira::WebServer::parseFromConf(Configuration &conf) {
+yumira::WebServer<HttpConn>::parseFromConf(Configuration &conf) {
     this->init(conf.template getPropOf<int>("port"),
-            conf.template getPropOf<string>("db_user"),
-            conf.template getPropOf<string>("db_passwd"),
-            conf.template getPropOf<string>("db_name"),
-            conf.template getPropOf<int>("logWrite"),
-            conf.template getPropOf<int>("lingerOption"),
-            conf.template getPropOf<int>("triggerMode"),
-            conf.template getPropOf<int>("sqlConPoolSize"),
-            conf.template getPropOf<int>("httpConnPoolSize"),
-            conf.template getPropOf<int>("disableLogger"),
-            conf.template getPropOf<int>("concurrentActor"));
+               conf.template getPropOf<string>("db_user"),
+               conf.template getPropOf<string>("db_passwd"),
+               conf.template getPropOf<string>("db_name"),
+               conf.template getPropOf<int>("logWrite"),
+               conf.template getPropOf<int>("lingerOption"),
+               conf.template getPropOf<int>("triggerMode"),
+               conf.template getPropOf<int>("sqlConPoolSize"),
+               conf.template getPropOf<int>("httpConnPoolSize"),
+               conf.template getPropOf<int>("disableLogger"),
+               conf.template getPropOf<int>("concurrentActor"));
 }
+
+template
+class yumira::WebServer<httpConnType>;
 
 #else
 #endif

@@ -8,7 +8,7 @@
 class Blueprint : public Router {
     vector<Router *> routerList;
 public:
-    Blueprint(const char *bp_name) : Router(bp_name, bp_name) {}
+    Blueprint(const char *bp_name) : Router(bp_name, bp_name, nullptr) {}
 
     void
     registerRoute(Router *router) {
@@ -69,6 +69,7 @@ public:
 
     }
     ~Blueprint() {
+        LOG_WARN("deconstruct blueprint: %d", this);
         if(!routerList.empty()) {
             for(auto & router:routerList) {
                 delete router;

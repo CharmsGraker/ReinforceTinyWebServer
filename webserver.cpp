@@ -1,7 +1,8 @@
 #include "webserver.h"
 #include "devlop/threadpool_default_scheduler.h"
 
-yumira::WebServer::WebServer() {
+template<class HttpConn>
+yumira::WebServer<HttpConn>::WebServer() {
     //http_conn类对象
     httpConnForUsers = new http_conn[MAX_FD];
 
@@ -22,36 +23,25 @@ yumira::WebServer::WebServer() {
     Node *p_resourceFolder = new StringNode(resourceFolder);
     Node *p_server_abspath = new StringNode(server_abspath);
 
-    configs.put("template_root", p_m_root);
-    configs.put("template_relative_path", p_resourceFolder);
-    configs.put("app_root", p_server_abspath);
+    server_configs.put("template_root", p_m_root);
+    server_configs.put("template_relative_path", p_resourceFolder);
+    server_configs.put("app_root", p_server_abspath);
 
 
     __show_configs();
+
 }
 
-yumira::WebServer::~WebServer() {
-    close(m_epollfd);
-    close(m_listenfd);
-    close(m_pipefd[1]);
-    close(m_pipefd[0]);
 
-    delete[] httpConnForUsers;
-    delete[] users_timer;
-    delete http_conn_pool;
-    for (auto &ele: configs) {
-        delete ele.second;
-    }
-}
-
+template<class HttpConn>
 void
-yumira::WebServer::init(int port, string user,
-                        string passWord, string databaseName,
-                        int log_write,
-                        int opt_linger,
-                        int trigmode, int sql_num, int thread_num,
-                        int close_log,
-                        int actor_model) {
+yumira::WebServer<HttpConn>::init(int port, string user,
+                                  string passWord, string databaseName,
+                                  int log_write,
+                                  int opt_linger,
+                                  int trigmode, int sql_num, int thread_num,
+                                  int close_log,
+                                  int actor_model) {
     m_port = port;
     m_user = user;
     m_passWord = passWord;
@@ -68,9 +58,8 @@ yumira::WebServer::init(int port, string user,
 }
 
 
-
-
-void yumira::WebServer::setTrigMode() {
+template<class HttpConn>
+void yumira::WebServer<HttpConn>::setTrigMode() {
     //LT + LT
     if (0 == m_TRIGMode) {
         m_LISTENTrigmode = 0;
@@ -92,8 +81,9 @@ void yumira::WebServer::setTrigMode() {
         m_CONNTrigmode = 1;
     }
 }
-
-void yumira::WebServer::log_write() {
+template<class HttpConn>
+void
+yumira::WebServer<HttpConn>::init_log_write() {
     if (M_ENABLED_LOG == m_close_log) {
         //初始化日志
         if (1 == m_log_write)
@@ -103,7 +93,8 @@ void yumira::WebServer::log_write() {
     }
 }
 
-void yumira::WebServer::sql_pool() {
+template<class HttpConn>
+void yumira::WebServer<HttpConn>::sql_pool() {
     //初始化数据库连接池
 
     m_connPool = connection_pool::builder()
@@ -119,14 +110,16 @@ void yumira::WebServer::sql_pool() {
     httpConnForUsers->initmysql_result(m_connPool);
 }
 
-void yumira::WebServer::createThreadPool() {
+template<class HttpConn>
+void yumira::WebServer<HttpConn>::createThreadPool() {
     //线程池
-    http_conn_pool = new threadPool<http_conn>(m_thread_num);
-    auto scheduler = new ThreadPoolTaskDefaultScheduler<http_conn>(http_conn_pool, actorMode, m_connPool);
+    http_conn_pool = new threadPool<HttpConn>(m_thread_num);
+    auto scheduler = new ThreadPoolTaskDefaultScheduler<HttpConn>(http_conn_pool, actorMode, m_connPool);
 
 }
 
-void yumira::WebServer::registerEventListen() {
+template<class HttpConn>
+void yumira::WebServer<HttpConn>::registerEventListen() {
     //网络编程基础步骤
     m_listenfd = socket(PF_INET, SOCK_STREAM, 0);
     if (m_listenfd < 0) {
@@ -196,7 +189,9 @@ void yumira::WebServer::registerEventListen() {
     Utils::u_epollfd = m_epollfd;
 }
 
-void yumira::WebServer::createTimerForUser(int connfd, struct sockaddr_in client_address) {
+template<class HttpConn>
+void
+yumira::WebServer<HttpConn>::createTimerForUser(int connfd, struct sockaddr_in client_address) {
     /** create work thread here
      * */
     httpConnForUsers[connfd].init(connfd,
@@ -225,7 +220,9 @@ void yumira::WebServer::createTimerForUser(int connfd, struct sockaddr_in client
 
 //若有数据传输，则将定时器往后延迟3个单位
 //并对新的定时器在链表上的位置进行调整
-void yumira::WebServer::adjust_timer(util_timer *timer) {
+template<class HttpConn>
+void
+yumira::WebServer<HttpConn>::adjust_timer(util_timer *timer) {
     time_t current_time = time(nullptr);
     timer->expire = current_time + 3 * TIMESLOT;
     utils.m_timer_lst.adjust_timer(timer);
@@ -233,7 +230,9 @@ void yumira::WebServer::adjust_timer(util_timer *timer) {
     LOG_INFO("%s", "adjust timer once");
 }
 
-void yumira::WebServer::remove_timer(util_timer *timer, int sock_fd) {
+template<class HttpConn>
+void
+yumira::WebServer<HttpConn>::remove_timer(util_timer *timer, int sock_fd) {
     if (timer) {
         timer->cb_func(&users_timer[sock_fd]);
         utils.m_timer_lst.remove(timer);
@@ -241,7 +240,9 @@ void yumira::WebServer::remove_timer(util_timer *timer, int sock_fd) {
     }
 }
 
-bool yumira::WebServer::deal_client_data() {
+template<class HttpConn>
+bool
+yumira::WebServer<HttpConn>::deal_client_data() {
     /**
      *   this function deal with new connection for user,accoding to mode set in ListenTriggerMode,
      *   will be little different when deal new connection
@@ -279,7 +280,9 @@ bool yumira::WebServer::deal_client_data() {
  * @param timeout: if timeout will be set true
  * @param stopServer: output param
  * */
-bool yumira::WebServer::deal_sys_signal(bool &timeout, bool &stopServer) {
+ template<class HttpConn>
+bool
+yumira::WebServer<HttpConn>::deal_sys_signal(bool &timeout, bool &stopServer) {
     char signal_buffer[1024];
     ssize_t ret = recv(m_pipefd[0], signal_buffer, sizeof(signal_buffer), 0);
 //    cout << ret << endl;
@@ -305,7 +308,9 @@ bool yumira::WebServer::deal_sys_signal(bool &timeout, bool &stopServer) {
     return true;
 }
 
-void yumira::WebServer::deal_with_read(int sockfd) {
+template<class HttpConn>
+void
+yumira::WebServer<HttpConn>::deal_with_read(int sockfd) {
     /** do EPOLL_IN event here */
     util_timer *timer = users_timer[sockfd].timer;
 
@@ -352,7 +357,9 @@ void yumira::WebServer::deal_with_read(int sockfd) {
     }
 }
 
-void yumira::WebServer::deal_with_write(int sockfd) {
+template<class HttpConn>
+void
+yumira::WebServer<HttpConn>::deal_with_write(int sockfd) {
     util_timer *timer = users_timer[sockfd].timer;
     //reactor
     if (REACTOR_MODE == actorMode) {
@@ -388,7 +395,9 @@ void yumira::WebServer::deal_with_write(int sockfd) {
     }
 }
 
-void yumira::WebServer::eventLoop() {
+template<class HttpConn>
+void
+yumira::WebServer<HttpConn>::eventLoop() {
     /** the main thread only handler new request event or signal
      * actuall process is in worker thread of threadPool has been create before. */
     // start de with event

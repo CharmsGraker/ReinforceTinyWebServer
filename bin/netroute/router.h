@@ -8,7 +8,7 @@
 #include "http_request_enum.h"
 #include "../concurrent/ThreadLocal.h"
 #include "../http/environment.h"
-
+#include "../log/log.h"
 
 using namespace std;
 
@@ -90,19 +90,25 @@ public:
      * because only if when specify the _full_view_f, then will add url param to request. */
 
     Router(const string &routeName,
-           viewType full_f) :
+           viewType handler) :
             _suffix(routeName),
-            view_handler(full_f),
+            view_handler(handler),
             _prefix("") {
         assert(view_handler);
     };
 
     Router(const string &routeName,
-           const string &fullName) :
+           const string &fullName,
+           viewType handler) :
             _suffix(routeName),
-            view_handler(nullptr),
+            view_handler(handler),
             _prefix(""),
             fullName(fullName) {
+    };
+
+
+    virtual ~Router() {
+        LOG_WARN("deconstruct Router at: %d", this);
     };
 
     explicit Router(const char *routeName) : Router(routeName, nullptr) {};
@@ -118,7 +124,8 @@ public:
 
     /**
      * the connection method state was wrapper in request */
-    URL_STATUS view(Environment *environ) {
+    URL_STATUS
+    view(Environment *environ) {
         // let user to decide invoke which
         return __view(environ);
     }

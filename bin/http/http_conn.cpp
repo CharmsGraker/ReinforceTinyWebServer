@@ -21,8 +21,8 @@ const char *error_500_form = "There was an unusual problem serving the request f
 namespace yumira {
     Locker m_lock;
     std::map<std::string, std::string> userTable;
-    Environment* environment = nullptr;
-    thread_local Request* request = nullptr;
+    Environment *environment = nullptr;
+    thread_local Request *request = nullptr;
 }
 
 static struct httpHeaderEnum {
@@ -126,7 +126,7 @@ void yumira::http_conn::close_conn(bool real_close) {
 
 //初始化连接,外部调用初始化套接字地址
 void yumira::http_conn::init(int sockfd, const sockaddr_in &addr, char *root, int triggerMode,
-                      string user, string passwd, string sqlname) {
+                             string user, string passwd, string sqlname) {
     m_sockfd = sockfd;
     m_address = addr;
 
@@ -428,7 +428,7 @@ yumira::http_conn::do_request() {
             }
         }
 //        printf("relative_url: %s\n", relative_url_path.c_str());
-        request = Request::makeRequest(request,relative_url_path,  m_method, this);
+        request = Request::makeRequest(request, relative_url_path, m_method, this);
 
 //        printf("[INFO] enter to do_request(), m_url=%s\n", request.route().c_str());
 
@@ -454,14 +454,14 @@ yumira::http_conn::do_request() {
                 // make sure to correct bp name concat for routers
                 // traverse blueprint(s) to handle this request
 
-                for (auto &bp: *getInterceptors()) {
+                for (auto &bp: getInterceptors()) {
                     bp->set_prefix();
                     //printf("loop bp:%s\n", bp->get_bp_name().c_str());
                     //printf("%d\n", bp);
                     if ((route_handler = bp->canDealWith(request)) != nullptr) {
                         // the request actual method type won't be check here. it let user to determine that.
                         URL_STATUS ret;
-                        ThreadLocal::put<Request>("request",request);
+                        ThreadLocal::put<Request>("request", request);
 
                         if ((ret = route_handler->view(environment)) == URL_STATUS::VIEW_NOT_FOUND) {
                             // do with retry
@@ -474,7 +474,7 @@ yumira::http_conn::do_request() {
                         if (request->isResRequest()) {
                             // ask for file like html
                             // concat full path pointer to file
-                            const char * real_url = request->getParsedUrl().getUrl().c_str();
+                            const char *real_url = request->getParsedUrl().getUrl().c_str();
                             strncpy(m_real_file + len_root_path, real_url, strlen(real_url));
 
                             // successfully deal request
@@ -732,8 +732,13 @@ yumira::http_conn::set_href_url(const char *html_path) {
 
 yumira::http_conn::~http_conn() {
     // free interceptors elements
-    for (auto &blueprint: *getInterceptors()) {
-        delete blueprint;
+    LOG_WARN("deconstruct http_conn at: %d", this);
+    for (auto &blueprint: getInterceptors()) {
+        if(blueprint) {
+            LOG_WARN("trying to deconstruct blueprint %d",blueprint);
+            delete blueprint;
+        }
+        blueprint = nullptr;
     }
 }
 

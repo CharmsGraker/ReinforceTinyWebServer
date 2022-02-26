@@ -1,9 +1,12 @@
 #ifndef TINYWEB_USERMAIN_H
 #define TINYWEB_USERMAIN_H
 
-#include "../webserver.h"
-using WebServerType = yumira::WebServer;
+#include "../current_app.h"
+#include "signal_handler/server_handler.h"
 
+namespace yumira {
+
+}
 template<class Server>
 class UserMain {
 private:
@@ -34,8 +37,8 @@ public:
 
     static
     void
-    bindServer(Server& ser) {
-        getInstance()->server = &ser;
+    bindServer(Server* ser) {
+        getInstance()->server = ser;
     }
 
     static int preProcess() {

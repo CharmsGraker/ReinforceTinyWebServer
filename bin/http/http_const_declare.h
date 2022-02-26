@@ -11,6 +11,7 @@
 #include "../container/url_storage.h"
 
 namespace yumira {
+    template<class HttpConn>
     class WebServer;
 
     using url_t = url_storage;

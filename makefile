@@ -21,6 +21,8 @@ server: main.cpp  bin/timer/lst_timer.cpp \
 				bin/render/render_utils.cpp ./utils/helpfulUtils.cpp \
 				bin/threadpool/task.h \
 				runtime_config.cpp \
+				bin/signal_handler/server_handler.h \
+				bin/signal_handler/server_handler.cpp \
 				bin/container/url_storage.cpp
 
 	$(CXX) -o server -g --debug $^ $(CXXFLAGS) -lpthread -lmysqlclient -lxml2 -lctemplate -I/usr/include/libxml2/ -L/usr/local/lib

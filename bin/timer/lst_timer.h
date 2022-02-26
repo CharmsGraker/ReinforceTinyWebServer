@@ -22,6 +22,7 @@
 #include <sys/uio.h>
 
 #include <time.h>
+#include <functional>
 
 class util_timer;
 
@@ -39,7 +40,7 @@ struct util_timer {
 
     util_timer() : prev(nullptr), next(nullptr) {}
 
-    void (*cb_func)(st_client_data *);
+    std::function<void(st_client_data*)> cb_func;
 
     st_client_data *user_data;
     util_timer *prev;

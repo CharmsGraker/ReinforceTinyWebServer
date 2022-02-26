@@ -95,7 +95,7 @@ namespace yumira {
         int improv;
 
         static void registerInterceptor(const Blueprint &bp) {
-            getInterceptors()->push_back((Blueprint *) &bp);
+            getInterceptors().push_back((Blueprint *) &bp);
         }
 
         static void
@@ -132,7 +132,7 @@ namespace yumira {
         }
 
         static void registerInterceptor(Blueprint *bpPtr) {
-            getInterceptors()->push_back(bpPtr);
+            getInterceptors().push_back(bpPtr);
         }
 
         typedef void(*Code)(Blueprint *new_bp);
@@ -140,7 +140,7 @@ namespace yumira {
         static void registerInterceptor(Blueprint *bpPtr, Code your_code_here) {
             try {
                 your_code_here(bpPtr);
-                getInterceptors()->push_back(bpPtr);
+                getInterceptors().push_back(bpPtr);
 
             } catch (exception &e) {
                 fprintf(stderr, "[FATAL] code block occurred mistake!");
@@ -150,9 +150,9 @@ namespace yumira {
         }
 
         static
-        vector<Blueprint *> *getInterceptors() {
+        vector<Blueprint *>&getInterceptors() {
             static vector<Blueprint *> interceptors; // all instance must hold same interceptor
-            return &interceptors;
+            return interceptors;
         };
 
         void set_href_url(const char *html_path);

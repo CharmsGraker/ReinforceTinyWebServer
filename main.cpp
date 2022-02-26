@@ -1,39 +1,31 @@
 #include "bin/UserMain.h"
 
-namespace yumira {
-    WebServerType * current_app;
-}
 
 int main(int argc, char *argv[]) {
     //需要修改的数据库信息,登录名,密码,库名 please config in /conf/server-config.xml
-
 
     //命令行解析
     Configure conf;
     conf.gen_conf(argc, argv);
 
-    yumira::WebServer server;
+    auto server = yumira::builderServer();
 
-    current_app = &server;
     //初始化
-    server.loadFromConf(conf);
+    server->loadFromConf(conf);
     printf("after conf\n");
 
-
-    //日志
-    server.log_write();
-    printf("after log_write\n");
+    server->init_log_write();
 
     //数据库
-    server.sql_pool();
+    server->sql_pool();
 
     printf("after sql pool\n");
     //线程池
-    server.createThreadPool();
+    server->createThreadPool();
     printf("after createThreadPool\n");
 
     //触发模式
-    server.setTrigMode();
+    server->setTrigMode();
 
     UserMain<WebServerType>::setPara(argc, argv);
     UserMain<WebServerType>::bindServer(server);
@@ -41,11 +33,16 @@ int main(int argc, char *argv[]) {
 
     if (!UserMain<WebServerType>::preProcess()) {
         //监听
-        server.registerEventListen();
+        server->registerEventListen();
         printf("after eventListen\n");
 
         //运行
-        server.eventLoop();
+        try {
+            server->eventLoop();
+        } catch (exception & e) {
+            printf("in catch block \n");
+            e.what();
+        }
     }
     return 0;
 }

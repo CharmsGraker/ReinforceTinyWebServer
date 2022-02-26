@@ -9,6 +9,7 @@
 #include <string>
 #include <iostream>
 #include <unordered_map>
+#include <functional>
 
 #include "../../utils/string_utils.h"
 #include "../http/http_connect_adapter.h"
@@ -32,7 +33,7 @@ namespace yumira {
     typedef Request *default_request_infer_t;
     typedef std::unordered_map<std::string, std::string> url_param_container_t;
 
-    typedef url_t (*viewType)();
+    using viewType = std::function<url_t(void)>;
 
 #ifndef CONFIG_H
 #ifndef CONNECTION_TYPE

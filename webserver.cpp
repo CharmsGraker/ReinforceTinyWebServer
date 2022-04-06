@@ -399,7 +399,7 @@ template<class HttpConn>
 void
 yumira::WebServer<HttpConn>::eventLoop() {
     /** the main thread only handler new request event or signal
-     * actuall process is in worker thread of threadPool has been create before. */
+     * actually process is in worker thread of threadPool has been create before. */
     // start de with event
     bool timeout = false;
     stop_server = false;

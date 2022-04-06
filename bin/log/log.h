@@ -30,6 +30,26 @@ public:
 
     void flush();
 
+    static void
+    Flush() {
+        Logger *logger = getInstance();
+        if(logger->m_close_log)
+            return;
+        logger->flush();
+    }
+
+    static void
+    WriteLog(int level, const char *format, ...) {
+
+        Logger *logger = getInstance();
+        if(logger->m_close_log)
+            return;
+//            printf("into Logger\n");
+        va_list args;
+        logger->write_log(level, format, args);
+
+    }
+
 private:
     Logger();
 
@@ -57,12 +77,12 @@ private:
     block_queue<string> *m_log_queue; //阻塞队列
     bool m_is_async;                  //是否同步标志位
     Locker lock_write;
-    int m_close_log; //关闭日志
+    int m_close_log = 1; //关闭日志
 };
 
-#define LOG_DEBUG(format, ...) {Logger::getInstance()->write_log(0, format, ##__VA_ARGS__); Logger::getInstance()->flush();}
-#define LOG_INFO(format, ...)  {Logger::getInstance()->write_log(1, format, ##__VA_ARGS__); Logger::getInstance()->flush();}
-#define LOG_WARN(format, ...)  {Logger::getInstance()->write_log(2, format, ##__VA_ARGS__); Logger::getInstance()->flush();}
-#define LOG_ERROR(format, ...)  {Logger::getInstance()->write_log(3, format, ##__VA_ARGS__); Logger::getInstance()->flush();}
+#define LOG_DEBUG(format, ...) {Logger::WriteLog(0, format, ##__VA_ARGS__); Logger::Flush();}
+#define LOG_INFO(format, ...)  {Logger::WriteLog(1, format, ##__VA_ARGS__); Logger::Flush();}
+#define LOG_WARN(format, ...)  {Logger::WriteLog(2, format, ##__VA_ARGS__); Logger::Flush();}
+#define LOG_ERROR(format, ...)  {Logger::WriteLog(3, format, ##__VA_ARGS__); Logger::Flush();}
 
 #endif

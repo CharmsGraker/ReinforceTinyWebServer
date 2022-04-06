@@ -67,9 +67,11 @@ bool Logger::init(const char *file_name, int close_log, int log_buf_size, int sp
     return true;
 }
 
-void Logger::write_log(int level, const char *format, ...) {
+void
+Logger::write_log(int level, const char *format, ...) {
     if(m_close_log)
         return;
+//    printf("into write log body\n");
     struct timeval now = {0, 0};
     gettimeofday(&now, nullptr);
     time_t t = now.tv_sec;
@@ -149,6 +151,8 @@ void Logger::write_log(int level, const char *format, ...) {
 }
 
 void Logger::flush() {
+    if(m_close_log)
+        return;
     lock_write.lock();
     //强制刷新写入流缓冲区
     fflush(m_fp);

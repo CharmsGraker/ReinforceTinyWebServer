@@ -60,6 +60,7 @@ namespace yumira {
             FORBIDDEN_REQUEST,
             FILE_REQUEST,
             INTERNAL_ERROR,
+            URL_REDIRECT,
             CLOSED_CONNECTION
         };
         enum LINE_STATUS {

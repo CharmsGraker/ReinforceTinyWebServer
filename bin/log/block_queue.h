@@ -1,8 +1,3 @@
-/*************************************************************
-*循环数组实现的阻塞队列，m_back = (m_back + 1) % m_max_size;  
-*线程安全，每个操作前都要先加互斥锁，操作完后，再解锁
-**************************************************************/
-
 #ifndef BLOCK_QUEUE_H
 #define BLOCK_QUEUE_H
 
@@ -10,14 +5,36 @@
 #include <stdlib.h>
 #include <pthread.h>
 #include <sys/time.h>
+#include <mutex>
+#include <condition_variable>
 #include "../lock/locker.h"
 
 using namespace std;
 
 template<class T>
 class block_queue {
+private:
+    //判断队列是否满了
+    bool isFull() {
+        if (m_size >= m_max_size) return true;
+        return false;
+    }
+
+    //判断队列是否为空
+    bool isEmpty() {
+        if (0 == m_size) {
+            return true;
+        }
+        return false;
+    }
+
 public:
-    block_queue(int max_size = 1000) {
+    bool full() {
+        std::lock_guard<std::mutex> lockGuard(m_mutex);
+        return isFull();
+    }
+
+    explicit block_queue(int max_size = 1000) {
         if (max_size <= 0) {
             throw runtime_error("[block_queue] size can not be negative");
         }
@@ -38,77 +55,46 @@ public:
     }
 
     ~block_queue() {
-        m_mutex.lock();
-        if (m_array != NULL)
+        std::lock_guard<std::mutex> lockGuard(m_mutex);
+        if (m_array != nullptr)
             delete[] m_array;
-
-        m_mutex.unlock();
     }
 
-    //判断队列是否满了
-    bool full() {
-        m_mutex.lock();
-        if (m_size >= m_max_size) {
-
-            m_mutex.unlock();
-            return true;
-        }
-        m_mutex.unlock();
-        return false;
-    }
-
-    //判断队列是否为空
-    bool empty() {
-        m_mutex.lock();
-        if (0 == m_size) {
-            m_mutex.unlock();
-            return true;
-        }
-        m_mutex.unlock();
-        return false;
-    }
 
     //返回队首元素
-    bool front(T &value) {
-        m_mutex.lock();
+    bool
+    front(T &value) {
+        std::lock_guard<std::mutex> lockGuard(m_mutex);
         if (0 == m_size) {
-            m_mutex.unlock();
             return false;
         }
         value = m_array[m_front];
-        m_mutex.unlock();
         return true;
     }
 
     //返回队尾元素
     bool back(T &value) {
-        m_mutex.lock();
+        std::lock_guard<std::mutex> lockGuard(m_mutex);
         if (0 == m_size) {
-            m_mutex.unlock();
             return false;
         }
         value = m_array[m_back];
-        m_mutex.unlock();
         return true;
     }
 
     int size() {
         int tmp = 0;
-
-        m_mutex.lock();
+        std::lock_guard<std::mutex> lockGuard(m_mutex);
         tmp = m_size;
-
-        m_mutex.unlock();
         return tmp;
     }
 
     int max_size() {
         int tmp = 0;
 
-        m_mutex.lock();
+        std::lock_guard<std::mutex> lockGuard(m_mutex);
         tmp = m_max_size;
 
-        m_mutex.unlock();
         return tmp;
     }
 
@@ -116,41 +102,29 @@ public:
     //当有元素push进队列,相当于生产者生产了一个元素
     //若当前没有线程等待条件变量,则唤醒无意义
     bool push(const T &item) {
-
-        m_mutex.lock();
-        if (m_size >= m_max_size) {
-
-            m_cond.broadcast();
-            m_mutex.unlock();
-            return false;
+        std::unique_lock<std::mutex> uniqueLock(m_mutex);
+        while (isFull()) {
+            onFull.wait(uniqueLock);
         }
 
         m_back = (m_back + 1) % m_max_size;
         m_array[m_back] = item;
-
         m_size++;
-
-        m_cond.broadcast();
-        m_mutex.unlock();
+        onEmpty.notify_one();
         return true;
     }
 
     //pop时,如果当前队列没有元素,将会等待条件变量
     bool pop(T &item) {
-
-        m_mutex.lock();
-        while (m_size <= 0) {
-
-            if (!m_cond.wait(m_mutex.get())) {
-                m_mutex.unlock();
-                return false;
-            }
+        std::unique_lock<std::mutex> uniqueLock(m_mutex);
+        while (isEmpty()) {
+            onEmpty.wait(uniqueLock);
         }
 
         m_front = (m_front + 1) % m_max_size;
         item = m_array[m_front];
         m_size--;
-        m_mutex.unlock();
+        onFull.notify_all();
         return true;
     }
 
@@ -159,31 +133,29 @@ public:
         struct timespec t = {0, 0};
         struct timeval now = {0, 0};
         gettimeofday(&now, nullptr);
-        m_mutex.lock();
-        if (m_size <= 0) {
+        std::unique_lock<std::mutex> uniqueLock(m_mutex);
+        bool waiting = false;
+        while (isEmpty()) {
+            if (waiting)
+                return false;
             t.tv_sec = now.tv_sec + ms_timeout / 1000;
             t.tv_nsec = (ms_timeout % 1000) * 1000;
-            if (!m_cond.wait(m_mutex.get(), t)) {
-                m_mutex.unlock();
-                return false;
-            }
-        }
+            onEmpty.wait(uniqueLock, t);
+            waiting = true;
+        };
 
-        if (m_size <= 0) {
-            m_mutex.unlock();
-            return false;
-        }
 
         m_front = (m_front + 1) % m_max_size;
         item = m_array[m_front];
         m_size--;
-        m_mutex.unlock();
+        onFull.notify_all();
         return true;
     }
 
 private:
-    Locker m_mutex;
-    Condition m_cond;
+    std::mutex m_mutex;
+    std::condition_variable onFull;
+    std::condition_variable onEmpty;
 
     T *m_array;
     int m_size;

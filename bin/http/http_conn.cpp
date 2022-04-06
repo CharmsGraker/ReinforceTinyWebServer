@@ -8,6 +8,7 @@
 
 //定义http响应的一些状态信息
 const char *ok_200_title = "OK";
+const char * redirect_title = "Redirect";
 const char *error_400_title = "Bad Request";
 const char *error_400_form = "Your request has bad syntax or is inherently impossible to staisfy.\n";
 const char *error_403_title = "Forbidden";
@@ -246,14 +247,14 @@ yumira::http_conn::parse_request_line(char *text) {
     }
     *m_url++ = '\0';
     // set to head
-    printf("%s\n", m_url);
+//    printf("%s\n", m_url);
 
     char *method = text;
     if (strcasecmp(method, "GET") == 0) {
-        printf("GET request arrived\n");
+//        printf("GET request arrived\n");
         m_method = GET;
     } else if (strcasecmp(method, "POST") == 0) {
-        printf("POST request arrived\n");
+//        printf("POST request arrived\n");
         m_method = POST;
         cgi = 1;
     } else
@@ -358,7 +359,7 @@ yumira::http_conn::process_read() {
         switch (m_check_state) {
             case CHECK_STATE_REQUESTLINE: {
                 ret = parse_request_line(text);
-                printf("out of request line, m_url=%s\n", m_url);
+//                printf("out of request line, m_url=%s\n", m_url);
                 if (ret == BAD_REQUEST)
                     return BAD_REQUEST;
 
@@ -367,7 +368,7 @@ yumira::http_conn::process_read() {
             case CHECK_STATE_HEADER: {
                 // the m_url will be set at this case
                 ret = parse_headers(text);
-                printf("out of header parse, m_url=%s\n", m_url);
+//                printf("out of header parse, m_url=%s\n", m_url);
 
                 if (ret == BAD_REQUEST)
                     return BAD_REQUEST;
@@ -693,6 +694,9 @@ yumira::http_conn::process_write(yumira::http_conn::HTTP_CODE ret) {
                     return false;
             }
         }
+//        case URL_REDIRECT : {
+//            add_status_line(300,)
+//        }
         default:
             return false;
     }
@@ -707,9 +711,11 @@ void
 yumira::http_conn::process() {
     HTTP_CODE read_ret;
     if ((read_ret = process_read()) == NO_REQUEST) {
+        // failed request, wait for connect again
         modfd(m_epollfd, m_sockfd, EPOLLIN, m_TRIGMode);
         return;
     }
+    // send our response to web browser
     if (!(process_write(read_ret))) {
         close_conn();
     }

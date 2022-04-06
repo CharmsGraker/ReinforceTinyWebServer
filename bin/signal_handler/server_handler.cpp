@@ -4,6 +4,7 @@ namespace yumira {
     yumira::WebServer<yumira::httpConnType> *current_app;
     yumira::quit_handler quitHandler;
     TemplateBinder<WebServerType> *templateBinder = nullptr;
+
     std::function<url_t(url_t, parameter_t &)> render_template;
 
     quit_handler
@@ -32,7 +33,6 @@ namespace yumira {
             delete templateBinder;
             LOG_INFO("successfully delete templateBinder: %d", templateBinder);
             templateBinder = nullptr;
-
         }
     }
 

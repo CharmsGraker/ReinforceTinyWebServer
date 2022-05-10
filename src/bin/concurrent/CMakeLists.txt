@@ -1,0 +1,6 @@
+cmake_minimum_required(VERSION 3.21)
+project(redisTest)
+set(CMAKE_CXX_FLAGS " -std=c++17 ${CAMKE_CXX_FLAGS}")
+set(CMAKE_CXX_STANDARD 17)
+add_executable(threadsafe_queue_test testing/threadsafe_queue_test.cpp)
+target_link_libraries(threadsafe_queue_test pthread)

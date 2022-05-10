@@ -1,0 +1,7 @@
+cmake-build-debug/
+*/cmake-build-debug
+
+logs/
+test
+test_presure
+*.gz

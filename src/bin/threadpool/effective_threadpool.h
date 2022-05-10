@@ -1,0 +1,8 @@
+//
+// Created by nekonoyume on 2022/5/5.
+//
+
+#ifndef TINYWEB_EFFECTIVE_THREADPOOL_H
+#define TINYWEB_EFFECTIVE_THREADPOOL_H
+
+#endif //TINYWEB_EFFECTIVE_THREADPOOL_H

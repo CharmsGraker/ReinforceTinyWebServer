@@ -1,0 +1,5 @@
+cmake_minimum_required(VERSION 3.21)
+project(trieTree)
+set(CMAKE_CXX_FLAGS " -std=c++17 ${CAMKE_CXX_FLAGS}")
+set(CMAKE_CXX_STANDARD 17)
+add_executable(test_trie testing/test_trie_tree.cpp TrieTree.h)

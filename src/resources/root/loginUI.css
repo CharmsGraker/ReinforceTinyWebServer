@@ -1,0 +1,252 @@
+:root{
+  --yellow: #f8f809;
+  --black: #1b1b1b;
+  --orange: #f96d00;
+  --bg-color: #ffffff;
+  --show-color:var(--black);
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  height: 100vh;
+  font-family: montserrat;
+  background: #111111;
+  /*background: linear-gradient(120deg,#211717,#8e44ad);*/
+  overflow: hidden;
+}
+.center{
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%,-50%);
+  width: 400px;
+  background: white;
+  border-radius: 10px;
+}
+.center h1{
+  text-align: center;
+  padding: 0 0 20px 0;
+  /* 用于加灰线 */
+  border-bottom: 1px solid silver;
+
+}
+.center form{
+  padding: 0 40px;
+  box-sizing: border-box;
+}
+form .txt_field{
+  position: relative;
+  /*下面用来创建线*/
+  border-bottom: 2px solid #adadad;
+  margin: 30px 0;
+
+}
+.txt_field input{
+  width: 100%;
+  padding: 0 5px;
+  height: 40px;
+  font-size: 16px;
+  border: none;
+  background: none;
+  outline: none;
+}
+
+
+
+
+.txt_field label{
+  position: absolute;
+  top: 50%;
+  left: 5px;
+  color: #adadad;
+  transform: translateY(-50%);
+  font-size: 16px;
+  pointer-events: none;
+  transition: .5s;
+}
+.txt_field span::before{
+  content: '';
+  position: absolute;
+  top: 40px;
+  left: 0;
+  width: 0%;
+  height: 2px;
+  background: var(--black);
+  transition: .5s;
+}
+/*p~ul 选择前面有 <p> 元素的每个 <ul> 元素。*/
+.txt_field input:focus ~ label,
+.txt_field input:valid ~ label {
+  /*控制上升高度*/
+  top: -5px;
+  color: var(--black);
+}
+/*before来创建伪元素*/
+.txt_field input:focus ~ span::before,
+.txt_field input:valid ~ span::before {
+  width: 100%;
+}
+.pass {
+  margin: -5px 0 20px 5px;
+  color: #a6a6a6;
+  cursor: pointer;
+}
+.pass:hover{
+  text-decoration: underline;
+}
+/*input[type="submit"]{*/
+/*  width: 100%;*/
+/*  height: 50px;*/
+/*  border: 1px solid;*/
+/*  !*蓝色按钮*!*/
+/*  background: #2a363b;*/
+/*  border-radius: 25px;*/
+/*  font-size: 18px;*/
+/*  color: #e9f4fb;*/
+/*  font-weight: 700;*/
+/*  cursor: pointer;*/
+/*  outline: none;*/
+/*}*/
+/*input[type="submit"]:hover{*/
+/*  border-color: #2691d9;*/
+/*  transition: .5s;*/
+/*}*/
+
+.auth-button{
+  width: 100%;
+  height: 50px;
+  border: 1px solid;
+  /*蓝色按钮*/
+  background: var(--black);
+  border-radius: 25px;
+  font-size: 18px;
+  color: #e9f4fb;
+  font-weight: 700;
+  cursor: pointer;
+  outline: none;
+}
+.auth-button:hover{
+  border-color: #1b1b1b;
+  transition: .5s;
+}
+
+.auth-button-orange{
+  padding: 5px 10px;
+  width: 100%;
+  height: 50px;
+  border: 1px solid;
+  /*蓝色按钮*/
+  background-color: var(--black);
+  border-radius: 25px;
+  font-size: 18px;
+  color: #e9f4fb;
+  font-weight: 700;
+  cursor: pointer;
+  outline: none;
+}
+.auth-button-orange:hover{
+  border-color: #f96d00;
+  transition: .5s;
+}
+
+
+.signup_link{
+  margin: 30px 0;
+  text-align: center;
+  font-size: 16px;
+  color: #666666;
+}
+.signup_link a {
+  color: var(--orange);
+  text-decoration: none;
+}
+.signup_link a:hover {
+  text-decoration: underline;
+}
+
+
+.signup_link.black a {
+  color: #111111;
+  text-decoration: none;
+}
+.signup_link.black a:hover {
+  text-decoration: underline;
+}
+
+.button {
+  width: 100%;
+  height: 50px;
+  border: 1px solid;
+  display: block;
+  position: relative;
+  /*蓝色按钮*/
+  background: #f2f2f2;
+  border-radius: 25px;
+  font-size: 18px;
+  color: #e9f4fb;
+  font-weight: 700;
+  cursor: pointer;
+  outline: none;
+  text-align: center;
+  justify-content: center;
+  padding: 10px 50px;
+}
+.button:hover{
+  border-color: var(--yellow);
+  transition: .5s;
+}
+
+.button a{
+  justify-content: center;
+  color: #e9f4fb;
+  text-decoration: none;
+}
+
+
+
+
+
+
+
+
+
+
+/*!*设置颜色*!*/
+
+/*!*----------------------------------------------------*!*/
+/*.txt_field input:-ms-input-placeholder*/
+/*{*/
+/*  opacity: 0;*/
+/*}*/
+/*!*这个*!*/
+/*.txt_field input::-webkit-input-placeholder{*/
+/* opacity: 0;*/
+/*}*/
+
+/*.txt_field input::-moz-placeholder{*/
+/* opacity: 0;*/
+/*}*/
+
+/*.txt_field input:-moz-placeholder{*/
+/*  opacity: 0;*/
+/*}*/
+
+/*!*--------------------------------------------------*!*/
+/*.txt_field input:valid:-ms-input-placeholder{*/
+/*  opacity: 1;*/
+/*}*/
+
+/*.txt_field input:valid .txt_field input::-webkit-input-placeholder{*/
+/*  opacity: 1;*/
+/*}*/
+
+/*.txt_field input:valid::-moz-placeholder{*/
+/*  color: var(--show-color);*/
+/*}*/
+
+/*.txt_field input:valid:-moz-placeholder{*/
+/*  color: var(--show-color);*/
+/*}*/
+
+

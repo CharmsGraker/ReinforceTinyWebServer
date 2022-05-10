@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<configs>
+    <config name="port" value="9008"></config>
+    <config name="db_name" value="lightdb"></config>
+    <config name="db_user" value="root"></config>
+    <config name="db_passwd" value="root"></config>
+    <config name="disableLogger" value="0"></config>
+    <config name="concurrentActor" value="1"></config>
+    <config name="redis_host" value="localhost"></config>
+    <config name="redis_port" value="6379"></config>
+</configs>

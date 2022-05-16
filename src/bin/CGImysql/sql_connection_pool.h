@@ -10,16 +10,26 @@
 #include <string>
 #include "../lock/locker.h"
 #include "../log/log.h"
-#include "abstractSqlConnectionPool.h"
 #include "../all_exception.h"
+
 using namespace std;
 
+class SqlConnectionPoolBaseBuilder {
+public:
+    SqlConnectionPoolBaseBuilder() {};
 
-class connection_pool : SqlConnectionPoolBase<MYSQL> {
+};
+
+using sql_builder = SqlConnectionPoolBaseBuilder;
+
+class connection_pool {
     /** connection for database(MySQL) Pool */
 public:
-    MYSQL *getConnection() override;              //获取数据库连接
-    bool releaseConnection(MYSQL *conn) override; //释放连接
+    //获取数据库连接
+    MYSQL *getConnection();
+
+    template<class M>
+    bool releaseConnection(M *conn); //释放连接
     int getFreeConn() const;                     //获取连接
 
     //Singleton pattern
@@ -36,7 +46,7 @@ public:
         connection_pool *outer;
     public:
         Builder(connection_pool *out) {
-            if(!out) {
+            if (!out) {
                 throw NullException("connection_pool is Null!");
             }
             outer = out;
@@ -77,7 +87,7 @@ public:
             return *this;
         }
 
-        connection_pool* build() {
+        connection_pool *build() {
             outer->init();
             return outer;
         };
@@ -102,7 +112,7 @@ private:
     int m_CurConn;  //当前已使用的连接数
     int m_FreeConn; //当前空闲的连接数
     Locker lock;
-    list<MYSQL *> connList; //连接池
+    std::list<MYSQL *> connList; //连接池
     Semaphore reserve; // > 0 means there has free connection to use
 
 
@@ -116,15 +126,59 @@ public:
 };
 
 class connectionRAII {
+    struct base {
+        template<class M>
+        M *getConn();
 
+        virtual ~base() = default;;
+    };
+
+    template<class M>
+    struct conn_impl : base {
+        M *conRAII;
+        typedef M conn_type;
+        connection_pool *pool;
+
+        M* getConn() {
+           return conRAII;
+        }
+        conn_impl(M *con, connection_pool *pool_) : conRAII(con), pool(pool_) {}
+
+        ~conn_impl() override {
+            pool->releaseConnection<M>(conRAII);
+        }
+    };
+
+    std::unique_ptr<base> connImpl;
 public:
-    connectionRAII(MYSQL **con, connection_pool *connPool);
+    template<class M>
+    connectionRAII(M **con, connection_pool *pool):connImpl(new conn_impl{pool->getConnection(), pool}) {
+        *con = ((conn_impl<M>*)(connImpl.get()))->getConn();
+    };
 
-    ~connectionRAII();
+    ~connectionRAII() = default;
 
 private:
-    MYSQL *conRAII;
-    connection_pool *poolRAII;
-};
 
+};
+//释放当前使用的连接
+template<class M>
+bool connection_pool::releaseConnection(M *con) {
+    if (nullptr == con)
+        return false;
+    lock.lock();
+    try {
+
+        connList.push_back(con);
+        ++m_FreeConn, --m_CurConn;
+
+        lock.unlock();
+
+        reserve.post();
+    } catch (exception &e) {
+        lock.unlock();
+        e.what();
+    }
+    return true;
+}
 #endif

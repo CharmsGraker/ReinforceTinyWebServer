@@ -14,23 +14,27 @@
 #include <sys/wait.h>
 #include <iostream>
 #include <functional>
+#include "../debug/dprintf.h"
 
 typedef long tid_t;
 #define gettid() syscall(__NR_gettid)
 
 typedef std::map<std::string, void *> local_map_t;
 
+using yumira::debug::DPrintf;
+
 class ThreadLocal {
+    static thread_local tid_t tid;
 public:
     ThreadLocal() = default;
 
 private:
     static std::map<tid_t, local_map_t *> *getThreadLocalMap() {
         tid_t tid = gettid();
-        printf("\t thread %ld enter to getThreadLocalMap()\n", tid);
+        DPrintf("\t thread %ld enter to getThreadLocalMap()\n", tid);
         static std::map<tid_t, local_map_t *> thread_local_map;
         if (thread_local_map.empty()) {
-            printf("\t[INFO] empty ThreadLocal map. Now create\n");
+            DPrintf("\t[INFO] empty ThreadLocal map. Now create\n");
         }
 
         return &thread_local_map;
@@ -40,7 +44,7 @@ private:
     void
     initLocalMap() {
         tid_t tid = gettid();
-        printf("current thread: [%ld] init localMap\n", tid);
+        DPrintf("current thread: [%ld] init localMap\n", tid);
         (*getThreadLocalMap())[tid] = new local_map_t();
     };
 public:
@@ -59,7 +63,7 @@ public:
         try {
             void *val = (*getLocalMap())[key];
             tid_t tid = gettid();
-            printf("%ld exit ThreadLocal getAs()\n", tid);
+            DPrintf("%ld exit ThreadLocal getAs()\n", tid);
             return (T *) (val);
         } catch (std::exception &e) {
             return nullptr;
@@ -73,7 +77,7 @@ public:
         (*getLocalMap())[key] = (void *) &value;
         tid_t tid = gettid();
 
-        printf("%ld exit ThreadLocal put()\n", tid);
+        DPrintf("%ld exit ThreadLocal put()\n", tid);
     }
 
     template<typename T>
@@ -82,20 +86,26 @@ public:
         (*getLocalMap())[key] = (void *) new T(value);
         tid_t tid = gettid();
 
-        printf("%ld exit ThreadLocal put()\n", tid);
+        DPrintf("%ld exit ThreadLocal put()\n", tid);
     }
 
 
     /** dont put a non dynamic memory object in ThreadLocal!
      * */
+    static
+    tid_t fetchId() {
+        return gettid();
+    }
+
     template<typename T>
     static void
-    put(const std::string key, T *value) {
+    put(const std::string& key, T *value) {
         assert(nullptr != value);
         (*getLocalMap())[key] = (void *) value;
-        tid_t tid = gettid();
-
-        printf("%ld exit ThreadLocal put()\n", tid);
+        if (tid == -1) {
+            tid = fetchId();
+        }
+        DPrintf("%ld exit ThreadLocal put()\n", tid);
     }
 
 
@@ -109,7 +119,11 @@ public:
 
     static const std::string getId() {
         /** will return a string like tid */
-        return std::to_string(gettid());
+        if (tid != -1) {
+            return std::to_string(tid);
+        }
+        tid = fetchId();
+        return std::to_string(tid);
     }
 
     template<class T>
@@ -128,5 +142,6 @@ public:
         return ret;
     }
 };
+
 
 #endif //TINYWEB_THREADLOCAL_H

@@ -14,7 +14,7 @@ namespace yumira {
         auto old_handler = quitHandler;
         quitHandler = handler;
         signal(SIGINT, handler);
-        printf("successfully register quit handler: %d\n", handler);
+        printf("successfully register quit handler\n");
 
         return old_handler;
     }
@@ -39,7 +39,7 @@ namespace yumira {
     WebServerType *
     builderServer() {
         current_app = new WebServerType();
-        assert(current_app);
+        static_assert(sizeof current_app > 0);
         registerQuitHanlder(cleanResHandler);
 
         templateBinder = new TemplateBinder<WebServerType>(current_app);

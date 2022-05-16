@@ -36,13 +36,21 @@
 #include "../netroute/urlparser.h"
 #include "environment.h"
 #include "http_outstream/http_response_header.h"
+#include "../debug/dprintf.h"
 
 class HttpResponse;
 
 class LoadBalancer;
 
+using yumira::debug::DPrintf;
+
+
 using namespace yumira;
 namespace yumira {
+
+    namespace server_config {
+        extern int S_actorMode;
+    }
 
     class http_conn : public Task {
     public:
@@ -50,7 +58,7 @@ namespace yumira {
         static const int READ_BUFFER_SIZE = 2048;
         static const int WRITE_BUFFER_SIZE = 1024;
         const char *INDEX_HTML_FILENAME = "judge.html";
-
+        std::function<void(void)> complete_callback;
 
         enum CHECK_STATE {
             CHECK_STATE_REQUESTLINE = 0,
@@ -95,7 +103,7 @@ namespace yumira {
             };
 
             Builder &sockFd(int _sockfd) {
-                printf("build sockFd\n");
+                DPrintf("build sockFd\n");
                 outer->m_sockfd = _sockfd;
                 return *this;
             }
@@ -108,12 +116,6 @@ namespace yumira {
             //当浏览器出现连接重置时，可能是网站根目录出错或http响应格式出错或者访问的文件中内容完全为空
             Builder &docRoot(char *doc_root_) {
                 outer->doc_root = doc_root_;
-                return *this;
-            }
-
-            Builder &loadBalancer(const shared_ptr<LoadBalancer> &loadBalancer_) {
-                if (loadBalancer_.get())
-                    outer->loadBalancer = loadBalancer_;
                 return *this;
             }
 
@@ -147,7 +149,7 @@ namespace yumira {
 
         Builder &
         builder() {
-            printf("enter into http builder\n");
+            DPrintf("enter into http builder\n");
             if (!builder_)
                 builder_ = new Builder(this);
             return *builder_;
@@ -171,7 +173,9 @@ namespace yumira {
         bool read_once();
 
         bool write();
-        void handleRead(int fd,std::function<void()> callback = nullptr);
+
+        void handleRead(int fd, std::function<void()> callback = nullptr);
+
         void handleWrite(int fd);
 
         sockaddr_in *get_address() {
@@ -195,6 +199,55 @@ namespace yumira {
         static int
         activeConnectionSize() {
             return m_user_count;
+        }
+
+        void
+        operator()(connection_pool *sql_conn_pool) {
+            m_state = 0;
+//            if (1 == yumira::server_config::S_actorMode) {
+//                switch (m_state) {
+//                    case 0: {
+//                        if (read_once()) {
+//                            connectionRAII mysqlcon(&mysql, sql_conn_pool);
+//                            process();
+//                            m_state = 1;
+//                        } else {
+//                            timer_flag = 1;
+//                        }
+//                        break;
+//                    }
+//                    case 1: {
+//                        if (write()) {
+//                            m_state = 0;
+//                        } else {
+//                            timer_flag = 1;
+//                        }
+//                        break;
+//                    }
+//                }
+//                improv = 1;
+//
+//            } else {
+//                connectionRAII mysqlConnect(&mysql, sql_conn_pool);
+//                process();
+//            }
+            if (read_once()) {
+                connectionRAII mysqlcon(&mysql, sql_conn_pool);
+                process();
+            } else {
+                timer_flag = 1;
+            }
+            m_state = 1;
+
+            DPrintf("[] done fd=%d ,task,%s\n",m_sockfd, __FILE__);
+
+//            if (complete_callback) {
+//                printf("try exec http_conn callback ,%s\n", __FILE__);
+//                complete_callback();
+////                complete_callback = nullptr;
+//            } else {
+//                printf("empty callback, %s\n",__FILE__);
+//            }
         }
 
         static void registerInterceptor(Router *routePtr) {
@@ -357,6 +410,7 @@ namespace yumira {
     public:
         static int m_epollfd;
         int m_state;  //读为0, 写为1
+        int m_sockfd;
 
         friend class HttpConnectionAdapter<http_conn>;
 
@@ -366,9 +420,7 @@ namespace yumira {
         Builder *builder_;
         static int m_user_count; // active user connection
         HttpResponse *http_response;
-        shared_ptr<LoadBalancer> loadBalancer;
 
-        int m_sockfd;
         sockaddr_in m_address;
         char m_read_buf[READ_BUFFER_SIZE];
         int m_read_idx;

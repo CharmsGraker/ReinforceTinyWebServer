@@ -10,12 +10,21 @@
 #include "../../socket/InetAddress.h"
 #include <functional>
 #include "../../concurrent/ThreadFunction.h"
+#include "../loadbalancer/LoadBalancer.h"
+#include "../loadbalancer/RedisLoadBalancer.h"
+#include "../../config/config.h"
+#include "GrakerHeartBeat.h"
 
 class HBWorker;
 class HBMaster;
 class HBSlave;
 class ClusterObject;
-
+using namespace yumira::dev;
+namespace yumira {
+    namespace idle {
+        extern std::shared_ptr<LoadBalancer> loadBalancer;
+    }
+};
 namespace yumira{
     namespace heartbeat {
         void addExcludeAddress(const InetAddress &inetAddress);
@@ -115,4 +124,22 @@ private:
     ClusterObject *cluster_;
 };
 
+template<template<typename > class  W,typename T>
+void initIdleThread(W<T> * server);
+
+template<template<class> class W, class T>
+void initIdleThread(class W<T> *server) {
+    server->f_checkConnFd = peekHBPack;
+    auto cb = [](){
+        using yumira::idle::loadBalancer;
+        if (!loadBalancer.get()) {
+            loadBalancer.reset(
+                    new RedisLoadBalancer(idleConfig.REDIS_HOST, idleConfig.REDIS_PORT, idleConfig.REDIS_CLUSTER_KEY));
+        }
+        InetAddress currentInetAddress(commonConfig.serverIp, commonConfig.serverPort);
+        loadBalancer->addNode(currentInetAddress.toString());
+    };
+    server->addCallbackToLast(cb);
+    printf("register callback\n");
+}
 #endif //REDISTEST_THREAD_FUNC_H

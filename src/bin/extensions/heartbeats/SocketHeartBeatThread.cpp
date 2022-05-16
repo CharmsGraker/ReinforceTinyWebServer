@@ -1,22 +1,26 @@
 #include "SocketHeartBeatThread.h"
 #include "GrakerHeartBeat.h"
 #include <iostream>
-#include <map>
 #include "../../grakerThread/thread.h"
 #include "cluster/Cluster.h"
+#include "../../debug/dprintf.h"
 #include <boost/filesystem.hpp>
 #include <boost/system/system_error.hpp>
-#include <sys/wait.h>
+#include "../../config/config.h"
+#include "../loadbalancer/LoadBalancer.h"
+#include "../loadbalancer/RedisLoadBalancer.h"
 
 #ifndef GRAKER_SERVER
 #define GRAKER_SERVER(x) x
 #endif
 #define READ_IDLE_STDOUT
+
+using yumira::debug::DPrintf;
+
 namespace yumira {
-    extern InetAddress
-    GetServerInetAddress();
-    namespace heartbeat {
+    namespace idle {
         int out_pipe[2];
+        std::shared_ptr<LoadBalancer> loadBalancer{};
     }
 };
 
@@ -64,14 +68,25 @@ void SocketHeartBeatThread::run() {
     coordinator_->doWork();
 }
 
+//template<template<class> class W, class T>
+//void initIdleThread(class W<T> *server) {
+//    server->f_checkConnFd = peekHBPack;
+//
+//    auto cb = [](){
+//        registerLB();
+//    };
+//    server->addCallbackToLast(cb);
+//}
+
 void *
 GRAKER_SERVER(createIdle)(int agrc_, char *args_[]) {
-    /***/
-    printf("start createIdle()\n");
+    //
+
+    DPrintf("start createIdle()\n");
     // this is in main process, so workspace at top level, we should use bin/extension/... to locate exec_file
     int pipe1[2];
     pipe(pipe1);
-    pipe(yumira::heartbeat::out_pipe);
+    pipe(yumira::idle::out_pipe);
     char buffer[128];
     auto pid_ = fork();
     if (pid_ == 0) {
@@ -87,31 +102,31 @@ GRAKER_SERVER(createIdle)(int agrc_, char *args_[]) {
         if (!boost::filesystem::is_regular_file(f_idle_exec_path, error)) {
             std::cerr << "boost error: " << error.message() << std::endl;
         }
-        dup2(yumira::heartbeat::out_pipe[1], STDOUT_FILENO);
+        dup2(yumira::idle::out_pipe[1], STDOUT_FILENO);
         // send pipe of read fd to child
-        sprintf(buffer, "%d,%d", pipe1[0], yumira::heartbeat::out_pipe[1]);
+        sprintf(buffer, "%d,%d", pipe1[0], yumira::idle::out_pipe[1]);
         auto ret = execl(f_idle_exec_path.c_str(), f_idle_exec_path.c_str(), buffer, (char *) nullptr);
         if (ret == -1) {
-            printf("child process error, %s\n", strerror(errno));
+            DPrintf("child process error, %s\n", strerror(errno));
         }
         // should be unreachable code
         std::exit(-1);
     } else if (pid_ == -1) {
-        printf("fork() error\n");
+        DPrintf("fork() error\n");
         return (void *) -1;
     } else {
         close(pipe1[0]);
         // fork idle thread for server process success
         int n_param = *(int *) args_[0];
         for (int i = 1; i <= n_param; ++i) {
-            printf("parent write str=%s,n_byte=%ld to idle-pipe()\n", args_[i], strlen(args_[i]));
+            DPrintf("parent write str=%s,n_byte=%ld to idle-pipe()\n", args_[i], strlen(args_[i]));
             // should include '\0'
             write(pipe1[1], args_[i], strlen(args_[i]) + 1);
         }
 #ifdef READ_IDLE_STDOUT
         char buf[1024];
         memset(buf, 0, sizeof buf);
-        auto nRead = read(yumira::heartbeat::out_pipe[0], buf, sizeof buf);
+        auto nRead = read(yumira::idle::out_pipe[0], buf, sizeof buf);
         if (nRead != -1)
             fprintf(stdout, "%s\n", buf);
 #endif

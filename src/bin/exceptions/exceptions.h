@@ -10,7 +10,7 @@
 
 class NullPointerException : public std::runtime_error {
 public:
-    explicit NullPointerException(char *msg) : runtime_error(msg) {};
+    explicit NullPointerException(const std::string &msg) : runtime_error(msg) {};
 
 };
 
@@ -30,6 +30,13 @@ public:
     explicit UnAuthorizedException(const char *msg) : runtime_error(msg) {};
 
     UnAuthorizedException() : UnAuthorizedException("UnAuthorizedException") {};
+};
+
+class IndexOutOfRangeException: public  std::runtime_error {
+public:
+    explicit IndexOutOfRangeException(const char *msg) : runtime_error(msg) {};
+
+    IndexOutOfRangeException() : IndexOutOfRangeException("IndexOutOfRange") {};
 };
 
 #endif //REDISTEST_REDISCONNECTFAILEXCEPTION_H

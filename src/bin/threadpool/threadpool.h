@@ -12,5 +12,4 @@
 #include "../all_exception.h"
 #include "abstract_threadpool.h"
 #include "threadpool_impl.h"
-#include "scheduler/threadpool_task_scheduler.h"
 #endif

@@ -2,7 +2,9 @@
 #define TINYWEB_CONFIGURE_H
 
 #include <unordered_map>
+#include "../../config/config.h"
 
+using namespace yumira::dev;
 #define FLUSH_STDOUT(); (fflush(stdout));
 
 using namespace std;
@@ -87,6 +89,9 @@ public:
                      getPropOf<int>("httpConnPoolSize"),
                      getPropOf<int>("disableLogger"),
                      getPropOf<int>("concurrentActor"));
+        idleConfig.REDIS_HOST = getPropOf<string>("redis_host");
+        idleConfig.REDIS_PORT = getPropOf<int>("redis_port");
+        initSqlPool(server);
     }
 };
 

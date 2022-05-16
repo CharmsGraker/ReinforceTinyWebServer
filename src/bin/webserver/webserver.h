@@ -1,19 +1,14 @@
 #pragma once
 #ifndef WEBSERVER_H
 #define WEBSERVER_H
-#define PROJECT_NAME "TINY_WEB"
-
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
-#include <stdio.h>
 #include <unistd.h>
 #include <errno.h>
 #include <fcntl.h>
-#include <stdlib.h>
 #include <cassert>
 #include <sys/epoll.h>
-#include <assert.h>
 
 #include "../threadpool/threadpool.h"
 #include "../timer/lst_timer.h"
@@ -22,6 +17,7 @@
 #include "../config/config.h"
 #include "../http/http_const_declare.h"
 #include "../http/http_conn.h"
+#include "../threadpool/g_threadpool.h"
 
 class SocketHeartBeatThread;
 
@@ -39,8 +35,7 @@ GRAKER_SERVER(createIdle)(int agrc, char *args[]);
 
 #endif
 
-int
-peekHBPack(int conn_fd);
+using namespace yumira::dev;
 
 namespace yumira {
     constexpr static int M_DISABLED_LOG = 1;
@@ -50,7 +45,6 @@ namespace yumira {
     using _Url = url_t;
     using _StorageMap = StorageMap;
 
-    extern std::shared_ptr<LoadBalancer> loadBalancer;
 
     /** about server mode:
      *      Reactor
@@ -61,8 +55,6 @@ namespace yumira {
     extern std::unordered_map<std::string, std::string> serverProviderMap;
 
     // connection to Redis
-    extern string redis_host_;
-    extern int redis_port_;
 
     using httpConnType = http_conn;
     using WebServerType = yumira::WebServer<yumira::httpConnType>;
@@ -76,11 +68,15 @@ namespace yumira {
         int stop_server = 0;
 
         std::string M_MYSQL_URL = "localhost";
-        const char *m_server_ip_;
         int M_DEFAULT_PORT = 3306;
-        const char *severLogPath = "./ServerLog";
+        std::vector<std::function<void(void)>> loop_callbacks;
 
     public:
+        void
+        addCallbackToLast(std::function<void(void)> f) {
+            loop_callbacks.push_back(f);
+        };
+
         WebServer();
 
         ~WebServer() {
@@ -95,9 +91,9 @@ namespace yumira {
             if (users_timer)
                 delete[] users_timer;
             users_timer = nullptr;
-            if (http_conn_pool)
-                delete http_conn_pool;
-            http_conn_pool = nullptr;
+            if (http_thread_pool)
+                delete http_thread_pool;
+            http_thread_pool = nullptr;
             delete m_root;
         }
 
@@ -120,11 +116,20 @@ namespace yumira {
 
         template<class T>
         friend void
-        initSqlPool(WebServer<T> *server);
+        initSqlPool(WebServer<T> *server) {
+            printf("initSqlPool\n");
+            server->m_connPool = connection_pool::builder()
+                    .url(server->M_MYSQL_URL)
+                    .user(server->m_user)
+                    .passWord(server->m_passWord)
+                    .dataBaseName(server->m_databaseName)
+                    .port(server->M_DEFAULT_PORT)
+                    .maxConn(server->m_sql_num)
+                    .close_log(server->m_close_log).build();
 
-        template<class W>
-        friend void
-        initLogger(W *);
+            //初始化数据库读取表
+            server->httpConnForUsers->initmysql_result(server->m_connPool);
+        };
 
         void setTrigMode();
 
@@ -187,11 +192,11 @@ namespace yumira {
         int m_sql_num;
 
         //线程池相关
-        threadPool<HttpConn*> *http_conn_pool;
+        thread_pool *http_thread_pool;
         int m_thread_num;
 
         //epoll_event相关
-        epoll_event epollEvents[MAX_EVENT_NUMBER];
+        epoll_event *epollEvents;
 
         int m_listenfd;
         int SOCKET_OPT_LINGER;

@@ -62,7 +62,7 @@ public:
 
     bool
     addNode(const std::string &key) {
-        printf("invoke addNode()\n");
+//        printf("invoke addNode()\n");
         return doAddNode(key);
     };
 

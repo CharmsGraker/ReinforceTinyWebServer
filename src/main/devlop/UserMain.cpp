@@ -24,7 +24,7 @@ login() {
     cout << "enter to login" << endl;
     if (request->method == POST) {
         //根据标志判断是登录检测还是注册检测
-        printf("enter to login post\n");
+        DPrintf("enter to login post\n");
 
         //将用户名和密码提取出来
         char name[100], password[100];

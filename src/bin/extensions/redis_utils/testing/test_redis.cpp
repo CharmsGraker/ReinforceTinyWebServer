@@ -3,7 +3,6 @@
 
 std::string redisHost = "localhost";
 int redisPort = 6379;
-std::string yumira::REDIS_CLUSTER_KEY = "grakerWebServerLb";
 
 void test_loadbalancer() {
     ////    RedisConnection *redis_conn = new RedisConnection();
@@ -13,7 +12,7 @@ void test_loadbalancer() {
 //    redis_conn->Set("a2", "1");
 
 
-    RedisLoadBalancer redisLoadBalancer(redisHost, redisPort);
+    RedisLoadBalancer redisLoadBalancer(redisHost, redisPort,yumira::REDIS_CLUSTER_KEY);
     cout << redisLoadBalancer.addNode("127.0.0.1:9007") << endl;
     cout << redisLoadBalancer.addNode("127.0.0.1:1907") << endl;
 

@@ -61,7 +61,7 @@ namespace yumira {
         operator=(url_t &&trueUrl) noexcept {
             url = std::move(trueUrl.url);
             fileSize = trueUrl.fileSize();
-            printf("%s\n", __FILE__);
+            DPrintf("in %s\n", __FILE__);
             checkTemplate();
         }
 

@@ -22,7 +22,7 @@ Logger::~Logger() {
 //异步需要设置阻塞队列的长度，同步不需要设置
 bool Logger::init(const char *file_name, int close_log, int log_buf_size, int split_lines, int max_queue_size) {
     //如果设置了max_queue_size,则设置为异步
-    printf("timer register done\n");
+//    printf("timer register done\n");
     m_log_queue = new block_queue<string>(max_queue_size);
     m_timer_.AsyncOnce(&Logger::flush_log_thread, this, nullptr);
 
@@ -154,3 +154,4 @@ void Logger::doFlush() {
     //强制刷新写入流缓冲区
     fflush(m_fp);
 }
+

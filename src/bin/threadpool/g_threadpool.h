@@ -12,7 +12,9 @@
 #include <deque>
 #include <mutex>
 #include <future>
+#include <random>
 #include "../concurrent/threadsafe_queue.h"
+
 class join_threads;
 
 class function_wrapper {
@@ -57,39 +59,51 @@ public:
 };
 
 
-
 class work_stealing_queue {
     typedef function_wrapper data_type;
     std::deque<data_type> the_queue;
     mutable std::mutex the_mutex;
+    int size_;
 public:
-    work_stealing_queue(){};
-    work_stealing_queue(const work_stealing_queue& other)=delete;
-    work_stealing_queue&operator=(const work_stealing_queue& other) =delete;
+    int size() {
+        return size_;
+    }
+
+    work_stealing_queue() : size_(0) {};
+
+    work_stealing_queue(const work_stealing_queue &other) = delete;
+
+    work_stealing_queue &operator=(const work_stealing_queue &other) = delete;
+
     void push(data_type data) {
         std::lock_guard<std::mutex> lock(the_mutex);
         the_queue.push_front(std::move(data));
     }
+
     bool empty() const {
         std::lock_guard<std::mutex> lock(the_mutex);
         return the_queue.empty();
     }
-    bool try_pop(data_type& res) {
+
+    bool try_pop(data_type &res) {
         std::lock_guard<std::mutex> lock(the_mutex);
-        if(the_queue.empty()) {
+        if (the_queue.empty()) {
             return false;
         }
         res = std::move(the_queue.front());
         the_queue.pop_front();
+        --size_;
         return true;
     }
-    bool try_steal(data_type& res) {
+
+    bool try_steal(data_type &res) {
         std::lock_guard<std::mutex> lock(the_mutex);
-        if(the_queue.empty()) {
+        if (the_queue.empty()) {
             return false;
         }
-        res =std::move(the_queue.back());
+        res = std::move(the_queue.back());
         the_queue.pop_back();
+        --size_;
         return true;
     }
 };
@@ -103,47 +117,63 @@ private:
     threadsafe_queue<task_type> pool_work_queue;
 
     std::vector<std::unique_ptr<work_stealing_queue>> queues;
-
+    unsigned int thread_count;
     // work stealing
-    static thread_local  work_stealing_queue * local_queue;
+    static thread_local work_stealing_queue *local_queue;
     static thread_local unsigned int my_index;
 private:
     void
     worker_thread(unsigned my_index_) {
-
         my_index = my_index_;
-        local_queue=queues[my_index].get();
+        local_queue = queues[my_index].get();
         while (!done) {
             run_pending_task();
         }
     }
+
     bool
-    pop_task_from_other_thread_queue(task_type& task) {
-        for(int i=0;i<queues.size();++i) {
+    pop_task_from_other_thread_queue(task_type &task) {
+        for (int i = 0; i < queues.size(); ++i) {
             unsigned const index = (my_index + i) % queues.size();
-            if(queues[index]->try_steal(task)) {
+            if (queues[index]->try_steal(task)) {
                 return true;
             }
         }
         return false;
     }
+
     bool
-    pop_task_from_pool_queue(task_type& task) {
-        pool_work_queue.try_pop(task);
+    pop_task_from_pool_queue(task_type &task) {
+        return pool_work_queue.try_pop(task);
     }
+
     bool
-    pop_task_from_local_queue(task_type& task) {
+    pop_task_from_local_queue(task_type &task) {
         return local_queue && local_queue->try_pop(task);
     }
+
+    int sample_queue_len() {
+        unsigned int n_sample = thread_count / 2;
+        unsigned int n_total = 0;
+        auto curNano = std::chrono::time_point_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now()).time_since_epoch().count();
+        std::default_random_engine re(curNano);
+
+        std::uniform_int_distribution<unsigned int> distribution(0, thread_count - 1);
+        for (auto i = 0; i < n_sample; ++i) {
+            n_total += queues[distribution(re)]->size();
+        }
+        return n_total / n_sample;
+    }
+
 public:
     thread_pool() : done(false), joiner(threads) {
-        unsigned const int thread_count = std::thread::hardware_concurrency();
+        thread_count = std::thread::hardware_concurrency() / 4 * 3;
         try {
             for (unsigned i = 0; i < thread_count; ++i) {
                 queues.push_back(std::unique_ptr<work_stealing_queue>(new work_stealing_queue));
             }
             for (unsigned i = 0; i < thread_count; ++i) {
-                threads.push_back(std::thread(&thread_pool::worker_thread, this,i));
+                threads.push_back(std::thread(&thread_pool::worker_thread, this, i));
             }
         } catch (...) {
             done = true;
@@ -155,14 +185,15 @@ public:
         done = true;
     }
 
-    template<class Function>
-    std::future<typename std::result_of<Function()>::type>
-    submit(Function f) {
-        typedef typename std::result_of<Function()>::type result_type;
-        std::packaged_task<result_type ()> task(f);
+    template<class task_f>
+    std::future<typename std::result_of<task_f()>::type>
+    submit(task_f f) {
+        typedef typename std::result_of<task_f()>::type result_type;
+        std::packaged_task<result_type()> task(f);
         std::future<result_type> res(task.get_future());
-        if(local_queue) {
-            local_queue->push(std::move(task));
+        auto thread_q = queues[std::rand() % thread_count].get();
+        if (thread_q->size() <= sample_queue_len()) {
+            thread_q->push(std::move(task));
         } else {
             pool_work_queue.push(std::move(task));
         }
@@ -172,12 +203,18 @@ public:
     void
     run_pending_task() {
         task_type task;
-        if(pop_task_from_local_queue(task) || pop_task_from_pool_queue(task) || pop_task_from_other_thread_queue(task)) {
+        if (pop_task_from_local_queue(task) || pop_task_from_pool_queue(task) ||
+            pop_task_from_other_thread_queue(task)) {
             task();
         } else {
             std::this_thread::yield();
         }
     }
 };
+//void
+//init()__attribute__((constructor())) {
+//
+//}
+
 
 #endif //TINYWEB_G_THREADPOOL_H

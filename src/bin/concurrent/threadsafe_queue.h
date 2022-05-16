@@ -98,7 +98,7 @@ private:
 template<typename T>
 void threadsafe_queue<T>::push(T&& new_value) {
     std::shared_ptr<T> new_data(std::make_shared<T>(std::move(new_value)));
-    printf("invoke push\n");
+//    printf("invoke push\n");
     std::unique_ptr<node> p(new node);
     {
         std::lock_guard<std::mutex> tail_lock(tail_mutex);
@@ -135,7 +135,7 @@ template<typename T>
 bool
 threadsafe_queue<T>::try_pop(T &value) {
     std::unique_ptr<node> const old_head = try_pop_head(value);
-    return old_head;
+    return old_head.get() != nullptr;
 }
 
 #endif //TINYWEB_THREADSAFE_QUEUE_H

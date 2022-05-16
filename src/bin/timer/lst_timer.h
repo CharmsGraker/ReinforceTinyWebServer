@@ -38,9 +38,9 @@ typedef st_client_data client_data_t;
 struct util_timer {
     time_t expire;
 
-    util_timer() : prev(nullptr), next(nullptr),removeCallback(nullptr),closeCallBack(nullptr) {}
+    util_timer() : prev(nullptr), next(nullptr), removeCallback(nullptr), closeCallBack(nullptr) {}
 
-    std::function<void(st_client_data*)> closeCallBack;
+    std::function<void(st_client_data *)> closeCallBack;
 
     st_client_data *user_data;
     util_timer *prev;
@@ -78,22 +78,39 @@ public:
     void init(int timeslot);
 
     //对文件描述符设置非阻塞
-    int setNonBlocking(int fd);
+    static int setNonBlocking(int fd);
 
+    static
     //将内核事件表注册读事件，ET模式，选择开启EPOLLONESHOT
-    void regist_fd(const int& epollfd, int fd, bool one_shot, int TRIGMode);
+    void regist_fd(const int &epollfd, int fd, bool one_shot, int TRIGMode);
 
     //信号处理函数
     static void sig_handler(int sig);
 
     //设置信号函数
-    void addsig(int sig, void(handler)(int), bool restart = true);
+    static void addsig(int sig, void(handler)(int), bool restart = true);
 
     //定时处理任务，重新定时以不断触发SIGALRM信号
     void timer_handler();
 
     void show_error(int connfd, const char *info);
 
+    //将事件重置为EPOLLONESHOT
+    static void modfd(int epollfd, int fd, int event_type, int TRIGMode) {
+        epoll_event event;
+        event.data.fd = fd;
+
+        if (1 == TRIGMode)
+            event.events = event_type | EPOLLET | EPOLLONESHOT | EPOLLRDHUP;
+        else
+            event.events = event_type | EPOLLONESHOT | EPOLLRDHUP;
+
+        epoll_ctl(epollfd, EPOLL_CTL_MOD, fd, &event);
+    }
+    static void removefd(int epollFd,int sockFd) {
+        epoll_ctl(epollFd, EPOLL_CTL_DEL, sockFd, nullptr);
+
+    }
 public:
     static int *u_pipefd;
     sort_timer_lst m_timer_lst;

@@ -23,6 +23,7 @@ aux_source_directory(src/bin/http DIR_HTTP_SRCS)
 aux_source_directory(src/bin/http/http_outstream DIR_HTTP_OUTSTREAM_SRCS)
 aux_source_directory(src/bin/extensions/xml_utils DIR_XML_UTILS_SRCS)
 aux_source_directory(src/bin/extensions/loadbalancer DIR_LOADBALANCER_SRCS)
+
 aux_source_directory(src/bin/extensions/string_utils DIR_STRING_UTILS_SRCS)
 aux_source_directory(src/bin/socket DIR_SOCKET_SRCS)
 aux_source_directory(src/bin/extensions/heartbeats DIR_HEARTBEATS_SRCS)
@@ -43,10 +44,13 @@ aux_source_directory(src/bin/CGImysql DIR_CGIMYSQL_SRCS)
 aux_source_directory(src/bin/extensions/security/ DIR_SECURITY_SRCS)
 aux_source_directory(src/bin/Interceptor/ DIR_INTERCEPTORS_SRCS)
 aux_source_directory(src/bin/registry/InterceptorRegistry DIR_INTERCEPTOR_REGISTRY_SRCS)
+
+aux_source_directory(src/bin/debug DIR_DEBUG_UTILS)
 add_executable(tinyWebMain src/main/main.cpp ${DIR_CUR_SRCS} ${DIR_TIMER_SRCS} ${DIR_HTTP_OUTSTREAM_SRCS}
         ${DIR_WEBSERVER_SRCS}
         ${DIR_THREADPOOL_SCHEDULER_SRCS}
         ${DIR_THREADPOOL_SRCS}
+        ${DIR_DEBUG_UTILS}
         src/bin/ClassHolder.h
         ${DIR_SECURITY_SRCS}
         ${DIR_INTERCEPTORS_SRCS}
@@ -68,6 +72,7 @@ add_executable(tinyWebMain src/main/main.cpp ${DIR_CUR_SRCS} ${DIR_TIMER_SRCS} $
         ${DIR_XML_UTILS_SRCS}
         ${DIR_CONTAINER_SRCS}
         ${DIR_CGIMYSQL_SRCS}
+        src/bin/threadpool/g_threadpool.cpp
         ${DIR_CONCURRENT_SRCS})
 
 

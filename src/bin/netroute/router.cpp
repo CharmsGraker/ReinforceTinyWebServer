@@ -33,7 +33,7 @@ URL_STATUS Router::__view(void *environment) {
     auto safeCall = std::bind([](HttpInterceptor *interceptor) {
         try {
             pushContext(interceptor, request);
-            printf("invoke interceptor\n");
+            DPrintf("invoke interceptor\n");
             interceptor->invoke();
             clearnContext(interceptor);
 
@@ -50,12 +50,12 @@ URL_STATUS Router::__view(void *environment) {
     }
     auto resString = view_handler();
     if (resString.rfind('.') != resString.npos) {
-        printf("file request in %s\n", __FILE__);
+        DPrintf("file request: %s in %s\n",resString.c_str(), __FILE__);
         request->parsedUrl = url_t(resString);
         return VALID_URL;
     } else {
         // return raw str
-        printf("raw request in %s\n", __FILE__);
+        DPrintf("raw request in %s\n", __FILE__);
 
         request->result = resString;
     }

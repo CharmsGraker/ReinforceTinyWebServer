@@ -292,7 +292,7 @@ public:
 
     bool
     tryConnect(const std::string &host, int port, int n_times) {
-        n_times = max(min(n_times, 10), 1);
+        n_times = max(min(n_times, 5), 1);
         while (n_times--) {
             if (Connect(host, port))
                 return true;

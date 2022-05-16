@@ -11,8 +11,11 @@ int yumira::http_conn::m_epollfd = -1;
 int threshold = 1; // yumira::MAX_FD / 5;
 std::function<Request *()> f_ = Request::Create;
 
+
 namespace yumira {
     Locker m_lock;
+    bool debug::debug_flag = false;
+
     std::map<std::string, std::string> userTable;
     extern std::unordered_map<std::string, std::string> serverProviderMap;
     Environment *environment = nullptr;
@@ -46,7 +49,7 @@ void yumira::http_conn::initLoadBalancer() {
 //    if (loadBalancer)
 //        loadBalancer = new LoadBalancer();
 //    else
-    printf("init loadBalancer\n");
+    DPrintf("init loadBalancer\n");
 
 }
 
@@ -85,21 +88,6 @@ int setnonblocking(int fd) {
     return old_option;
 }
 
-//将内核事件表注册读事件，ET模式，选择开启EPOLLONESHOT
-void addfd(int epollfd, int fd, bool one_shot, int TRIGMode) {
-    epoll_event event;
-    event.data.fd = fd;
-
-    if (1 == TRIGMode)
-        event.events = EPOLLIN | EPOLLET | EPOLLRDHUP;
-    else
-        event.events = EPOLLIN | EPOLLRDHUP;
-
-    if (one_shot)
-        event.events |= EPOLLONESHOT;
-    epoll_ctl(epollfd, EPOLL_CTL_ADD, fd, &event);
-    setnonblocking(fd);
-}
 
 //从内核时间表删除描述符
 void removefd(int epollfd, int fd) {
@@ -107,24 +95,11 @@ void removefd(int epollfd, int fd) {
     close(fd);
 }
 
-//将事件重置为EPOLLONESHOT
-void modfd(int epollfd, int fd, int ev, int TRIGMode) {
-    epoll_event event;
-    event.data.fd = fd;
-
-    if (1 == TRIGMode)
-        event.events = ev | EPOLLET | EPOLLONESHOT | EPOLLRDHUP;
-    else
-        event.events = ev | EPOLLONESHOT | EPOLLRDHUP;
-
-    epoll_ctl(epollfd, EPOLL_CTL_MOD, fd, &event);
-}
-
 
 //关闭连接，关闭一个连接，客户总量减一
 void yumira::http_conn::close_conn(bool real_close) {
     if (real_close && (m_sockfd != -1)) {
-        printf("close socket fd=%d\n", m_sockfd);
+        DPrintf("close socket fd=%d\n", m_sockfd);
         removefd(m_epollfd, m_sockfd);
         m_sockfd = -1;
         m_user_count--;
@@ -136,7 +111,7 @@ void yumira::http_conn::close_conn(bool real_close) {
 void yumira::http_conn::init() {
     ++m_user_count;
 
-    addfd(m_epollfd, m_sockfd, true, m_TRIGMode);
+    Utils::regist_fd(m_epollfd, m_sockfd, true, m_TRIGMode);
     __init__();
 
 }
@@ -164,6 +139,7 @@ yumira::http_conn::__init__() {
     timer_flag = 0;
     improv = 0;
     m_json_obj = nullptr;
+    complete_callback = nullptr;
     memset(m_read_buf, '\0', READ_BUFFER_SIZE);
     memset(m_write_buf, '\0', WRITE_BUFFER_SIZE);
     memset(m_real_file, '\0', FILENAME_LEN);
@@ -220,6 +196,7 @@ yumira::http_conn::read_once() {
         //ET读数据
         while (true) {
             bytes_read = recv(m_sockfd, m_read_buf + m_read_idx, READ_BUFFER_SIZE - m_read_idx, 0);
+
             printf("ET\n");
             if (bytes_read == -1) {
                 if (errno == EAGAIN || errno == EWOULDBLOCK)
@@ -244,14 +221,14 @@ yumira::http_conn::parse_request_line(char *text) {
         return BAD_REQUEST;
     }
     *m_url++ = '\0';
-    printf("get url: %s\n", m_url);
+    DPrintf("get url: %s\n", m_url);
 
     char *method = text;
     if (strcasecmp(method, "GET") == 0) {
-//        printf("GET request arrived\n");
+//        DPrintf("GET request arrived\n");
         m_method = GET;
     } else if (strcasecmp(method, "POST") == 0) {
-        printf("POST request arrived\n");
+        DPrintf("POST request arrived\n");
         m_method = POST;
         cgi = 1;
     } else
@@ -261,7 +238,7 @@ yumira::http_conn::parse_request_line(char *text) {
         return BAD_REQUEST;
     }
 
-    printf("url:%s\n", m_url);
+    DPrintf("url:%s\n", m_url);
 
     if (strcasecmp(m_version, "HTTP/1.1") != 0)
         return BAD_REQUEST;
@@ -286,7 +263,7 @@ yumira::http_conn::parse_request_line(char *text) {
     if (strlen(m_url) == 1)
         strcat(m_url, INDEX_HTML_FILENAME);
     m_check_state = CHECK_STATE_HEADER;
-//    printf("raw_url: %s, m_string=%s\n", m_url, m_string);
+//    DPrintf("raw_url: %s, m_string=%s\n", m_url, m_string);
 
     return NO_REQUEST;
 }
@@ -296,7 +273,7 @@ yumira::http_conn::parse_request_line(char *text) {
 yumira::http_conn::HTTP_CODE
 yumira::http_conn::parse_headers(char *text) {
     // has new http request can reach this method,log this will look up http exchange so many message
-//    printf("\t%s\n", text);
+//    DPrintf("\t%s\n", text);
 
     if (text[0] == '\0') {
         if (m_content_length != 0) {
@@ -345,7 +322,7 @@ yumira::http_conn::parse_content(char *content) {
                 m_json_obj->clear();
             }
             if (!reader.parse(content, *m_json_obj)) {
-                printf("parse Json error!\n");
+                DPrintf("parse Json error!\n");
             };
             request = ThreadLocal::GetOrCreate("request", f_);
             request->setJsonObject(*m_json_obj);
@@ -371,7 +348,7 @@ yumira::http_conn::process_read() {
         switch (m_check_state) {
             case CHECK_STATE_REQUESTLINE: {
                 ret = parse_request_line(text);
-//                printf("out of request line, m_url=%s\n", m_url);
+//                DPrintf("out of request line, m_url=%s\n", m_url);
                 if (ret == BAD_REQUEST)
                     return BAD_REQUEST;
                 else
@@ -380,7 +357,7 @@ yumira::http_conn::process_read() {
             case CHECK_STATE_HEADER: {
                 // the m_url will be set at this case
                 ret = parse_headers(text);
-//                printf("out of header parse, m_url=%s\n", m_url);
+//                DPrintf("out of header parse, m_url=%s\n", m_url);
 
                 if (ret == BAD_REQUEST)
                     return BAD_REQUEST;
@@ -395,25 +372,24 @@ yumira::http_conn::process_read() {
                 ret = parse_content(text);
 
                 // enable load balance, need rejudge the url and redirect
-                if (m_user_count > threshold && loadBalancer.get() && loadBalancer->isAlive()) {
-                    InetAddress currentInetAddress(connIp, connPort);
-                    // register currentNode if necessary
-                    loadBalancer->addNode(currentInetAddress.toString());
-                    // select node for current url (as key)
-                    auto newServerInetAddressStr = loadBalancer->select(m_url);
-                    if (not currentInetAddress.isEqual(newServerInetAddressStr)) {
-                        //        auto newServerInetAddressStr = InetAddress{connIp, 18000}.toString();
-                        printf("[info] trigger loadBalance to %s \n",
-                               newServerInetAddressStr.c_str());
-                        string old_url = m_url;
-                        if (m_method == POST) {
-                            old_url += '?';
-                            old_url += m_string;
-                        }
-                        http_response->addLocation("http://" + newServerInetAddressStr + old_url);
-                        return PERMANENTLY_REDIRECT;
-                    }
-                }
+//                if (m_user_count > threshold && loadBalancer.get() && loadBalancer->isAlive()) {
+//                    // register currentNode if necessary
+
+//                    // select node for current url (as key)
+//                    auto newServerInetAddressStr = loadBalancer->select(m_url);
+//                    if (not currentInetAddress.isEqual(newServerInetAddressStr)) {
+//                        //        auto newServerInetAddressStr = InetAddress{connIp, 18000}.toString();
+//                        DPrintf("[info] trigger loadBalance to %s \n",
+//                               newServerInetAddressStr.c_str());
+//                        string old_url = m_url;
+//                        if (m_method == POST) {
+//                            old_url += '?';
+//                            old_url += m_string;
+//                        }
+//                        http_response->addLocation("http://" + newServerInetAddressStr + old_url);
+//                        return PERMANENTLY_REDIRECT;
+//                    }
+//                }
                 if (ret == GET_REQUEST)
                     return do_request();
                 line_status = LINE_OPEN;
@@ -444,12 +420,13 @@ yumira::http_conn::do_request() {
 
         {
             if (m_string) {
+                DPrintf("m_string=%s\n", m_string);
                 relative_url_path = to_fill_route(m_url) + string(m_string);
             } else {
                 relative_url_path = string(m_url);
             }
         }
-        printf("relative_url: %s\n", relative_url_path.c_str());
+        DPrintf("relative_url: %s\n", relative_url_path.c_str());
         strcpy(m_real_file, doc_root);
 
         int len_root_path = strlen(doc_root);
@@ -466,8 +443,8 @@ yumira::http_conn::do_request() {
                 // traverse blueprint(s) to handle this request
                 for (auto &bp: getInterceptors()) {
                     bp->set_prefix();
-                    //printf("loop bp:%s\n", bp->get_bp_name().c_str());
-                    //printf("%d\n", bp);
+                    //DPrintf("loop bp:%s\n", bp->get_bp_name().c_str());
+                    //DPrintf("%d\n", bp);
                     if ((route_handler = bp->canDealWith(request)) != nullptr) {
                         // the request actual method type won't be check here. it let user to determine that.
                         URL_STATUS ret;
@@ -478,13 +455,13 @@ yumira::http_conn::do_request() {
                         } else if (ret & URL_STATUS::RESOURCE_NOT_FOUND) {
 
                         } else if (ret == URL_STATUS::FORBIDDEN) {
-                            printf("forbidden request\n");
+                            DPrintf("forbidden request\n");
                             return FORBIDDEN_REQUEST;
                         }
 
                         // check status here, so this is a recurrent point
                         if (request->getParsedUrl().isResource()) {
-                            printf("do_request() at %s\n", __FILE__);
+                            DPrintf("do_request() at %s\n", __FILE__);
                             // ask for file like html
                             // concat full path pointer to file
                             const char *real_url = request->getParsedUrl().getUrl().c_str();
@@ -498,7 +475,7 @@ yumira::http_conn::do_request() {
                     }
                 }
                 if (_need_remake_request()) {
-//                    printf("[INFO] remake request...\n");
+//                    DPrintf("[INFO] remake request...\n");
                     continue;
                 }
 
@@ -517,21 +494,21 @@ yumira::http_conn::do_request() {
         }
         if (!request->getParsedUrl().isResource()) {
 
-            printf("RAW REQUEST\n");
-            printf("%s\n", request->getParsedUrl().url.c_str());
+            DPrintf("RAW REQUEST\n");
+            DPrintf("%s\n", request->getParsedUrl().url.c_str());
             return RAW_REQUEST;
         }
         mapFile:
-        printf("file request arrived \n");
+        DPrintf("file request arrived \n");
         // set href file here
         if (request->getParsedUrl().useTemplate()) {
-            printf("use template\n");
+            DPrintf("use template\n");
             auto url = request->getParsedUrl();
             cout << url.url << endl;
             resetRealFile(url.url.c_str(), url.url.size());
             // clean status
             ThreadLocal::put("template:enable", 0);
-            printf("m_real_file=%s\n", m_real_file);
+            DPrintf("m_real_file=%s\n", m_real_file);
 
         }
         auto noSuchFile = [this]() { return stat(m_real_file, &m_file_stat) < 0; };
@@ -540,25 +517,25 @@ yumira::http_conn::do_request() {
 
         // init file here
         if (noSuchFile()) {
-            printf("NO_RESOURCE\n");
+            DPrintf("NO_RESOURCE\n");
 
             return NO_RESOURCE;
         }
 
         if (noPermissionToAccessFile()) {
-            printf("FORBIDDEN_REQUEST\n");
+            DPrintf("FORBIDDEN_REQUEST\n");
 
             return FORBIDDEN_REQUEST;
         }
 
         if (is_folder()) {
-            printf("BAD_REQUEST\n");
+            DPrintf("BAD_REQUEST\n");
 
             return BAD_REQUEST;
         }
 
         __map_file_into_cache();
-        printf("FILE_REQUEST\n");
+        DPrintf("FILE_REQUEST\n");
         return FILE_REQUEST;
     }
 }
@@ -568,12 +545,12 @@ yumira::http_conn::__map_file_into_cache() {
     /**
      *  do open file description
      * */
-    printf("file path:%s\n",m_real_file);
+    DPrintf("file path:%s\n", m_real_file);
     int fd = open(m_real_file, O_RDONLY);
     if (errno != 0) {
         fprintf(stderr, "error when open %s\n", strerror(errno));
     }
-//    printf("[INFO] read file from storage: %s\n", m_real_file);
+//    DPrintf("[INFO] read file from storage: %s\n", m_real_file);
 
     // projection file to memory cache
     m_file_address = (char *) mmap(nullptr, m_file_stat.st_size, PROT_READ, MAP_PRIVATE, fd, 0);
@@ -591,9 +568,10 @@ yumira::http_conn::unmap() {
 bool
 yumira::http_conn::write() {
     int temp = 0;
-
+    m_state = 1;
+//    printf("write\n");
     if (bytes_to_send == 0) {
-        modfd(m_epollfd, m_sockfd, EPOLLIN, m_TRIGMode);
+        Utils::modfd(m_epollfd, m_sockfd, EPOLLIN, m_TRIGMode);
         __init__();
         return true;
     }
@@ -603,7 +581,7 @@ yumira::http_conn::write() {
 
         if (temp < 0) {
             if (errno == EAGAIN) {
-                modfd(m_epollfd, m_sockfd, EPOLLOUT, m_TRIGMode);
+                Utils::modfd(m_epollfd, m_sockfd, EPOLLOUT, m_TRIGMode);
                 return true;
             }
             unmap();
@@ -623,8 +601,8 @@ yumira::http_conn::write() {
 
         if (bytes_to_send <= 0) {
             unmap();
-            modfd(m_epollfd, m_sockfd, EPOLLIN, m_TRIGMode);
-
+            Utils::modfd(m_epollfd, m_sockfd, EPOLLIN, m_TRIGMode);
+            m_state = 0;
             if (m_linger) {
                 __init__();
                 return true;
@@ -728,7 +706,7 @@ yumira::http_conn::process_write(yumira::http_conn::HTTP_CODE ret) {
         case PERMANENTLY_REDIRECT: {
             add_status_line(http_message::response::header<301>());
             auto location = http_response->get("Location");
-            printf("redirect to location: %s\n", location.c_str());
+            DPrintf("redirect to location: %s\n", location.c_str());
             add_location((char *) location.c_str());
 
             add_headers(strlen(http_message::response::redirect_301_form));
@@ -737,7 +715,7 @@ yumira::http_conn::process_write(yumira::http_conn::HTTP_CODE ret) {
             break;
         }
         case FILE_REQUEST: {
-            printf("response file request\n");
+            DPrintf("response file request\n");
             add_status_line(http_message::response::header<200>());
             if (m_file_stat.st_size != 0) {
                 add_headers(m_file_stat.st_size);
@@ -770,18 +748,17 @@ void
 yumira::http_conn::process() {
     HTTP_CODE read_ret;
     {
-        printf("construct httpResponse\n");
+        DPrintf("construct httpResponse\n");
         http_response = new HttpResponse;
         http_response->clear();
         if ((read_ret = process_read()) == NO_REQUEST) {
             // failed request, wait for connect again
-            modfd(m_epollfd, m_sockfd, EPOLLIN, m_TRIGMode);
+            Utils::modfd(m_epollfd, m_sockfd, EPOLLIN, m_TRIGMode);
             delete http_response;
             http_response = nullptr;
-
             return;
         }
-        printf("process_read() done\n");
+        DPrintf("process_read() done\n");
         // send our response to web browser, we first write then close if necessary
         if (!(process_write(read_ret))) {
             close_conn();
@@ -790,7 +767,7 @@ yumira::http_conn::process() {
         http_response = nullptr;
     }
 
-    modfd(m_epollfd, m_sockfd, EPOLLOUT, m_TRIGMode);
+    Utils::modfd(m_epollfd, m_sockfd, EPOLLOUT, m_TRIGMode);
 }
 
 void
@@ -811,7 +788,6 @@ yumira::http_conn::~http_conn() {
     delete builder_;
     delete request;
     request = nullptr;
-    loadBalancer = nullptr;
     builder_ = nullptr;
 
     for (auto &blueprint: getInterceptors()) {
@@ -825,7 +801,7 @@ yumira::http_conn::~http_conn() {
 
 void close_user_fd(client_data_t *user_data) {
     // remove client fd from epoll moniter
-    epoll_ctl(Utils::u_epollfd, EPOLL_CTL_DEL, user_data->sockfd, nullptr);
+    Utils::removefd(Utils::u_epollfd, user_data->sockfd);
     assert(user_data);
     close(user_data->sockfd);
     yumira::http_conn::decrease_active_user(1);

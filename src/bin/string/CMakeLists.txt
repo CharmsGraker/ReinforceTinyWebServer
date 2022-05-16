@@ -1,0 +1,8 @@
+cmake_minimum_required(VERSION 3.21)
+project(stringFormat)
+set(CMAKE_CXX_FLAGS " -std=c++17 ${CAMKE_CXX_FLAGS}")
+set(CMAKE_CXX_STANDARD 17)
+add_executable(stringFormat test/string_test.cpp string.h)
+find_package(jsoncpp CONFIG REQUIRED)
+target_link_libraries(stringFormat PRIVATE jsoncpp_object jsoncpp_static JsonCpp::JsonCpp)
+#target_link_libraries(threadsafe_queue_test pthread)

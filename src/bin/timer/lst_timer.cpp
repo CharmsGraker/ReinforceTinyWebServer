@@ -143,6 +143,8 @@ int Utils::setNonBlocking(int fd) {
 
 //将内核事件表注册读事件，ET模式，选择开启EPOLLONESHOT
 void Utils::regist_fd(const int& epoll_fd, int fd, bool one_shot, int TRIGMode) {
+    if(epoll_fd < 0 || fd < 0)
+        throw std::exception();
     epoll_event event{};
     event.data.fd = fd;
 

@@ -23,9 +23,12 @@ class CTimer;
 namespace yumira {
     namespace heartbeat {
         extern std::unordered_set<std::string> exclude_address_;
-
     }
 }
+
+int
+peekHBPack(int conn_fd);
+
 struct HeartBeatPack {
     static int MAGIC;
     int magicNum = MAGIC;

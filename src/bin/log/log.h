@@ -10,9 +10,10 @@
 #include "../timer/CTimer.h"
 #include <boost/noncopyable.hpp>
 #include "../singletonFactory/singletonFatory.h"
+#include "../config/config.h"
 
 using namespace std;
-
+using namespace yumira::dev;
 template<class S>
 class Stream {
 public:
@@ -28,6 +29,7 @@ public:
 
 };
 
+class LoggerFactory;
 
 class Logger : public boost::noncopyable {
     CTimer m_timer_;
@@ -63,6 +65,8 @@ public:
 
     void write_log(int level, const char *format, ...);
 
+    template<class W>
+    static void init(W * server);
 private:
 
 private:
@@ -93,21 +97,15 @@ public:
     }
 };
 
+template<class W>
+void Logger::init(W * server) {
+    if (0 == server->m_close_log) {
+        //初始化日志
+        LoggerFactory::Get().init(static_cast<const char *>(commonConfig.severLogPath), server->m_close_log, 2000, 800000, 200);
+    }
+}
 #define LOG_DEBUG(format, ...) {Logger::Write(0, format, ##__VA_ARGS__); Logger::Flush();}
 #define LOG_INFO(format, ...)  {LoggerFactory::Write(1, format, ##__VA_ARGS__); LoggerFactory::Flush();}
 #define LOG_WARN(format, ...)  {LoggerFactory::Write(2, format, ##__VA_ARGS__); LoggerFactory::Flush();}
 #define LOG_ERROR(format, ...)  {LoggerFactory::Write(3, format, ##__VA_ARGS__); LoggerFactory::Flush();}
-
-namespace yumira {
-
-    template<class Server>
-    void
-    initLogger(Server *server) {
-        if (0 == server->m_close_log) {
-            //初始化日志
-            LoggerFactory::Get().init(server->severLogPath, server->m_close_log, 2000, 800000, 200);
-        }
-    }
-}
-
 #endif

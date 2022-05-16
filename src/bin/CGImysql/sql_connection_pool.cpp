@@ -64,25 +64,7 @@ MYSQL *connection_pool::getConnection() {
     return con;
 }
 
-//释放当前使用的连接
-bool connection_pool::releaseConnection(MYSQL *con) {
-    if (nullptr == con)
-        return false;
-    lock.lock();
-    try {
 
-        connList.push_back(con);
-        ++m_FreeConn, --m_CurConn;
-
-        lock.unlock();
-
-        reserve.post();
-    } catch (exception &e) {
-        lock.unlock();
-        e.what();
-    }
-    return true;
-}
 
 //销毁数据库连接池
 void connection_pool::destroyPool() {
@@ -114,13 +96,3 @@ connection_pool::~connection_pool() {
     destroyPool();
 }
 
-connectionRAII::connectionRAII(MYSQL **SQL, connection_pool *connPool) {
-    *SQL = connPool->getConnection();
-
-    conRAII = *SQL;
-    poolRAII = connPool;
-}
-
-connectionRAII::~connectionRAII() {
-    poolRAII->releaseConnection(conRAII);
-}

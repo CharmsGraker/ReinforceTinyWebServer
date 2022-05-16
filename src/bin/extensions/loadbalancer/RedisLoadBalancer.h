@@ -7,24 +7,29 @@
 
 #include "LoadBalancer.h"
 
-namespace yumira {
-    extern std::string REDIS_CLUSTER_KEY;
-
-}
 class RedisConnection;
 
 class RedisLoadBalancer final : public LoadBalancer {
+    std::string r_host = "";
+    int r_port = -1;
     RedisConnection *redisConn_;
-    std::string lbGroupName_ = yumira::REDIS_CLUSTER_KEY;
+    std::string lbGroupName_;
     bool alive_;
 public:
+    RedisLoadBalancer(const std::string &host, int port, const std::string &lbGroupName);
+
+    RedisLoadBalancer(const InetAddress &address,
+                      const std::string &lbGroupName = "") : RedisLoadBalancer(
+            address.getHost(),
+            address.getPort(),
+            lbGroupName) {
+    };
+
+    RedisLoadBalancer(RedisConnection *connection, const std::string &lbGroupName = "");
+
     RedisLoadBalancer() = delete;
 
-    RedisLoadBalancer(const std::string &host, int port);
-
-
-    RedisLoadBalancer(RedisConnection *connection);
-
+    RedisLoadBalancer(RedisLoadBalancer &) = delete;
 
     ~RedisLoadBalancer();
 

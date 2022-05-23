@@ -7,45 +7,33 @@
 
 #include <string>
 #include <map>
+#include <boost/noncopyable.hpp>
+#include <algorithm>
+#include <cstring>
 
-struct BaseClassHolder {
-
+class ClassRegistry;
+struct class_holder {
+    virtual const char *
+    getClassName()=0;
 };
-
-extern std::map<std::string, BaseClassHolder *> registerMap;
 
 template<typename T>
 struct ClassHolder;
 
 template<typename T>
-void
-registerType(const std::string &className) {
-    registerMap[className] = new ClassHolder<T>();
-
-}
-
-template<typename T>
-void
-unloadType(const std::string &className) {
-    auto iter = registerMap.find(className);
-    if (iter != registerMap.end()) {
-        delete iter->second;
-        registerMap.erase(iter);
-    }
-}
-
-template<typename T>
-struct ClassHolder : public BaseClassHolder {
+struct ClassHolder : public class_holder {
+    T *p = nullptr;
     typedef T class_type;
 
-    ClassHolder(const std::string &className) : class_name(className) {
-        registerType<T>(className);
+    const char * getClassName() override {
+        auto class_name = typeid(class_type).name();
+        return std::find_if(class_name,class_name + strlen(class_name),[](char c){return isalpha(c);});
+    }
+    ClassHolder() {
     }
 
     explicit operator T *() {
     }
-
-    std::string class_name;
 };
 
 

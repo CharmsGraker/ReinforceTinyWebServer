@@ -14,7 +14,10 @@
 
 #include "../../Interceptor/HttpInterceptor.h"
 #include "InterceptorRegexNode.h"
+#include "../../reflect/Reflector.h"
 #include <regex>
+
+#define interceptor_registry() (interceptorRegistry);
 
 class InterceptorRegistry {
 public:
@@ -23,16 +26,17 @@ public:
         return SingletonFactory<InterceptorRegistry>::Get();
     };
 
-    template<class In>
     void
-    addInterceptor(const std::string &urlPattern);
+    addInterceptor(class_holder * &&holder, const std::string &urlPattern);
 
     std::vector<HttpInterceptor *>
     matchPattern(const std::string &routUrl) {
         printf("invoke matchPattern(urlPattern=%s) %s\n", routUrl.c_str(), __FILE__);
         std::vector<HttpInterceptor *> results;
         std::smatch match_;
+        printf("urlRegexMap size=%d\n",urlRegexMap.size());
         for (auto &&p: urlRegexMap) {
+            printf("pattern=%s\n",p.first.c_str());
             std::regex regexP(p.first);
             try {
                 if (std::regex_match(routUrl, match_, regexP)) {
@@ -41,6 +45,8 @@ public:
                     for (auto &in: p.second) {
                         results.push_back(in);
                     }
+                    printf("result size=%d\n",results.size());
+                    return results;
                 }
             } catch (exception &e) {
                 e.what();
@@ -56,14 +62,6 @@ private:
     unordered_map<std::string, vector<HttpInterceptor *>> urlRegexMap;
 };
 
-template<class In>
-void InterceptorRegistry::addInterceptor(const std::string &urlRegex) {
-    auto iter = urlRegexMap.find(urlRegex);
-    if (iter == urlRegexMap.end()) {
-        urlRegexMap[urlRegex] = vector<HttpInterceptor *>();
-        iter = urlRegexMap.find(urlRegex);
-    }
-    iter->second.push_back(new In());
-}
+extern InterceptorRegistry interceptorRegistry;
 
 #endif //REDISTEST_INTERCEPTORREGISTRY_H

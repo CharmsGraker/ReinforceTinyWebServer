@@ -50,6 +50,7 @@ add_executable(tinyWebMain src/main/main.cpp ${DIR_CUR_SRCS} ${DIR_TIMER_SRCS} $
         ${DIR_WEBSERVER_SRCS}
         ${DIR_THREADPOOL_SCHEDULER_SRCS}
         ${DIR_THREADPOOL_SRCS}
+        src/bin/poller/epoller.cpp
         ${DIR_DEBUG_UTILS}
         src/bin/ClassHolder.h
         ${DIR_SECURITY_SRCS}

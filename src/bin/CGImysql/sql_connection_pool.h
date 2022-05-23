@@ -139,9 +139,10 @@ class connectionRAII {
         typedef M conn_type;
         connection_pool *pool;
 
-        M* getConn() {
-           return conRAII;
+        M *getConn() {
+            return conRAII;
         }
+
         conn_impl(M *con, connection_pool *pool_) : conRAII(con), pool(pool_) {}
 
         ~conn_impl() override {
@@ -153,14 +154,14 @@ class connectionRAII {
 public:
     template<class M>
     connectionRAII(M **con, connection_pool *pool):connImpl(new conn_impl{pool->getConnection(), pool}) {
-        *con = ((conn_impl<M>*)(connImpl.get()))->getConn();
+        *con = ((conn_impl<M> *) (connImpl.get()))->getConn();
     };
 
     ~connectionRAII() = default;
-
-private:
-
 };
+
+
+
 //释放当前使用的连接
 template<class M>
 bool connection_pool::releaseConnection(M *con) {
@@ -181,4 +182,5 @@ bool connection_pool::releaseConnection(M *con) {
     }
     return true;
 }
+
 #endif

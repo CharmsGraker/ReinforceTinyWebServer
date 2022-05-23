@@ -4,24 +4,20 @@
 #include "HttpResponse.h"
 #include "../socket/InetAddress.h"
 #include "../extensions/loadbalancer/LoadBalancer.h"
+#include "../gutils/resource_raii.h"
+#include "../poller/epoller.h"
 
 // static init
-int yumira::http_conn::m_user_count = 0;
-int yumira::http_conn::m_epollfd = -1;
-int threshold = 1; // yumira::MAX_FD / 5;
+atomic_int32_t yumira::http_conn::m_user_count = 0;
 std::function<Request *()> f_ = Request::Create;
 
-
 namespace yumira {
-    Locker m_lock;
-    bool debug::debug_flag = false;
+    bool debug::debug_flag = true;
+    Locker m_lock{};
 
     std::map<std::string, std::string> userTable;
-    extern std::unordered_map<std::string, std::string> serverProviderMap;
     Environment *environment = nullptr;
     thread_local Request *request = nullptr;
-    extern const char *connIp;
-    extern int connPort;
 
     std::unordered_set<std::string> allowFileExtension{"html", "json", "js", "ico", "txt", "xml", "tif", "png", "jpg",
                                                        "jpeg", "css"};
@@ -41,25 +37,13 @@ static struct {
 __thread unsigned long __header_offset = 0;
 
 
-auto is_route_request = [](const string &url) {
-    return 1;
-};
-
-void yumira::http_conn::initLoadBalancer() {
-//    if (loadBalancer)
-//        loadBalancer = new LoadBalancer();
-//    else
-    DPrintf("init loadBalancer\n");
-
-}
-
 void yumira::http_conn::initmysql_result(connection_pool *connPool) {
     //先从连接池中取一个连接
     MYSQL *mysql = nullptr;
     connectionRAII mysqlcon(&mysql, connPool);
 
     //在user表中检索username，passwd数据，浏览器端输入
-    if (mysql_query(mysql, "SELECT username,passwd FROM user")) {
+    if (mysql_query(mysql, "SELECT username, passwd FROM user")) {
         LOG_ERROR("SELECT error:%s\n", mysql_error(mysql));
     }
 
@@ -80,40 +64,33 @@ void yumira::http_conn::initmysql_result(connection_pool *connPool) {
     }
 }
 
-//对文件描述符设置非阻塞
-int setnonblocking(int fd) {
-    int old_option = fcntl(fd, F_GETFL);
-    int new_option = old_option | O_NONBLOCK;
-    fcntl(fd, F_SETFL, new_option);
-    return old_option;
-}
-
-
-//从内核时间表删除描述符
-void removefd(int epollfd, int fd) {
-    epoll_ctl(epollfd, EPOLL_CTL_DEL, fd, 0);
-    close(fd);
-}
-
 
 //关闭连接，关闭一个连接，客户总量减一
-void yumira::http_conn::close_conn(bool real_close) {
+void yumira::http_conn::close(bool real_close) {
     if (real_close && (m_sockfd != -1)) {
         DPrintf("close socket fd=%d\n", m_sockfd);
-        removefd(m_epollfd, m_sockfd);
+        epoller->removefd(m_sockfd);
+        printf("close sockfd=%d\n",m_sockfd);
+        ::close(m_sockfd);
+        printf("after close\n");
         m_sockfd = -1;
-        m_user_count--;
+        --m_user_count;
         Request::Release(request);
+    }
+    if(close_callback) {
+        close_callback();
     }
 }
 
 //初始化连接,外部调用初始化套接字地址
 void yumira::http_conn::init() {
+    printf("init()\n");
+    if(initializer)
+        initializer();
+    printf("after initializer()\n");
+
     ++m_user_count;
-
-    Utils::regist_fd(m_epollfd, m_sockfd, true, m_TRIGMode);
     __init__();
-
 }
 
 //初始化新接受的连接
@@ -137,18 +114,20 @@ yumira::http_conn::__init__() {
     cgi = 0;
     m_state = 0;
     timer_flag = 0;
-    improv = 0;
     m_json_obj = nullptr;
     complete_callback = nullptr;
-    memset(m_read_buf, '\0', READ_BUFFER_SIZE);
+    m_read_buf.clean();
+//    memset(m_read_buf, '\0', READ_BUFFER_SIZE);
     memset(m_write_buf, '\0', WRITE_BUFFER_SIZE);
     memset(m_real_file, '\0', FILENAME_LEN);
+    printf("init done\n");
 }
 
 //从状态机，用于分析出一行内容
 //返回值为行的读取状态，有LINE_OK,LINE_BAD,LINE_OPEN
 yumira::http_conn::LINE_STATUS
 yumira::http_conn::parse_line() {
+    printf("parse_line\n");
     char temp;
     for (; m_checked_idx < m_read_idx; ++m_checked_idx) {
         temp = m_read_buf[m_checked_idx];
@@ -176,15 +155,21 @@ yumira::http_conn::parse_line() {
 //循环读取客户数据to m_read_buf，直到无数据可读或对方关闭连接
 //非阻塞ET工作模式下，需要一次性将数据读完
 bool
-yumira::http_conn::read_once() {
+yumira::http_conn::read() {
+    printf("invoke read\n");
     if (m_read_idx >= READ_BUFFER_SIZE) {
+        printf("early read return\n");
+        timer_flag = 1;
         return false;
     }
     int bytes_read = 0;
 
     //LT读取数据
     if (0 == m_TRIGMode) {
+        printf("try read from fd=%d with buffer size=%d\n",m_sockfd,m_read_buf.size());
         bytes_read = recv(m_sockfd, m_read_buf + m_read_idx, READ_BUFFER_SIZE - m_read_idx, 0);
+//        m_read_buf.indexOfWrite() += bytes_read;
+        printf("\tread %d\n",bytes_read);
         m_read_idx += bytes_read;
 
         if (bytes_read <= 0) {
@@ -335,7 +320,6 @@ yumira::http_conn::parse_content(char *content) {
 yumira::http_conn::HTTP_CODE
 yumira::http_conn::process_read() {
     // real do process http connection
-
     LINE_STATUS line_status = LINE_OK;
     HTTP_CODE ret = NO_REQUEST;
     char *text = nullptr;
@@ -344,7 +328,8 @@ yumira::http_conn::process_read() {
            ((line_status = parse_line()) == LINE_OK)) {
         text = get_line();
         m_start_line = m_checked_idx;
-        LOG_INFO("text: %s", text);
+
+        printf("text: %s\n", text);
         switch (m_check_state) {
             case CHECK_STATE_REQUESTLINE: {
                 ret = parse_request_line(text);
@@ -371,25 +356,6 @@ yumira::http_conn::process_read() {
                 // m_url has been set when header sent before
                 ret = parse_content(text);
 
-                // enable load balance, need rejudge the url and redirect
-//                if (m_user_count > threshold && loadBalancer.get() && loadBalancer->isAlive()) {
-//                    // register currentNode if necessary
-
-//                    // select node for current url (as key)
-//                    auto newServerInetAddressStr = loadBalancer->select(m_url);
-//                    if (not currentInetAddress.isEqual(newServerInetAddressStr)) {
-//                        //        auto newServerInetAddressStr = InetAddress{connIp, 18000}.toString();
-//                        DPrintf("[info] trigger loadBalance to %s \n",
-//                               newServerInetAddressStr.c_str());
-//                        string old_url = m_url;
-//                        if (m_method == POST) {
-//                            old_url += '?';
-//                            old_url += m_string;
-//                        }
-//                        http_response->addLocation("http://" + newServerInetAddressStr + old_url);
-//                        return PERMANENTLY_REDIRECT;
-//                    }
-//                }
                 if (ret == GET_REQUEST)
                     return do_request();
                 line_status = LINE_OPEN;
@@ -405,6 +371,7 @@ yumira::http_conn::process_read() {
 
 yumira::http_conn::HTTP_CODE
 yumira::http_conn::do_request() {
+    printf("invoke do request\n");
     auto to_fill_route = [](string url) {
         if (url.find('?') == url.npos) url += '?';
         return url;
@@ -426,7 +393,7 @@ yumira::http_conn::do_request() {
                 relative_url_path = string(m_url);
             }
         }
-        DPrintf("relative_url: %s\n", relative_url_path.c_str());
+        printf("relative_url: %s\n", relative_url_path.c_str());
         strcpy(m_real_file, doc_root);
 
         int len_root_path = strlen(doc_root);
@@ -435,10 +402,7 @@ yumira::http_conn::do_request() {
         request->setConn(this).setMethod(m_method).setParseUrl(relative_url_path);
         try {
             if (!request->getParsedUrl().isResource()) {
-                if (_need_remake_request()) continue;
-
                 Router *route_handler;
-
                 // make sure to correct bp name concat for routers
                 // traverse blueprint(s) to handle this request
                 for (auto &bp: getInterceptors()) {
@@ -473,10 +437,6 @@ yumira::http_conn::do_request() {
                         }
                         break; /* go pass to state check... */
                     }
-                }
-                if (_need_remake_request()) {
-//                    DPrintf("[INFO] remake request...\n");
-                    continue;
                 }
 
             } else {
@@ -546,23 +506,21 @@ yumira::http_conn::__map_file_into_cache() {
      *  do open file description
      * */
     DPrintf("file path:%s\n", m_real_file);
-    int fd = open(m_real_file, O_RDONLY);
+    int file_fd = open(m_real_file, O_RDONLY);
     if (errno != 0) {
         fprintf(stderr, "error when open %s\n", strerror(errno));
     }
 //    DPrintf("[INFO] read file from storage: %s\n", m_real_file);
 
     // projection file to memory cache
-    m_file_address = (char *) mmap(nullptr, m_file_stat.st_size, PROT_READ, MAP_PRIVATE, fd, 0);
-    close(fd); // avoid fd waste
+    m_file_address = (char *) mmap(nullptr, m_file_stat.st_size, PROT_READ, MAP_PRIVATE, file_fd, 0);
+    ::close(file_fd); // avoid fd waste
 }
 
 void
-yumira::http_conn::unmap() {
-    if (m_file_address) {
-        munmap(m_file_address, m_file_stat.st_size);
-        m_file_address = nullptr;
-    }
+yumira::unmap(void *&file_address,size_t map_size) {
+    munmap(file_address, map_size);
+    file_address = nullptr;
 }
 
 bool
@@ -571,7 +529,7 @@ yumira::http_conn::write() {
     m_state = 1;
 //    printf("write\n");
     if (bytes_to_send == 0) {
-        Utils::modfd(m_epollfd, m_sockfd, EPOLLIN, m_TRIGMode);
+        epoller->ctl_fd(m_sockfd, EPOLLIN, m_TRIGMode);
         __init__();
         return true;
     }
@@ -581,10 +539,10 @@ yumira::http_conn::write() {
 
         if (temp < 0) {
             if (errno == EAGAIN) {
-                Utils::modfd(m_epollfd, m_sockfd, EPOLLOUT, m_TRIGMode);
+                epoller->ctl_fd( m_sockfd, EPOLLOUT, m_TRIGMode);
                 return true;
             }
-            unmap();
+            unmap((void*&)m_file_address,m_file_stat.st_size);
             return false;
         }
 
@@ -600,8 +558,8 @@ yumira::http_conn::write() {
         }
 
         if (bytes_to_send <= 0) {
-            unmap();
-            Utils::modfd(m_epollfd, m_sockfd, EPOLLIN, m_TRIGMode);
+            unmap((void*&)m_file_address,m_file_stat.st_size);
+            epoller->ctl_fd( m_sockfd, EPOLLIN, m_TRIGMode);
             m_state = 0;
             if (m_linger) {
                 __init__();
@@ -747,13 +705,13 @@ yumira::http_conn::process_write(yumira::http_conn::HTTP_CODE ret) {
 void
 yumira::http_conn::process() {
     HTTP_CODE read_ret;
+    printf("invoke process()\n");
     {
         DPrintf("construct httpResponse\n");
         http_response = new HttpResponse;
-        http_response->clear();
         if ((read_ret = process_read()) == NO_REQUEST) {
             // failed request, wait for connect again
-            Utils::modfd(m_epollfd, m_sockfd, EPOLLIN, m_TRIGMode);
+            epoller->ctl_fd(m_sockfd, EPOLLIN, m_TRIGMode);
             delete http_response;
             http_response = nullptr;
             return;
@@ -761,18 +719,13 @@ yumira::http_conn::process() {
         DPrintf("process_read() done\n");
         // send our response to web browser, we first write then close if necessary
         if (!(process_write(read_ret))) {
-            close_conn();
+            this->close();
         }
         delete http_response;
         http_response = nullptr;
     }
 
-    Utils::modfd(m_epollfd, m_sockfd, EPOLLOUT, m_TRIGMode);
-}
-
-void
-yumira::http_conn::set_href_url(const string &html_path) {
-    return set_href_url((const char *) html_path.c_str());
+    epoller->ctl_fd(m_sockfd, EPOLLOUT, m_TRIGMode);
 }
 
 void
@@ -788,6 +741,7 @@ yumira::http_conn::~http_conn() {
     delete builder_;
     delete request;
     request = nullptr;
+
     builder_ = nullptr;
 
     for (auto &blueprint: getInterceptors()) {
@@ -797,12 +751,4 @@ yumira::http_conn::~http_conn() {
         }
         blueprint = nullptr;
     }
-}
-
-void close_user_fd(client_data_t *user_data) {
-    // remove client fd from epoll moniter
-    Utils::removefd(Utils::u_epollfd, user_data->sockfd);
-    assert(user_data);
-    close(user_data->sockfd);
-    yumira::http_conn::decrease_active_user(1);
 }

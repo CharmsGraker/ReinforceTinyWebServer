@@ -4,10 +4,11 @@
 
 vector<HttpInterceptor *>
 Router::getRouteInterceptors() {
-    return InterceptorRegistry::Get().matchPattern(getFullRoute());
+    return interceptorRegistry.matchPattern(getFullRoute());
 }
 
 void pushContext(HttpInterceptor *interceptor, Request *context) {
+    printf("pushContext to interceptor\n");
     interceptor->request_context = context;
 }
 
@@ -15,8 +16,9 @@ void clearnContext(HttpInterceptor *interceptor) {
     interceptor->request_context = nullptr;
 }
 
-URL_STATUS Router::__view(void *environment) {
-    printf("[INFO] into %s view...\n", getFullRoute().c_str());
+URL_STATUS
+Router::__view(void *environment) {
+    printf("[INFO] into %s __view...\n", getFullRoute().c_str());
 
     // check view func
     if (!view_handler) {
@@ -31,22 +33,24 @@ URL_STATUS Router::__view(void *environment) {
 
     // interceptors
     auto safeCall = std::bind([](HttpInterceptor *interceptor) {
+
+
+    }, std::placeholders::_1);
+
+    for (auto &&handler: getRouteInterceptors()) {
+        printf("invoke interceptor\n");
         try {
-            pushContext(interceptor, request);
-            DPrintf("invoke interceptor\n");
-            interceptor->invoke();
-            clearnContext(interceptor);
+            printf("interceptor=%d\n",handler);
+            if(handler) {
+                pushContext(handler, request);
+                handler->invoke();
+                clearnContext(handler);
+            }
 
         } catch (std::exception &e) {
             e.what();
             return URL_STATUS::FORBIDDEN;
         }
-
-    }, std::placeholders::_1);
-
-    for (auto &&interceptor_handler: getRouteInterceptors()) {
-        safeCall(interceptor_handler);
-        interceptor_handler->invoke();
     }
     auto resString = view_handler();
     if (resString.rfind('.') != resString.npos) {

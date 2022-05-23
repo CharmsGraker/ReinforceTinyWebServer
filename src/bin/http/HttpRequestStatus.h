@@ -1,8 +1,0 @@
-//
-// Created by nekonoyume on 2022/4/7.
-//
-
-#ifndef TINYWEB_HTTPREQUESTSTATUS_H
-#define TINYWEB_HTTPREQUESTSTATUS_H
-
-#endif //TINYWEB_HTTPREQUESTSTATUS_H

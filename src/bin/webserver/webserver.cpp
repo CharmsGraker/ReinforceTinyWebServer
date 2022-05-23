@@ -2,9 +2,9 @@
 #include "webserver.h"
 #include "../extensions/loadbalancer/LoadBalancer.h"
 #include "../extensions/heartbeats/GrakerHeartBeat.h"
-#include "../extensions/heartbeats/cluster/Cluster.h"
 #include "../debug/dprintf.h"
 #include "../exceptions/exceptions.h"
+#include "../poller/epoller.h"
 
 using namespace yumira::dev;
 namespace yumira {
@@ -17,37 +17,33 @@ using yumira::debug::DPrintf;
 /** return remain available Fd */
 int
 GRAKER_SERVER(Http_handler)(void *) {
-    return httpConfig.MAX_FD - http_conn::activeConnectionSize();
+    return httpConfig.MAX_FD - http_conn::activeUserCount();
 };
-
 
 template<class HttpConn>
 yumira::WebServer<HttpConn>::WebServer():f_canAcceptHttp(GRAKER_SERVER(Http_handler)),
                                          f_checkConnFd(nullptr),
                                          f_createIdleThread(GRAKER_SERVER(createIdle)),
-                                         epollEvents(new epoll_event[commonConfig.MAX_EVENT_NUMBER]){
+                                         epollEvents(new epoll_event[commonConfig.MAX_EVENT_NUMBER]) {
     auto len = httpConfig.MAX_FD;
     httpConnForUsers = new http_conn[len];
-    users_timer = new client_data_t[len];
+    users_timer_meta = new client_data_t[len];
 
-    for(int i=0;i<len;++i) {
-        httpConnForUsers[i].complete_callback = [&httpConn = httpConnForUsers[i], &timer = users_timer[i].timer]() {
+    for (int i = 0; i < len; ++i) {
+        httpConnForUsers[i].complete_callback = [&httpConn = httpConnForUsers[i], &timer = users_timer_meta[i].timer]() {
             DPrintf("callback called()\n");
-            if (1 == httpConn.improv) {
-                if (1 == httpConn.timer_flag) {
-                    // callback
-                    try {
-                        if (timer) {
-                            DPrintf("remove callback\n");
-                            timer->removeCallback();
-                        }
-                    } catch (exception &e) {
-                        e.what();
-                        DPrintf("%s\n", __FILE__);
+            if (1 == httpConn.timer_flag) {
+                // callback
+                try {
+                    if (timer) {
+                        DPrintf("remove callback\n");
+                        timer->removeCallback();
                     }
-                    httpConn.timer_flag = 0;
+                } catch (exception &e) {
+                    e.what();
+                    DPrintf("%s\n", __FILE__);
                 }
-                httpConn.improv = 0;
+                httpConn.timer_flag = 0;
             }
         };
     }
@@ -57,7 +53,7 @@ yumira::WebServer<HttpConn>::WebServer():f_canAcceptHttp(GRAKER_SERVER(Http_hand
     auto pdir = curFileAbsPath.substr(0, idx + 1);
     auto idx2 = curFileAbsPath.rfind("/", idx - 1);
     auto ppdir = curFileAbsPath.substr(0, idx2 + 1);
-    printf("resourceFolder=%s\n",templateConfig.resourceFolder.c_str());
+    printf("resourceFolder=%s\n", templateConfig.resourceFolder.c_str());
 
     m_root = (char *) malloc(pdir.size() + templateConfig.resourceFolder.length());
     strcpy(m_root, pdir.c_str());
@@ -100,8 +96,6 @@ yumira::WebServer<HttpConn>::init(int port, string user,
     yumira::server_config::S_actorMode = actor_model;
     actorMode = actor_model;
     commonConfig.ServiceName = "GrakerWebServer";
-
-
 }
 
 
@@ -131,21 +125,12 @@ void yumira::WebServer<HttpConn>::setTrigMode() {
 
 
 template<class HttpConn>
-void yumira::WebServer<HttpConn>::createThreadPool() {
-    //线程池
-    http_thread_pool = new thread_pool();
-//    auto scheduler = new ThreadPoolTaskDefaultScheduler<HttpConn>(http_conn_pool, actorMode, m_connPool);
-
-}
-
-
-
-template<class HttpConn>
 void yumira::WebServer<HttpConn>::registerEventListen() {
     //线程池
     createThreadPool();
-    DPrintf("after createThreadPool\n");
+
     setTrigMode();
+
     commonConfig.serverIp = getLocalIP("localhost", 0);
 
     printf("serverHost: %s \n", commonConfig.serverIp.c_str());
@@ -192,7 +177,7 @@ void yumira::WebServer<HttpConn>::registerEventListen() {
         throw NetworkExpcetion("[WARN] listen() failed!");
     }
 
-    serverProviderMap[commonConfig.ServiceName] = commonConfig.serverIp + ":" + to_string(m_port);
+//    serverProviderMap[commonConfig.ServiceName] = commonConfig.serverIp + ":" + to_string(m_port);
     commonConfig.setConnIp(commonConfig.serverIp);
     commonConfig.setConnPort(m_port);
 
@@ -200,17 +185,14 @@ void yumira::WebServer<HttpConn>::registerEventListen() {
 
     //epoll创建内核事件表
 //    epoll_event events[MAX_EVENT_NUMBER];
-    m_epollfd = epoll_create(5);
-    assert(m_epollfd != -1);
-
-    Utils::regist_fd(m_epollfd, m_listenfd, false, m_LISTENTrigmode);
-    http_conn::m_epollfd = m_epollfd;
+    m_epoller = new Epoller(5);
+    m_epoller->regist_fd(m_listenfd, false, m_LISTENTrigmode);
 
     /** create a pair of socket,store in m_pipefd */
     assert((ret = socketpair(PF_UNIX, SOCK_STREAM, 0, m_pipefd)) != -1);
     Utils::setNonBlocking(m_pipefd[1]);
     // m_pipefd[0] use for send signal to main thread
-    Utils::regist_fd(m_epollfd, m_pipefd[0], false, 0);
+    m_epoller->regist_fd(m_pipefd[0], false, 0);
 
     Utils::addsig(SIGPIPE, SIG_IGN);
     Utils::addsig(SIGALRM, utils.sig_handler, false);
@@ -220,15 +202,17 @@ void yumira::WebServer<HttpConn>::registerEventListen() {
 
     //工具类,信号和描述符基础操作
     Utils::u_pipefd = m_pipefd;
-    Utils::u_epollfd = m_epollfd;
 }
 
 void
-yumira::remove_timer(client_data_t *users_timer, Utils &utils, util_timer *timer, int sock_fd) {
+yumira::remove_timer(client_data_t &users_timer, Utils &utils, util_timer *timer, int epollFd) {
     if (timer) {
-        close_user_fd(&users_timer[sock_fd]);
+        auto sockfd = users_timer.sockfd;
+        if (epollFd >= 0) {
+            Utils::removefd(epollFd, sockfd);
+        }
         utils.m_timer_lst.remove(timer);
-        LOG_INFO("close fd %d", users_timer[sock_fd].sockfd);
+        LOG_INFO("close fd %d", users_timer.sockfd);
     }
 }
 
@@ -245,29 +229,37 @@ yumira::WebServer<HttpConn>::createTimerForUser(int connfd, struct sockaddr_in c
             .sqlDataBaseUser(m_user)
             .sqlDataBasePassword(m_passWord)
             .sqlDataBaseName(m_databaseName)
+            .epoller(m_epoller)
+            .initializer([&m_epoller=m_epoller,&connfd=connfd,&m_CONNTrigmode=m_CONNTrigmode](){
+                printf("invoke initializer\n");
+                return m_epoller->regist_fd(connfd, true, m_CONNTrigmode);
+            })
             .build();
 
-    DPrintf("createTimerForUser fd=%d, %s\n",connfd, __FILE__);
+    DPrintf("createTimerForUser fd=%d, %s\n", connfd, __FILE__);
 
     //初始化client_data数据
     //创建定时器，设置回调函数和超时时间，绑定用户数据，将定时器添加到链表中
 
     auto &&userTimer = new util_timer;
-    userTimer->user_data = &users_timer[connfd];
-    userTimer->closeCallBack = close_user_fd;
+    userTimer->user_data = &users_timer_meta[connfd];
+    userTimer->closeCallBack = [&conn = httpConnForUsers[connfd]](st_client_data *client) {
+        conn.close();
+    };
 
     time_t cur = time(nullptr);
     userTimer->expire = cur + 3 * commonConfig.TIMESLOT;
 
-    users_timer[connfd].timer = userTimer;
-    users_timer[connfd].address = client_address;
-    users_timer[connfd].sockfd = connfd;
+    users_timer_meta[connfd].timer = userTimer;
+    users_timer_meta[connfd].address = client_address;
+    users_timer_meta[connfd].sockfd = connfd;
 
     utils.m_timer_lst.add_timer(userTimer);
     DPrintf("userTimer %s\n", __FILE__);
 
-    userTimer->removeCallback = [this, userTimer = users_timer[connfd].timer, connfd] {
-        return yumira::remove_timer(users_timer, utils, userTimer, connfd);
+    userTimer->removeCallback = [this, &conn = httpConnForUsers[connfd], &client_meta = users_timer_meta[connfd], userTimer = users_timer_meta[connfd].timer, connfd] {
+        conn.close();
+        return yumira::remove_timer(client_meta, utils, userTimer);
     };
     DPrintf("createTimerForUser done %s\n", __FILE__);
 
@@ -376,7 +368,7 @@ template<class HttpConn>
 void
 yumira::WebServer<HttpConn>::deal_with_read(int sockfd) {
     /** do EPOLL_IN event here */
-    util_timer *timer = users_timer[sockfd].timer;
+    util_timer *timer = users_timer_meta[sockfd].timer;
 
     //reactor
     if (REACTOR_MODE == actorMode) {
@@ -388,37 +380,38 @@ yumira::WebServer<HttpConn>::deal_with_read(int sockfd) {
         //若监测到读事件，将该事件放入请求队列
         // 如使用std::bind，记得std::ref
         httpConnForUsers[sockfd].m_sockfd = sockfd;
-        http_thread_pool->submit([&conn=httpConnForUsers[sockfd], m_connPool = m_connPool]() {
+        http_thread_pool->submit([&conn = httpConnForUsers[sockfd], m_connPool = m_connPool]() {
             conn(m_connPool);
         });
-    } else if (PROACTOR_MODE == actorMode) {
-        printf("Proactor read\n");
-        //proactor
-        if (httpConnForUsers[sockfd].read_once()) {
-            // let main thread read finished, then submit to work thread do logical work
-            LOG_INFO("deal with client(%s)", inet_ntoa(httpConnForUsers[sockfd].get_address()->sin_addr));
-
-            //若监测到读事件，将该事件放入请求队列
-            http_thread_pool->submit([&, m_connPool = m_connPool]() {
-                (httpConnForUsers + sockfd)->operator()(m_connPool);
-            });
-
-            if (timer) {
-                adjust_timer(timer);
-            }
-        } else {
-            timer->removeCallback();
-        }
-    } else {
-        LOG_WARN("Unsupport ActorMode(%d)", actorMode)
-        throw exception();
     }
+//    else if (PROACTOR_MODE == actorMode) {
+//        printf("Proactor read\n");
+//        //proactor
+//        if (httpConnForUsers[sockfd].read_once()) {
+//            // let main thread read finished, then submit to work thread do logical work
+//            LOG_INFO("deal with client(%s)", inet_ntoa(httpConnForUsers[sockfd].get_address()->sin_addr));
+//
+//            //若监测到读事件，将该事件放入请求队列
+//            http_thread_pool->submit([&, m_connPool = m_connPool]() {
+//                (httpConnForUsers + sockfd)->operator()(m_connPool);
+//            });
+//
+//            if (timer) {
+//                adjust_timer(timer);
+//            }
+//        } else {
+//            timer->removeCallback();
+//        }
+//    } else {
+//        LOG_WARN("Unsupport ActorMode(%d)", actorMode)
+//        throw exception();
+//    }
 }
 
 template<class HttpConn>
 void
 yumira::WebServer<HttpConn>::deal_with_write(int sockfd) {
-    util_timer *timer = users_timer[sockfd].timer;
+    util_timer *timer = users_timer_meta[sockfd].timer;
     //reactor
     if (httpConnForUsers[sockfd].write()) {
         LOG_INFO("send data to the client(%s)", inet_ntoa(httpConnForUsers[sockfd].get_address()->sin_addr));
@@ -448,16 +441,16 @@ yumira::WebServer<HttpConn>::eventLoop() {
     args_[2] = clusterIpStr.c_str();
     args_[3] = idleConfig.REDIS_CLUSTER_KEY.c_str();
 
-    std::cerr<<"[INFO] server start running...\n";
+    std::cerr << "[INFO] server start running...\n";
 
     while (!stop_server) {
 
-        for(auto&& cb_ier=loop_callbacks.begin();cb_ier != loop_callbacks.end();) {
+        for (auto &&cb_ier = loop_callbacks.begin(); cb_ier != loop_callbacks.end();) {
             try {
                 (*cb_ier)();
                 ++cb_ier;
-            } catch (RedisConnectFailException& e) {
-                std::cerr<<"catch exceptions\n";
+            } catch (RedisConnectFailException &e) {
+                std::cerr << "catch exceptions\n";
                 e.what();
                 cb_ier = loop_callbacks.erase(cb_ier);
             }
@@ -465,7 +458,7 @@ yumira::WebServer<HttpConn>::eventLoop() {
 
         int n_fd;
         // main thread need call epoll_wait to wait for socket which has data to read
-        if ((n_fd = epoll_wait(m_epollfd, epollEvents, commonConfig.MAX_EVENT_NUMBER, -1)) < 0
+        if ((n_fd = m_epoller->wait(epollEvents, commonConfig.MAX_EVENT_NUMBER, -1)) < 0
             && errno != EINTR) {
             LOG_ERROR("%s", "epoll failure");
             break;
@@ -485,7 +478,7 @@ yumira::WebServer<HttpConn>::eventLoop() {
                 }
             } else if (epollEvents[i].events & (EPOLLRDHUP | EPOLLHUP | EPOLLERR)) {
                 //服务器端关闭连接，移除对应的定时器
-                users_timer[sockfd].timer->removeCallback();
+                users_timer_meta[sockfd].timer->removeCallback();
             } else if ((sockfd == m_pipefd[0]) && (epollEvents[i].events & EPOLLIN)) {
                 //处理信号
                 if (!deal_sys_signal(timeout, reinterpret_cast<bool &>(stop_server))) LOG_ERROR("%s",

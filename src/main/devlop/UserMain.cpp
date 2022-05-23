@@ -85,11 +85,10 @@ route_register() {
     return "/register.html";
 }
 
-template<>
-int UserMain<WebServerType>::main() {
+int
+UserMain::main(void * server) {
 
     http_conn::registerInterceptor(new Router("/href", []() { return "/h.html"; }));
-
 
     // root bp============================================================================
     http_conn::registerInterceptor(new Blueprint("/"), [](Blueprint *root_bp) {
@@ -99,7 +98,8 @@ int UserMain<WebServerType>::main() {
         root_bp->registerRoute(new Router("/req_video", request_for_video));
         root_bp->registerRoute(new Router("/follow", follow));
     });
-    InterceptorRegistry::Get().addInterceptor<JwtInterceptor>("/*");
+    interceptorRegistry.addInterceptor( new ClassHolder<JwtInterceptor>(),"/.*");
+    interceptorRegistry.addInterceptor( new ClassHolder<otherHttp>(),"/.*");
 
     // another bp here==============================================================================
 //    http_conn::register_interceptor(new Blueprint("/dash"),[](Blueprint*  root_bp){

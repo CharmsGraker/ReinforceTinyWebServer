@@ -1,5 +1,4 @@
 #include "lst_timer.h"
-#include "../http/http_conn.h"
 
 sort_timer_lst::sort_timer_lst() {
     head = nullptr;
@@ -177,7 +176,7 @@ void Utils::addsig(int sig, void(sig_handler)(int), bool restart) {
      * @param handler: which function want be invoke when sig arrive
      * */
 
-    struct sigaction sa;
+    struct sigaction sa{};
     memset(&sa, '\0', sizeof(sa));
     sa.sa_handler = sig_handler;
     if (restart)
@@ -198,6 +197,5 @@ void Utils::show_error(int conn_fd, const char *infoMsg) {
 }
 
 int *Utils::u_pipefd = nullptr;
-int Utils::u_epollfd = 0;
 
 class Utils;

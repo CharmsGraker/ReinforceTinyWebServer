@@ -17,7 +17,7 @@ namespace yumira {
             uint32_t writeIdx;
             std::vector<char> data_;
         public:
-            ByteBuffer();
+            ByteBuffer(int size=2048);
 
             bool
             append(char *buffer, int len) {
@@ -25,8 +25,10 @@ namespace yumira {
             }
 
             void
-            clear() {
-
+            clean() {
+                data_.clear();
+                data_.resize(bufferSize_);
+                writeIdx = readIdx = 0;
             };
 
             char *begin() {
@@ -36,7 +38,7 @@ namespace yumira {
             uint32_t
             getOffset();
 
-            uint32_t indexOfWrite() const {
+            uint32_t& indexOfWrite() {
                 return writeIdx;
             }
 
@@ -76,7 +78,7 @@ namespace yumira {
 //                    curSize *= 2;
 //                data_.resize(curSize);
 
-                auto nRead = recv(fd, (void *) (bytes() + writeIdx), size() - writeIdx, 0);
+                auto nRead = recv(fd, (void *) (&data_[0] + writeIdx), size() - writeIdx, 0);
                 writeIdx += nRead;
                 printf("recv n=%d from sock \n", nRead);
                 return nRead;
@@ -114,8 +116,16 @@ namespace yumira {
             void
             append(const char *bytes_, int len);
 
+            char * operator+(uint32_t len) {
+                return &data_.at(len);
+            }
+            char& operator[](int idx) {
+                return data_[idx];
+            }
             virtual
             ~ByteBuffer();
+
+            void resize(const int i);
         };
     }
 }

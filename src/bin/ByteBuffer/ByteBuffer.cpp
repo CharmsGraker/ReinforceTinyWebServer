@@ -8,9 +8,7 @@
 
 namespace yumira {
     namespace net_io {
-        ByteBuffer::ByteBuffer() : curIdx(0), readIdx(0), writeIdx(0),data_(2048,'\0') {
-
-
+        ByteBuffer::ByteBuffer(int size) : bufferSize_(size),curIdx(0), readIdx(0), writeIdx(0),data_(size,'\0') {
         }
 
         bool
@@ -79,6 +77,10 @@ namespace yumira {
 
         ByteBuffer::~ByteBuffer() {
 
+        }
+
+        void ByteBuffer::resize(const int i) {
+            data_.resize(i);
         }
     }
 }

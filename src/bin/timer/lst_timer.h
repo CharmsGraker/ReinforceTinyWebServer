@@ -71,10 +71,8 @@ private:
 
 class Utils {
 public:
-    Utils() {};
-
+    Utils()=default;
     ~Utils() = default;
-
     void init(int timeslot);
 
     //对文件描述符设置非阻塞
@@ -109,15 +107,13 @@ public:
     }
     static void removefd(int epollFd,int sockFd) {
         epoll_ctl(epollFd, EPOLL_CTL_DEL, sockFd, nullptr);
-
     }
 public:
     static int *u_pipefd;
     sort_timer_lst m_timer_lst;
-    static int u_epollfd;
     int m_TIMESLOT;
 };
 
-void close_user_fd(client_data_t *user_data);
+//void close_user_fd(client_data_t *user_data);
 
 #endif

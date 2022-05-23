@@ -9,9 +9,9 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
-#include <assert.h>
+#include <cassert>
 #include <sys/stat.h>
-#include <string.h>
+#include <cstring>
 #include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -24,6 +24,7 @@
 #include <utility>
 #include <vector>
 #include <json/json.h>
+#include "../ByteBuffer/ByteBuffer.h"
 
 #include "../lock/locker.h"
 #include "../CGImysql/sql_connection_pool.h"
@@ -44,6 +45,7 @@ class LoadBalancer;
 
 using yumira::debug::DPrintf;
 
+class Epoller;
 
 using namespace yumira;
 namespace yumira {
@@ -52,11 +54,14 @@ namespace yumira {
         extern int S_actorMode;
     }
 
+    void unmap(void *&addr, size_t len);
+
     class http_conn : public Task {
     public:
         static const int FILENAME_LEN = 256;
         static const int READ_BUFFER_SIZE = 2048;
         static const int WRITE_BUFFER_SIZE = 1024;
+
         const char *INDEX_HTML_FILENAME = "judge.html";
         std::function<void(void)> complete_callback;
 
@@ -85,7 +90,7 @@ namespace yumira {
 
         /** constructor and destructor */
     public:
-        http_conn() {}
+        http_conn() : m_read_buf(READ_BUFFER_SIZE) {}
 
         ~http_conn();
 
@@ -135,8 +140,18 @@ namespace yumira {
                 return *this;
             }
 
+            Builder &epoller(Epoller *epoller) {
+                outer->epoller = epoller;
+                return *this;
+            }
+
             Builder &triggerMode(const int &triggerMode) {
                 outer->m_TRIGMode = triggerMode;
+                return *this;
+            }
+
+            Builder& initializer(std::function<void(void)> f) {
+                outer->initializer = f;
                 return *this;
             }
 
@@ -160,17 +175,11 @@ namespace yumira {
         void
         init();
 
-        static void
-        setConnIp(const char *Ip);
+        void close(bool real_close = true);
 
-        static void
-        setConnPort(const int port);
+        void process() override;
 
-        void close_conn(bool real_close = true);
-
-        void process();
-
-        bool read_once();
+        bool read();
 
         bool write();
 
@@ -185,69 +194,23 @@ namespace yumira {
         void initmysql_result(connection_pool *connPool);
 
         int timer_flag;
-        int improv;
 
         static void registerInterceptor(const Blueprint &bp) {
             getInterceptors().push_back((Blueprint *) &bp);
         }
 
-        static void
-        decrease_active_user(int cnt) {
-            m_user_count -= cnt;
-        }
-
         static int
-        activeConnectionSize() {
+        activeUserCount() {
             return m_user_count;
         }
 
         void
         operator()(connection_pool *sql_conn_pool) {
-            m_state = 0;
-//            if (1 == yumira::server_config::S_actorMode) {
-//                switch (m_state) {
-//                    case 0: {
-//                        if (read_once()) {
-//                            connectionRAII mysqlcon(&mysql, sql_conn_pool);
-//                            process();
-//                            m_state = 1;
-//                        } else {
-//                            timer_flag = 1;
-//                        }
-//                        break;
-//                    }
-//                    case 1: {
-//                        if (write()) {
-//                            m_state = 0;
-//                        } else {
-//                            timer_flag = 1;
-//                        }
-//                        break;
-//                    }
-//                }
-//                improv = 1;
-//
-//            } else {
-//                connectionRAII mysqlConnect(&mysql, sql_conn_pool);
-//                process();
-//            }
-            if (read_once()) {
+            if (read()) {
                 connectionRAII mysqlcon(&mysql, sql_conn_pool);
                 process();
-            } else {
-                timer_flag = 1;
             }
-            m_state = 1;
-
-            DPrintf("[] done fd=%d ,task,%s\n",m_sockfd, __FILE__);
-
-//            if (complete_callback) {
-//                printf("try exec http_conn callback ,%s\n", __FILE__);
-//                complete_callback();
-////                complete_callback = nullptr;
-//            } else {
-//                printf("empty callback, %s\n",__FILE__);
-//            }
+            DPrintf("[] done fd=%d ,task,%s\n", m_sockfd, __FILE__);
         }
 
         static void registerInterceptor(Router *routePtr) {
@@ -299,8 +262,6 @@ namespace yumira {
 
         void set_href_url(const char *html_path);
 
-        void set_href_url(const string &html_path);
-
         url_t
         url_for(http_conn *conn, const std::string &routeName) {
             if (routeName.find('.') == routeName.npos) {
@@ -334,13 +295,6 @@ namespace yumira {
             m_url = (char *) st_url.url.c_str();
             return m_url;
         }
-
-        MYSQL const *
-        get_mysql_query() const {
-            return mysql;
-        }
-
-
     private:
         void __init__();
 
@@ -360,7 +314,6 @@ namespace yumira {
 
         LINE_STATUS parse_line();
 
-        void unmap();
 
         // http response
         bool add_response(const char *format, ...);
@@ -395,22 +348,14 @@ namespace yumira {
             return http_ver;
         };
 
-        bool
-        _need_remake_request() const {
-            return this->remakeRequest;
-        }
-
         int
         __map_file_into_cache();
 
-        //static method init
-    private:
-        static void initLoadBalancer();
-
     public:
-        static int m_epollfd;
         int m_state;  //读为0, 写为1
         int m_sockfd;
+        std::function<void(void)> close_callback;
+        std::function<void(void)> initializer;
 
         friend class HttpConnectionAdapter<http_conn>;
 
@@ -418,11 +363,11 @@ namespace yumira {
 
     private:
         Builder *builder_;
-        static int m_user_count; // active user connection
+        static atomic_int32_t m_user_count; // active user connection
         HttpResponse *http_response;
-
+        Epoller *epoller;
         sockaddr_in m_address;
-        char m_read_buf[READ_BUFFER_SIZE];
+        net_io::ByteBuffer m_read_buf;
         int m_read_idx;
         int m_checked_idx;
         int m_start_line;
@@ -430,7 +375,8 @@ namespace yumira {
         int m_write_idx;
         CHECK_STATE m_check_state;
         http_req_method_t m_method;
-        // the truely use path when open the file or res on server
+
+        // the true use path when open the file or res on server
         char *m_url;
         char *m_version;
         char *m_host;
@@ -445,7 +391,6 @@ namespace yumira {
         int bytes_to_send;
         int bytes_have_send;
 
-        map<string, string> m_users;
         int m_TRIGMode;
 
         char sql_user[100];
@@ -461,8 +406,7 @@ namespace yumira {
 
         Json::Value *m_json_obj;
         std::string m_content_type;
+
     };
 }
-
-
 #endif

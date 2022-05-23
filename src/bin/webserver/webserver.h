@@ -41,8 +41,6 @@ namespace yumira {
     constexpr static int M_DISABLED_LOG = 1;
     constexpr static int M_ENABLED_LOG = 0;
 
-
-    using _Url = url_t;
     using _StorageMap = StorageMap;
 
 
@@ -60,11 +58,16 @@ namespace yumira {
     using WebServerType = yumira::WebServer<yumira::httpConnType>;
 
 
-    void remove_timer(client_data_t *, Utils &utils, util_timer *timer, int sockfd);
+    void remove_timer(client_data_t&, Utils &utils, util_timer *timer, int epollFd= -1);
 
+    class web_server {
+    public:
+        void stop();
+        virtual ~web_server()=default;
+    };
 
     template<class HttpConn=http_conn>
-    class WebServer {
+    class WebServer: public web_server {
         int stop_server = 0;
 
         std::string M_MYSQL_URL = "localhost";
@@ -81,16 +84,16 @@ namespace yumira {
 
         ~WebServer() {
             LOG_WARN("deconstruct server: %d", this);
-            close(m_epollfd);
             close(m_listenfd);
+            delete m_epoller;
             close(m_pipefd[1]);
             close(m_pipefd[0]);
             if (httpConnForUsers)
                 delete[] httpConnForUsers;
             httpConnForUsers = nullptr;
-            if (users_timer)
-                delete[] users_timer;
-            users_timer = nullptr;
+            if (users_timer_meta)
+                delete[] users_timer_meta;
+            users_timer_meta = nullptr;
             if (http_thread_pool)
                 delete http_thread_pool;
             http_thread_pool = nullptr;
@@ -111,7 +114,9 @@ namespace yumira {
         loadFromConf(Configuration &conf);
 
         void
-        createThreadPool();
+        createThreadPool() {
+            http_thread_pool = new thread_pool();
+        };
 
 
         template<class T>
@@ -181,7 +186,7 @@ namespace yumira {
         int actorMode;
 
         int m_pipefd[2];
-        int m_epollfd;
+        Epoller* m_epoller;
         HttpConn *httpConnForUsers; // connection for http
 
         //数据库相关
@@ -205,7 +210,7 @@ namespace yumira {
         int m_CONNTrigmode;
 
         //定时器相关
-        client_data_t *users_timer;
+        client_data_t *users_timer_meta;
         Utils utils;
         storage_t server_configs;
     private:
